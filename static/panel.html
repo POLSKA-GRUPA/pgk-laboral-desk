@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
+
   <header class="topbar">
     <span class="topbar-brand">PGK &middot; Laboral Desk</span>
     <div class="topbar-right">
@@ -29,124 +30,345 @@
       </div>
       <div class="welcome-right">
         <div class="welcome-chip" id="welcomeVigencia"></div>
+        <div id="alertsBadge" class="alerts-badge" hidden></div>
       </div>
     </div>
 
-    <!-- TABS -->
-    <div class="mode-tabs">
-      <button class="mode-tab active" data-mode="chat">Consulta libre</button>
-      <button class="mode-tab" data-mode="form">Formulario</button>
-    </div>
+    <!-- ALERTAS URGENTES (inline, visible si las hay) -->
+    <div id="alertsUrgent" class="alerts-urgent" hidden></div>
 
-    <!-- CHAT -->
-    <section id="chatSection" class="card chat-card">
-      <h2>Describe lo que necesitas</h2>
-      <div id="chatLog" class="chat-log">
-        <div class="chat-bubble system">Hola. Dime qu&eacute; puesto quieres cubrir y te calculo el coste real. Por ejemplo: <em>&ldquo;Necesito un socorrista para verano a jornada completa&rdquo;</em></div>
-      </div>
-      <form id="chatForm" class="chat-input-row">
-        <input id="chatInput" type="text" placeholder="Escribe aqu&iacute;&hellip;" autocomplete="off">
-        <button type="submit" class="btn-primary">Enviar</button>
+    <!-- PANEL PRINCIPAL: dos columnas -->
+    <div class="panel-grid">
+
+      <!-- COLUMNA IZQUIERDA: herramientas -->
+      <div class="panel-left">
+
+        <!-- TABS: Contratar / Despedir -->
+        <div class="tool-tabs">
+          <button class="tool-tab active" data-tool="contratar">
+            <span class="tool-tab-icon">+</span>
+            Contratar
+          </button>
+          <button class="tool-tab" data-tool="despedir">
+            <span class="tool-tab-icon">&times;</span>
+            Despedir
+          </button>
+        </div>
+
+        <!-- HERRAMIENTA: CONTRATAR -->
+        <div id="toolContratar" class="tool-panel">
+          <!-- Subtabs: chat / formulario -->
+          <div class="mode-tabs">
+            <button class="mode-tab active" data-mode="chat">Consulta libre</button>
+            <button class="mode-tab" data-mode="form">Formulario</button>
+          </div>
+
+          <!-- CHAT -->
+          <section id="chatSection" class="tool-section">
+            <div id="chatLog" class="chat-log">
+              <div class="chat-bubble system">Hola. Dime qu&eacute; puesto quieres cubrir y te calculo el coste real. Por ejemplo: <em>&ldquo;Necesito un socorrista para verano a jornada completa&rdquo;</em></div>
+            </div>
+            <form id="chatForm" class="chat-input-row">
+              <input id="chatInput" type="text" placeholder="Escribe aqu&iacute;&hellip;" autocomplete="off">
+              <button type="submit" class="btn-primary">Enviar</button>
+            </form>
+            <button id="chatResetBtn" class="btn-link" style="margin-top:6px">Nueva consulta</button>
+          </section>
+
+          <!-- FORMULARIO -->
+          <section id="formSection" class="tool-section" hidden>
+            <form id="simForm">
+              <div class="form-row">
+                <div class="field">
+                  <label for="category">Categor&iacute;a profesional</label>
+                  <select id="category" required></select>
+                </div>
+                <div class="field">
+                  <label for="contractType">Tipo de contrato</label>
+                  <select id="contractType"></select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="field">
+                  <label for="weeklyHours">Horas / semana</label>
+                  <input id="weeklyHours" type="number" value="40" min="1" max="40" step="1">
+                </div>
+                <div class="field">
+                  <label for="seniorityYears">Antig&uuml;edad (a&ntilde;os)</label>
+                  <input id="seniorityYears" type="number" value="0" min="0" max="50" step="1">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="field">
+                  <label>Estructura salarial</label>
+                  <div class="radio-group">
+                    <label class="radio"><input type="radio" name="extras" value="14" checked> Pagas separadas seg&uacute;n convenio</label>
+                    <label class="radio"><input type="radio" name="extras" value="12"> Prorrateadas (12&nbsp;mensualidades)</label>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="numChildren">Hijos a cargo</label>
+                  <input id="numChildren" type="number" value="0" min="0" max="10" step="1">
+                </div>
+              </div>
+              <button type="submit" class="btn-primary btn-full">Calcular coste</button>
+            </form>
+          </section>
+        </div>
+
+        <!-- HERRAMIENTA: DESPEDIR -->
+        <div id="toolDespedir" class="tool-panel" hidden>
+          <p class="tool-hint">Calcula el coste real de una extinción laboral: indemnización, finiquito y consejo estratégico.</p>
+
+          <!-- Selector rápido desde plantilla -->
+          <div class="field" id="despidoFromPlantillaField">
+            <label>Trabajador de la plantilla <span class="label-opt">(opcional)</span></label>
+            <select id="despidoEmpleado">
+              <option value="">— Introduzco los datos manualmente —</option>
+            </select>
+          </div>
+
+          <form id="despidoForm">
+            <div class="form-row">
+              <div class="field">
+                <label for="despidoNombre">Nombre del trabajador</label>
+                <input id="despidoNombre" type="text" placeholder="Nombre completo">
+              </div>
+              <div class="field">
+                <label for="despidoCategoria">Categor&iacute;a (referencia)</label>
+                <input id="despidoCategoria" type="text" placeholder="Ej: Socorrista Nivel A">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label for="despidoFechaInicio">Fecha de inicio del contrato</label>
+                <input id="despidoFechaInicio" type="date" required>
+              </div>
+              <div class="field">
+                <label for="despidoFechaFin">Fecha de despido</label>
+                <input id="despidoFechaFin" type="date">
+                <span class="field-hint">Por defecto: hoy</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label for="despidoSalario">Salario bruto mensual (&euro;)</label>
+                <input id="despidoSalario" type="number" min="0" step="0.01" placeholder="1.431,85" required>
+              </div>
+              <div class="field">
+                <label for="despidoTipo">Tipo de despido / extinci&oacute;n</label>
+                <select id="despidoTipo" required></select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label for="despidoVacaciones">D&iacute;as de vacaciones pendientes</label>
+                <input id="despidoVacaciones" type="number" value="0" min="0" max="30" step="1">
+              </div>
+              <div class="field">
+                <label for="despidoPreaviso">D&iacute;as de preaviso dados</label>
+                <input id="despidoPreaviso" type="number" value="0" min="0" max="90" step="1">
+                <span class="field-hint">Solo relevante en despido objetivo</span>
+              </div>
+            </div>
+            <button type="submit" class="btn-danger btn-full">Calcular coste de despido</button>
+          </form>
+        </div>
+
+      </div><!-- /panel-left -->
+
+      <!-- COLUMNA DERECHA: resultado -->
+      <div class="panel-right">
+
+        <!-- RESULTADO CONTRATAR -->
+        <section id="resultSection" class="result-panel" hidden>
+          <div class="result-header">
+            <span class="result-type-badge">Contratación</span>
+            <div class="ficha-context" id="fichaContext"></div>
+          </div>
+          <div class="ficha-numbers">
+            <div class="ficha-main">
+              <span class="ficha-label">Te cuesta</span>
+              <span class="ficha-big" id="heroCoste">&mdash;</span>
+              <span class="ficha-sub">al mes (empresa)</span>
+            </div>
+            <div class="ficha-pair">
+              <div class="ficha-item">
+                <span class="ficha-label">Bruto trabajador</span>
+                <span class="ficha-val" id="valBruto">&mdash;</span>
+              </div>
+              <div class="ficha-item highlight">
+                <span class="ficha-label">Neto estimado</span>
+                <span class="ficha-val" id="valNeto">&mdash;</span>
+              </div>
+            </div>
+          </div>
+          <div class="ficha-annual">
+            <span>Coste anual empresa:</span> <strong id="valAnual">&mdash;</strong>
+          </div>
+
+          <details class="details-block" id="desgloseDetails">
+            <summary>Ver desglose completo</summary>
+            <div class="desglose-inner">
+              <div class="desglose-section">
+                <h4>Cifras mensuales</h4>
+                <div class="desglose-row"><span>SS empresa</span><span id="valSSEmp">&mdash;</span></div>
+                <div class="desglose-row"><span>SS trabajador</span><span id="valSSTrab">&mdash;</span></div>
+                <div class="desglose-row"><span>IRPF (<span id="valIRPFPct">0</span>%)</span><span id="valIRPF">&mdash;</span></div>
+              </div>
+              <div class="desglose-section">
+                <h4>Devengos convenio</h4>
+                <table class="desglose-table" id="devengosTable">
+                  <thead><tr><th>Concepto</th><th>Importe</th><th>Fuente</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="desglose-section">
+                <h4>Seguridad Social &mdash; detalle</h4>
+                <div id="ssDetalle" class="detail-text"></div>
+              </div>
+              <div class="notas" id="notasBox"></div>
+            </div>
+          </details>
+
+          <details class="details-block" id="condicionesDetalles" hidden>
+            <summary>Condiciones del convenio aplicables</summary>
+            <div id="condicionesBox" style="padding:12px 16px"></div>
+          </details>
+        </section>
+
+        <!-- RESULTADO DESPIDO -->
+        <section id="despidoResultSection" class="result-panel" hidden>
+          <div class="result-header">
+            <span class="result-type-badge danger">Extinción laboral</span>
+            <div id="despidoResultNombre" class="ficha-context"></div>
+          </div>
+
+          <!-- Hero: total a pagar -->
+          <div class="ficha-numbers">
+            <div class="ficha-main danger">
+              <span class="ficha-label">Coste total empresa</span>
+              <span class="ficha-big" id="heroTotal">&mdash;</span>
+              <span class="ficha-sub" id="despidoTipoLabel">&mdash;</span>
+            </div>
+            <div class="ficha-pair">
+              <div class="ficha-item">
+                <span class="ficha-label">Indemnizaci&oacute;n</span>
+                <span class="ficha-val" id="valIndem">&mdash;</span>
+              </div>
+              <div class="ficha-item">
+                <span class="ficha-label">Finiquito</span>
+                <span class="ficha-val" id="valFiniquito">&mdash;</span>
+              </div>
+            </div>
+          </div>
+          <div class="ficha-annual" id="despidoAntiguedad"></div>
+
+          <!-- Desglose finiquito -->
+          <details class="details-block" id="despidoDesgloseDetails">
+            <summary>Desglose del finiquito</summary>
+            <div class="desglose-inner">
+              <div class="desglose-section">
+                <div class="desglose-row"><span id="despidoDiasPendientesLabel">D&iacute;as pendientes del mes</span><span id="valDiasPend">&mdash;</span></div>
+                <div class="desglose-row"><span>Parte proporcional pagas extra</span><span id="valPPagas">&mdash;</span></div>
+                <div class="desglose-row"><span>Vacaciones pendientes</span><span id="valVacaciones">&mdash;</span></div>
+                <div class="desglose-row"><span>Preaviso pendiente</span><span id="valPrinfo">&mdash;</span></div>
+              </div>
+              <div class="desglose-row desglose-row--total"><span>Total finiquito</span><span id="valTotalFiniquito">&mdash;</span></div>
+              <div class="desglose-section">
+                <h4>C&aacute;lculo indemnizaci&oacute;n</h4>
+                <div id="indemCalculo" class="detail-text"></div>
+              </div>
+              <div class="notas" id="despidoNotas"></div>
+            </div>
+          </details>
+
+          <!-- Comparativa escenarios -->
+          <details class="details-block" id="escenariosDetails">
+            <summary>Comparativa de escenarios</summary>
+            <div class="desglose-inner">
+              <div class="escenarios-grid" id="escenariosGrid"></div>
+            </div>
+          </details>
+
+          <!-- Consejo estratégico -->
+          <div class="consejo-block" id="consejoBlock"></div>
+
+          <!-- Fuentes -->
+          <div id="despidoFuentes" class="notas" style="margin-top:12px"></div>
+        </section>
+
+        <!-- PLACEHOLDER inicial -->
+        <div id="resultPlaceholder" class="result-placeholder">
+          <div class="placeholder-icon">&#9783;</div>
+          <p>El resultado aparece aqu&iacute;</p>
+          <p class="placeholder-sub">Usa el chat o el formulario de la izquierda para calcular el coste de contratar o despedir.</p>
+        </div>
+
+      </div><!-- /panel-right -->
+
+    </div><!-- /panel-grid -->
+
+    <!-- PLANTILLA DE TRABAJADORES -->
+    <details class="card details-block" id="plantillaSection">
+      <summary>
+        <span>Plantilla de trabajadores</span>
+        <span id="plantillaBadge" class="section-badge" hidden></span>
+      </summary>
+      <div id="plantillaBox" class="historial-list">Cargando&hellip;</div>
+      <form id="empleadoForm" class="alert-form" hidden>
+        <h4 style="margin:0 0 12px;font-size:14px;color:var(--pgk-green)">Nuevo trabajador</h4>
+        <div class="form-row">
+          <div class="field">
+            <label>Nombre completo</label>
+            <input id="empNombre" type="text" placeholder="Nombre y apellidos" required>
+          </div>
+          <div class="field">
+            <label>Categor&iacute;a profesional</label>
+            <select id="empCategoria" required></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Tipo de contrato</label>
+            <select id="empContrato"></select>
+          </div>
+          <div class="field">
+            <label>Horas / semana</label>
+            <input id="empHoras" type="number" value="40" min="1" max="40" step="1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Fecha de inicio</label>
+            <input id="empFechaInicio" type="date" required>
+          </div>
+          <div class="field">
+            <label>Fecha fin contrato <span class="label-opt">(temporales)</span></label>
+            <input id="empFechaFin" type="date">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Salario bruto mensual (&euro;) <span class="label-opt">(opcional — se calcula)</span></label>
+            <input id="empSalario" type="number" min="0" step="0.01" placeholder="Se calcula del convenio">
+          </div>
+          <div class="field">
+            <label>Hijos a cargo</label>
+            <input id="empHijos" type="number" value="0" min="0" max="10" step="1">
+          </div>
+        </div>
+        <div class="field">
+          <label>Notas</label>
+          <input id="empNotas" type="text" placeholder="Observaciones internas">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button type="submit" class="btn-primary">Guardar trabajador</button>
+          <button type="button" id="cancelEmpleadoBtn" class="btn-link">Cancelar</button>
+        </div>
       </form>
-      <button id="chatResetBtn" class="btn-link" style="margin-top:8px">Nueva consulta</button>
-    </section>
-
-    <!-- FORMULARIO -->
-    <section class="card form-card" id="formSection" hidden>
-      <h2>&iquest;Cu&aacute;nto cuesta contratar?</h2>
-      <form id="simForm">
-        <div class="form-row">
-          <div class="field">
-            <label for="category">Categor&iacute;a profesional</label>
-            <select id="category" required></select>
-          </div>
-          <div class="field">
-            <label for="contractType">Tipo de contrato</label>
-            <select id="contractType"></select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="field">
-            <label for="weeklyHours">Horas / semana</label>
-            <input id="weeklyHours" type="number" value="40" min="1" max="40" step="1">
-          </div>
-          <div class="field">
-            <label for="seniorityYears">Antig&uuml;edad (a&ntilde;os)</label>
-            <input id="seniorityYears" type="number" value="0" min="0" max="50" step="1">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="field">
-            <label>Estructura salarial</label>
-            <div class="radio-group">
-              <label class="radio"><input type="radio" name="extras" value="14" checked> Pagas separadas seg&uacute;n convenio</label>
-              <label class="radio"><input type="radio" name="extras" value="12"> Prorrateadas (12&nbsp;mensualidades)</label>
-            </div>
-          </div>
-          <div class="field">
-            <label for="numChildren">Hijos a cargo</label>
-            <input id="numChildren" type="number" value="0" min="0" max="10" step="1">
-          </div>
-        </div>
-        <button type="submit" class="btn-primary btn-full">Calcular coste</button>
-      </form>
-    </section>
-
-    <!-- RESULTADO -->
-    <section id="resultSection" class="card result-card" hidden>
-      <div id="resultFicha" class="result-ficha">
-        <div class="ficha-context" id="fichaContext"></div>
-        <div class="ficha-numbers">
-          <div class="ficha-main">
-            <span class="ficha-label">Te cuesta</span>
-            <span class="ficha-big" id="heroCoste">&mdash;</span>
-            <span class="ficha-sub">al mes (empresa)</span>
-          </div>
-          <div class="ficha-pair">
-            <div class="ficha-item">
-              <span class="ficha-label">Bruto trabajador</span>
-              <span class="ficha-val" id="valBruto">&mdash;</span>
-            </div>
-            <div class="ficha-item highlight">
-              <span class="ficha-label">Neto estimado</span>
-              <span class="ficha-val" id="valNeto">&mdash;</span>
-            </div>
-          </div>
-        </div>
-        <div class="ficha-annual">
-          <span>Coste anual empresa:</span> <strong id="valAnual">&mdash;</strong>
-        </div>
-      </div>
-
-      <details class="details-block">
-        <summary>Ver desglose completo</summary>
-        <div class="desglose-inner">
-          <div class="desglose-section">
-            <h4>Cifras mensuales</h4>
-            <div class="desglose-row"><span>SS empresa</span><span id="valSSEmp">&mdash;</span></div>
-            <div class="desglose-row"><span>SS trabajador</span><span id="valSSTrab">&mdash;</span></div>
-            <div class="desglose-row"><span>IRPF (<span id="valIRPFPct">0</span>%)</span><span id="valIRPF">&mdash;</span></div>
-          </div>
-          <div class="desglose-section">
-            <h4>Devengos convenio</h4>
-            <table class="desglose-table" id="devengosTable">
-              <thead><tr><th>Concepto</th><th>Importe</th><th>Fuente</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <div class="desglose-section">
-            <h4>Seguridad Social &mdash; detalle</h4>
-            <div id="ssDetalle" class="detail-text"></div>
-          </div>
-          <div class="notas" id="notasBox"></div>
-        </div>
-      </details>
-
-      <details class="details-block" id="condicionesDetalles" hidden>
-        <summary>Condiciones del convenio aplicables</summary>
-        <div id="condicionesBox" style="padding:12px 16px"></div>
-      </details>
-    </section>
+      <button id="toggleEmpleadoForm" class="btn-link" style="margin:10px 16px">+ A&ntilde;adir trabajador</button>
+    </details>
 
     <!-- ALERTAS -->
     <details class="card details-block" id="alertsSection">

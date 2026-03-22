@@ -66,6 +66,25 @@ def init_db(db_path: Path | None = None) -> None:
 
             CREATE INDEX IF NOT EXISTS idx_alerts_user
                 ON alerts(user_id, due_date);
+
+            CREATE TABLE IF NOT EXISTS employees (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL REFERENCES users(id),
+                nombre TEXT NOT NULL,
+                categoria TEXT NOT NULL,
+                contrato_tipo TEXT NOT NULL DEFAULT 'indefinido',
+                jornada_horas REAL NOT NULL DEFAULT 40.0,
+                fecha_inicio TEXT NOT NULL,
+                fecha_fin TEXT,
+                salario_bruto_mensual REAL,
+                num_hijos INTEGER NOT NULL DEFAULT 0,
+                notas TEXT NOT NULL DEFAULT '',
+                status TEXT NOT NULL DEFAULT 'activo',
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_employees_user
+                ON employees(user_id, status);
         """)
 
         # Sembrar usuario MPC si no existe (cliente acuáticas)
@@ -215,6 +234,95 @@ def dismiss_alert(alert_id: int, db_path: Path | None = None) -> None:
     try:
         conn.execute(
             "UPDATE alerts SET status = 'resolved' WHERE id = ?", (alert_id,)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+# ------------------------------------------------------------------
+# Consultas
+# ------------------------------------------------------------------
+
+# ------------------------------------------------------------------
+# Plantilla de trabajadores
+# ------------------------------------------------------------------
+
+def add_employee(
+    user_id: int,
+    nombre: str,
+    categoria: str,
+    contrato_tipo: str = "indefinido",
+    jornada_horas: float = 40.0,
+    fecha_inicio: str = "",
+    fecha_fin: str | None = None,
+    salario_bruto_mensual: float | None = None,
+    num_hijos: int = 0,
+    notas: str = "",
+    db_path: Path | None = None,
+) -> int:
+    conn = _get_db(db_path)
+    try:
+        cursor = conn.execute(
+            """INSERT INTO employees (user_id, nombre, categoria, contrato_tipo,
+               jornada_horas, fecha_inicio, fecha_fin, salario_bruto_mensual,
+               num_hijos, notas)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (user_id, nombre, categoria, contrato_tipo, jornada_horas,
+             fecha_inicio, fecha_fin, salario_bruto_mensual, num_hijos, notas),
+        )
+        conn.commit()
+        return cursor.lastrowid  # type: ignore[return-value]
+    finally:
+        conn.close()
+
+
+def get_employees(
+    user_id: int, status: str = "activo", db_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    conn = _get_db(db_path)
+    try:
+        rows = conn.execute(
+            """SELECT id, nombre, categoria, contrato_tipo, jornada_horas,
+               fecha_inicio, fecha_fin, salario_bruto_mensual, num_hijos,
+               notas, status, created_at
+               FROM employees WHERE user_id = ? AND status = ?
+               ORDER BY nombre ASC""",
+            (user_id, status),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        conn.close()
+
+
+def get_employee(employee_id: int, db_path: Path | None = None) -> dict[str, Any] | None:
+    conn = _get_db(db_path)
+    try:
+        row = conn.execute(
+            "SELECT * FROM employees WHERE id = ?", (employee_id,)
+        ).fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def update_employee(
+    employee_id: int, fields: dict[str, Any], db_path: Path | None = None,
+) -> None:
+    allowed = {
+        "nombre", "categoria", "contrato_tipo", "jornada_horas",
+        "fecha_inicio", "fecha_fin", "salario_bruto_mensual",
+        "num_hijos", "notas", "status",
+    }
+    updates = {k: v for k, v in fields.items() if k in allowed}
+    if not updates:
+        return
+    conn = _get_db(db_path)
+    try:
+        set_clause = ", ".join(f"{k} = ?" for k in updates)
+        conn.execute(
+            f"UPDATE employees SET {set_clause} WHERE id = ?",
+            [*updates.values(), employee_id],
         )
         conn.commit()
     finally:

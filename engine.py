@@ -296,6 +296,295 @@ class LaboralEngine:
         }
 
     # ------------------------------------------------------------------
+    # Calculadora de despido / extinción laboral
+    # ------------------------------------------------------------------
+
+    _TIPOS_DESPIDO: dict[str, dict] = {
+        "improcedente": {
+            "label": "Despido improcedente",
+            "dias_por_año": 33,
+            "max_meses": 24,
+            "descripcion": "Empresa rescinde sin causa justificada o ésta no se prueba.",
+        },
+        "objetivo": {
+            "label": "Despido objetivo (Art. 52 ET)",
+            "dias_por_año": 20,
+            "max_meses": 12,
+            "descripcion": "Causas económicas, técnicas, organizativas o de producción.",
+        },
+        "disciplinario": {
+            "label": "Despido disciplinario (pendiente de sentencia)",
+            "dias_por_año": 33,
+            "max_meses": 24,
+            "descripcion": "Incumplimiento grave del trabajador. Si se prueba: 0€. Si no: 33 días/año.",
+        },
+        "disciplinario_procedente": {
+            "label": "Despido disciplinario procedente",
+            "dias_por_año": 0,
+            "max_meses": 0,
+            "descripcion": "Causa probada en juicio o aceptada. No hay indemnización.",
+        },
+        "mutuo_acuerdo": {
+            "label": "Mutuo acuerdo / extinción consensual",
+            "dias_por_año": 20,
+            "max_meses": 12,
+            "descripcion": "Acuerdo entre ambas partes. Punto de partida: coste despido objetivo.",
+        },
+        "voluntario": {
+            "label": "Baja voluntaria del trabajador",
+            "dias_por_año": 0,
+            "max_meses": 0,
+            "descripcion": "El trabajador decide marcharse. Sin indemnización para él.",
+        },
+        "ere": {
+            "label": "ERE / extinción colectiva",
+            "dias_por_año": 20,
+            "max_meses": 12,
+            "descripcion": "Despido colectivo con autorización. Mínimo legal: 20 días/año.",
+        },
+    }
+
+    def calcular_despido(
+        self,
+        tipo_despido: str,
+        fecha_inicio: str,
+        salario_bruto_mensual: float,
+        fecha_despido: str | None = None,
+        dias_vacaciones_pendientes: int = 0,
+        dias_preaviso_empresa: int = 0,
+        weekly_hours: float = 40.0,
+        nombre_trabajador: str = "",
+        categoria: str = "",
+    ) -> dict[str, Any]:
+        """Calcula el coste total de una extinción laboral con consejo estratégico."""
+        from datetime import date
+
+        fecha_inicio_dt = date.fromisoformat(fecha_inicio)
+        fecha_despido_dt = date.fromisoformat(fecha_despido) if fecha_despido else date.today()
+
+        if fecha_despido_dt <= fecha_inicio_dt:
+            return {"error": "La fecha de despido debe ser posterior a la fecha de inicio."}
+
+        # Antigüedad
+        dias_totales = (fecha_despido_dt - fecha_inicio_dt).days
+        antiguedad_anos = dias_totales / 365.25
+        jornada_ratio = weekly_hours / FULL_TIME_WEEKLY_HOURS
+
+        # Salario diario (sobre bruto anual estimado)
+        bruto_anual = salario_bruto_mensual * self._convenio_pagas
+        salario_diario = bruto_anual / 365.0
+
+        tipo_info = self._TIPOS_DESPIDO.get(tipo_despido, self._TIPOS_DESPIDO["improcedente"])
+        dias_por_año = tipo_info["dias_por_año"]
+        max_meses = tipo_info["max_meses"]
+
+        # Indemnización
+        if dias_por_año > 0:
+            indemnizacion_raw = salario_diario * dias_por_año * antiguedad_anos
+            tope = salario_bruto_mensual * max_meses
+            indemnizacion = round(min(indemnizacion_raw, tope), 2)
+            tope_aplicado = indemnizacion < indemnizacion_raw
+        else:
+            indemnizacion = 0.0
+            indemnizacion_raw = 0.0
+            tope = 0.0
+            tope_aplicado = False
+
+        # Finiquito — 1. Salario días pendientes del mes en curso
+        dias_mes = fecha_despido_dt.day
+        salario_dias_pendientes = round(salario_diario * dias_mes, 2)
+
+        # Finiquito — 2. Parte proporcional pagas extra
+        year_start = date(fecha_despido_dt.year, 1, 1)
+        dias_trabajados_ano = (fecha_despido_dt - year_start).days + 1
+        n_extras = self._convenio_pagas - 12
+        pp_pagas = round((dias_trabajados_ano / 365.0) * (salario_bruto_mensual * n_extras), 2)
+
+        # Finiquito — 3. Vacaciones pendientes (usuario informa los días que quedan)
+        vacaciones_eur = round(dias_vacaciones_pendientes * salario_diario, 2)
+
+        # Finiquito — 4. Preaviso no cumplido por la empresa (solo despidos con preaviso obligatorio)
+        preaviso_convenio_dias = 15  # ET Art. 53 para objetivo; convenio para voluntario
+        if tipo_despido in ("objetivo", "ere"):
+            preaviso_pendiente_dias = max(0, preaviso_convenio_dias - dias_preaviso_empresa)
+            preaviso_eur = round(preaviso_pendiente_dias * salario_diario, 2)
+        else:
+            preaviso_pendiente_dias = 0
+            preaviso_eur = 0.0
+
+        total_finiquito = round(salario_dias_pendientes + pp_pagas + vacaciones_eur + preaviso_eur, 2)
+        total_eur = round(indemnizacion + total_finiquito, 2)
+
+        # Escenarios alternativos (para contexto del director)
+        esc_objetivo = round(min(salario_diario * 20 * antiguedad_anos, salario_bruto_mensual * 12), 2)
+        esc_improcedente = round(min(salario_diario * 33 * antiguedad_anos, salario_bruto_mensual * 24), 2)
+
+        return {
+            "nombre_trabajador": nombre_trabajador,
+            "categoria": categoria,
+            "tipo_despido": tipo_despido,
+            "tipo_despido_label": tipo_info["label"],
+            "tipo_despido_desc": tipo_info["descripcion"],
+            "fecha_inicio": fecha_inicio,
+            "fecha_despido": fecha_despido_dt.isoformat(),
+            "antiguedad_anos": round(antiguedad_anos, 2),
+            "antiguedad_dias": dias_totales,
+            "salario_bruto_mensual_eur": round(salario_bruto_mensual, 2),
+            "salario_diario_eur": round(salario_diario, 2),
+            "jornada_horas": weekly_hours,
+            # Indemnización
+            "indemnizacion_eur": indemnizacion,
+            "indemnizacion_calculo": (
+                f"{dias_por_año} días/año × {round(antiguedad_anos, 2)} años × {round(salario_diario, 2)}€/día"
+                if dias_por_año > 0 else "No corresponde indemnización"
+            ),
+            "indemnizacion_raw_eur": round(indemnizacion_raw, 2),
+            "tope_maximo_eur": round(tope, 2),
+            "tope_aplicado": tope_aplicado,
+            # Finiquito desglosado
+            "finiquito": {
+                "salario_dias_pendientes_eur": salario_dias_pendientes,
+                "salario_dias_pendientes_n": dias_mes,
+                "parte_proporcional_pagas_eur": pp_pagas,
+                "parte_proporcional_pagas_n": n_extras,
+                "vacaciones_pendientes_eur": vacaciones_eur,
+                "vacaciones_pendientes_dias": dias_vacaciones_pendientes,
+                "preaviso_pendiente_eur": preaviso_eur,
+                "preaviso_pendiente_dias": preaviso_pendiente_dias,
+                "total_finiquito_eur": total_finiquito,
+            },
+            "total_eur": total_eur,
+            # Comparativa escenarios
+            "escenarios": {
+                "objetivo_eur": esc_objetivo,
+                "improcedente_eur": esc_improcedente,
+            },
+            "consejo": self._build_consejo_despido(
+                tipo_despido, antiguedad_anos, indemnizacion,
+                salario_bruto_mensual, salario_diario, esc_improcedente, esc_objetivo,
+            ),
+            "fuentes": [
+                "Arts. 49-56 ET (Estatuto de los Trabajadores)",
+                f"{self.data['convenio'].get('nombre', 'Convenio aplicable')}",
+                "Orden de cotización SS 2026",
+            ],
+            "notas": [
+                "Cálculo orientativo. Confirmar siempre con asesoría laboral antes de actuar.",
+                "La antigüedad se computa desde la fecha de inicio del primer contrato, aunque haya habido renovaciones sin interrupción.",
+                "Para trabajadores contratados antes del 12/02/2012, la indemnización por despido improcedente tiene un régimen transitorio (45 días/año hasta esa fecha, con tope de 42 mensualidades).",
+            ],
+        }
+
+    def get_tipos_despido(self) -> list[dict[str, Any]]:
+        """Lista de tipos de despido para el selector."""
+        return [
+            {
+                "value": k,
+                "label": v["label"],
+                "descripcion": v["descripcion"],
+                "dias_por_año": v["dias_por_año"],
+            }
+            for k, v in self._TIPOS_DESPIDO.items()
+        ]
+
+    def _build_consejo_despido(
+        self,
+        tipo: str,
+        anos: float,
+        indemnizacion: float,
+        mensual: float,
+        salario_diario: float,
+        imp_eur: float,
+        obj_eur: float,
+    ) -> list[str]:
+        consejos = []
+        preaviso = 15
+
+        if tipo == "improcedente":
+            consejos.append(
+                f"La empresa paga {indemnizacion:,.2f}€ de indemnización (33 días/año × {anos:.1f} años)."
+            )
+            consejos.append(
+                "El despido improcedente puede ofrecerse voluntariamente (evita juicio) "
+                "o ser declarado por el juez si el trabajador impugna."
+            )
+            if anos < 1:
+                consejos.append("Con menos de 1 año, la indemnización es proporcional a los meses trabajados.")
+
+        elif tipo == "objetivo":
+            consejos.append(
+                f"Requiere carta de despido con causa económica/técnica/organizativa y {preaviso} días de preaviso obligatorio."
+            )
+            consejos.append(
+                f"Si el juzgado rechaza la causa o no se respeta el preaviso, el despido pasa a improcedente: coste subiría a {imp_eur:,.2f}€."
+            )
+            consejos.append(
+                "Causas válidas (Art. 52 ET): pérdidas actuales o previstas, disminución persistente de ingresos, "
+                "cambios en demanda de productos/servicios. Deben estar documentadas."
+            )
+
+        elif tipo == "disciplinario":
+            consejos.append(
+                f"Si el despido es declarado PROCEDENTE: 0€ de indemnización. "
+                f"Si es IMPROCEDENTE: {imp_eur:,.2f}€."
+            )
+            consejos.append(
+                "Para que sea procedente, el incumplimiento debe ser grave y culpable, y estar tipificado "
+                "en el Art. 54 ET o en el convenio. La carta de despido debe describir los hechos con precisión."
+            )
+            consejos.append(
+                "Recomendación: antes de actuar, documenta el incumplimiento (advertencias previas, partes, correos). "
+                "Un despido disciplinario mal ejecutado sale más caro que uno objetivo."
+            )
+
+        elif tipo == "disciplinario_procedente":
+            consejos.append("Despido disciplinario con causa probada: 0€ de indemnización.")
+            consejos.append(
+                "El trabajador tiene 20 días hábiles para impugnar el despido desde la fecha de efectos. "
+                "Guarda toda la documentación del expediente por si hay juicio."
+            )
+
+        elif tipo == "mutuo_acuerdo":
+            consejos.append(
+                f"No hay mínimo legal — es negociado. Punto de partida habitual: coste del despido objetivo ({obj_eur:,.2f}€)."
+            )
+            consejos.append(
+                "Atención: el trabajador NO puede cobrar el desempleo tras un mutuo acuerdo (salvo ERE homologado). "
+                "Esto puede ser un argumento en la negociación — el trabajador asume ese coste."
+            )
+            consejos.append(
+                "Ventajas para la empresa: evita riesgo de juicio, se negocia la fecha exacta de salida, "
+                "y se puede acordar confidencialidad."
+            )
+
+        elif tipo == "voluntario":
+            consejos.append(
+                f"La baja voluntaria no genera coste de indemnización para la empresa."
+            )
+            consejos.append(
+                f"El trabajador debe respetar el preaviso de {preaviso} días (convenio aplicable). "
+                f"Si no lo hace, puedes descontar esos días de la liquidación: {round(salario_diario * preaviso, 2):,.2f}€."
+            )
+            consejos.append(
+                "El trabajador NO puede cobrar el desempleo. "
+                "Si el trabajador amenaza con irse pero en realidad quiere ser despedido, "
+                "considera si te interesa el mutuo acuerdo (más caro para ti, pero él obtiene el paro)."
+            )
+
+        elif tipo == "ere":
+            consejos.append(
+                f"ERE: mínimo 20 días/año (máx. 12 mensualidades). Coste mínimo: {indemnizacion:,.2f}€ por trabajador."
+            )
+            consejos.append(
+                "Requiere período de consultas con representantes de los trabajadores (mín. 15 días para empresas < 50 trabajadores)."
+            )
+            consejos.append(
+                "Las prestaciones por desempleo en ERE tienen condiciones especiales. Asesórate antes de iniciar el procedimiento."
+            )
+
+        return consejos
+
+    # ------------------------------------------------------------------
     # Internos
     # ------------------------------------------------------------------
 

@@ -1333,3 +1333,423 @@ h1, h2, h3, h4, h5, h6 {
 .clients-table tr:last-child td {
   border-bottom: none;
 }
+
+/* ============================================================
+   PANEL GRID — dos columnas
+   ============================================================ */
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 18px;
+}
+
+.panel-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.panel-right {
+  position: sticky;
+  top: 80px;
+}
+
+/* ============================================================
+   TOOL TABS: Contratar / Despedir
+   ============================================================ */
+
+.tool-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px 14px 0 0;
+  overflow: hidden;
+  border-bottom: none;
+}
+
+.tool-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 13px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  transition: background 0.15s, color 0.15s;
+  border-bottom: 2px solid transparent;
+}
+
+.tool-tab:hover {
+  background: var(--brand-soft);
+  color: var(--pgk-green);
+}
+
+.tool-tab.active {
+  background: var(--pgk-green);
+  color: var(--pgk-cream);
+}
+
+.tool-tab-icon {
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 300;
+}
+
+.tool-tab[data-tool="despedir"].active {
+  background: #7f1d1d;
+  color: #fff;
+}
+
+.tool-panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  padding: 18px;
+  color: var(--ink);
+}
+
+.tool-section {
+  /* inner sections within a tool panel */
+}
+
+.tool-hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   RESULT PANEL
+   ============================================================ */
+
+.result-panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.result-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.result-type-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(15, 118, 110, 0.12);
+  color: var(--ok);
+}
+
+.result-type-badge.danger {
+  background: rgba(127, 29, 29, 0.1);
+  color: #7f1d1d;
+}
+
+.result-placeholder {
+  background: var(--paper);
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.placeholder-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+
+.result-placeholder p {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+
+.placeholder-sub {
+  font-size: 13px !important;
+  opacity: 0.7;
+}
+
+/* Danger variant for ficha-main */
+.ficha-main.danger .ficha-big {
+  color: #7f1d1d;
+}
+
+/* ============================================================
+   CONSEJO ESTRATÉGICO
+   ============================================================ */
+
+.consejo-block {
+  margin-top: 16px;
+  background: linear-gradient(135deg, rgba(21,38,33,0.06) 0%, rgba(220,203,179,0.08) 100%);
+  border: 1px solid rgba(220,203,179,0.3);
+  border-left: 3px solid var(--pgk-green);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.consejo-header {
+  padding: 8px 14px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pgk-green);
+  border-bottom: 1px solid rgba(220,203,179,0.2);
+}
+
+.consejo-item {
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+  border-bottom: 1px solid rgba(220,203,179,0.12);
+}
+
+.consejo-item:last-child {
+  border-bottom: none;
+}
+
+/* ============================================================
+   COMPARATIVA ESCENARIOS
+   ============================================================ */
+
+.escenarios-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.escenario-card {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--paper-strong);
+}
+
+.escenario-card.active {
+  border-color: var(--pgk-green);
+  background: rgba(21,38,33,0.05);
+}
+
+.escenario-card.danger.active {
+  border-color: #7f1d1d;
+  background: rgba(127,29,29,0.05);
+}
+
+.escenario-card.green.active {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+}
+
+.escenario-tipo {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.escenario-coste {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--pgk-green);
+  font-family: var(--font-heading);
+  margin-bottom: 4px;
+}
+
+.escenario-card.danger .escenario-coste { color: #7f1d1d; }
+.escenario-card.green .escenario-coste { color: var(--ok); }
+
+.escenario-nota {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* ============================================================
+   ALERTAS URGENTES (banda encima de la grid)
+   ============================================================ */
+
+.alerts-urgent {
+  background: rgba(154, 52, 18, 0.08);
+  border: 1px solid rgba(154, 52, 18, 0.2);
+  border-radius: 10px;
+  padding: 2px 4px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.urgent-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.urgent-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: var(--warn);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.alerts-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(154, 52, 18, 0.15);
+  color: var(--warn);
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   ALERT ROWS
+   ============================================================ */
+
+.alert-days {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(220,203,179,0.15);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.alert-overdue .alert-days {
+  background: rgba(154,52,18,0.15);
+  color: var(--warn);
+}
+
+.alert-urgent .alert-days {
+  background: rgba(154,52,18,0.08);
+  color: var(--warn);
+}
+
+/* ============================================================
+   MISC HELPERS
+   ============================================================ */
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  background: #7f1d1d;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: background 0.15s;
+}
+
+.btn-danger:hover { background: #991b1b; }
+
+.label-opt {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.field-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.section-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: rgba(21,38,33,0.12);
+  color: var(--pgk-green);
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.desglose-row--total {
+  border-top: 1px solid var(--line);
+  margin-top: 6px;
+  padding-top: 8px;
+  font-weight: 600;
+  color: var(--pgk-green);
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 860px) {
+  .panel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-right {
+    position: static;
+    order: -1; /* result first on mobile after a calculation */
+  }
+
+  .escenarios-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tool-tabs {
+    border-radius: 14px 14px 0 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .escenarios-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ficha-pair {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

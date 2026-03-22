@@ -19,6 +19,7 @@ from flask import (
 from database import (
     authenticate, dismiss_alert, get_alerts, get_consultations,
     init_db, save_alert, save_consultation,
+    add_employee, get_employees, get_employee, update_employee,
 )
 from engine import LaboralEngine
 from chat_parser import ChatParser
@@ -322,6 +323,198 @@ def api_chat():
 def api_chat_reset():
     session.pop("chat_context", None)
     return jsonify({"ok": True})
+
+
+# ------------------------------------------------------------------
+# Tipos de despido
+# ------------------------------------------------------------------
+
+@app.route("/api/tipos-despido")
+@login_required
+def api_tipos_despido():
+    return jsonify(_get_engine().get_tipos_despido())
+
+
+# ------------------------------------------------------------------
+# Despido / extinción laboral
+# ------------------------------------------------------------------
+
+@app.route("/api/despido", methods=["POST"])
+@login_required
+def api_despido():
+    data = request.get_json(silent=True) or {}
+    required = ["tipo_despido", "fecha_inicio", "salario_bruto_mensual"]
+    for field in required:
+        if not data.get(field):
+            return jsonify({"error": f"Campo requerido: {field}"}), 400
+
+    eng = _get_engine()
+    result = eng.calcular_despido(
+        tipo_despido=str(data["tipo_despido"]),
+        fecha_inicio=str(data["fecha_inicio"]),
+        salario_bruto_mensual=float(data["salario_bruto_mensual"]),
+        fecha_despido=data.get("fecha_despido") or None,
+        dias_vacaciones_pendientes=int(data.get("dias_vacaciones_pendientes", 0)),
+        dias_preaviso_empresa=int(data.get("dias_preaviso_empresa", 0)),
+        weekly_hours=float(data.get("weekly_hours", 40)),
+        nombre_trabajador=str(data.get("nombre_trabajador", "")),
+        categoria=str(data.get("categoria", "")),
+    )
+
+    if "error" in result:
+        return jsonify(result), 400
+    return jsonify(result)
+
+
+# ------------------------------------------------------------------
+# Plantilla de trabajadores
+# ------------------------------------------------------------------
+
+@app.route("/api/employees")
+@login_required
+def api_employees_list():
+    status = request.args.get("status", "activo")
+    employees = get_employees(user_id=session["user_id"], status=status)
+    return jsonify(employees)
+
+
+@app.route("/api/employees", methods=["POST"])
+@login_required
+def api_employees_create():
+    data = request.get_json(silent=True) or {}
+    required = ["nombre", "categoria", "fecha_inicio"]
+    for field in required:
+        if not data.get(field):
+            return jsonify({"error": f"Campo requerido: {field}"}), 400
+
+    # Calcular salario desde el motor si no se especifica
+    salario = data.get("salario_bruto_mensual")
+    if not salario:
+        eng = _get_engine()
+        sim = eng.simulate(
+            category=str(data["categoria"]),
+            contract_type=str(data.get("contrato_tipo", "indefinido")),
+            weekly_hours=float(data.get("jornada_horas", 40)),
+            seniority_years=0,
+        )
+        if "error" not in sim:
+            salario = sim["bruto_mensual_eur"]
+
+    emp_id = add_employee(
+        user_id=session["user_id"],
+        nombre=str(data["nombre"]),
+        categoria=str(data["categoria"]),
+        contrato_tipo=str(data.get("contrato_tipo", "indefinido")),
+        jornada_horas=float(data.get("jornada_horas", 40)),
+        fecha_inicio=str(data["fecha_inicio"]),
+        fecha_fin=data.get("fecha_fin") or None,
+        salario_bruto_mensual=float(salario) if salario else None,
+        num_hijos=int(data.get("num_hijos", 0)),
+        notas=str(data.get("notas", "")),
+    )
+
+    # Crear alertas automáticas
+    emp = get_employee(emp_id)
+    if emp:
+        _auto_alerts_for_employee(emp)
+
+    return jsonify({"ok": True, "id": emp_id}), 201
+
+
+@app.route("/api/employees/<int:emp_id>", methods=["PUT"])
+@login_required
+def api_employees_update(emp_id: int):
+    emp = get_employee(emp_id)
+    if not emp or emp["user_id"] != session["user_id"]:
+        return jsonify({"error": "No encontrado"}), 404
+    data = request.get_json(silent=True) or {}
+    allowed = {
+        "nombre", "categoria", "contrato_tipo", "jornada_horas",
+        "fecha_inicio", "fecha_fin", "salario_bruto_mensual", "num_hijos", "notas", "status",
+    }
+    fields = {k: v for k, v in data.items() if k in allowed}
+    update_employee(emp_id, fields)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/employees/<int:emp_id>/despido", methods=["POST"])
+@login_required
+def api_employees_despido(emp_id: int):
+    """Calcula el coste de despedir a un trabajador concreto de la plantilla."""
+    emp = get_employee(emp_id)
+    if not emp or emp["user_id"] != session["user_id"]:
+        return jsonify({"error": "Trabajador no encontrado"}), 404
+
+    data = request.get_json(silent=True) or {}
+    tipo = str(data.get("tipo_despido", "improcedente"))
+
+    salario = emp.get("salario_bruto_mensual")
+    if not salario:
+        eng = _get_engine()
+        sim = eng.simulate(
+            category=str(emp["categoria"]),
+            contract_type=str(emp["contrato_tipo"]),
+            weekly_hours=float(emp["jornada_horas"]),
+        )
+        salario = sim.get("bruto_mensual_eur", 1000.0) if "error" not in sim else 1000.0
+
+    eng = _get_engine()
+    result = eng.calcular_despido(
+        tipo_despido=tipo,
+        fecha_inicio=str(emp["fecha_inicio"]),
+        salario_bruto_mensual=float(salario),
+        fecha_despido=data.get("fecha_despido") or None,
+        dias_vacaciones_pendientes=int(data.get("dias_vacaciones_pendientes", 0)),
+        dias_preaviso_empresa=int(data.get("dias_preaviso_empresa", 0)),
+        weekly_hours=float(emp["jornada_horas"]),
+        nombre_trabajador=str(emp["nombre"]),
+        categoria=str(emp["categoria"]),
+    )
+
+    if "error" in result:
+        return jsonify(result), 400
+    return jsonify(result)
+
+
+def _auto_alerts_for_employee(emp: dict) -> None:
+    """Crea alertas automáticas para un nuevo empleado."""
+    from datetime import date, timedelta
+    try:
+        inicio = date.fromisoformat(emp["fecha_inicio"])
+        contrato = emp.get("contrato_tipo", "indefinido")
+
+        # Fin de período de prueba
+        prueba_dias = {
+            "indefinido": 90, "temporal": 30, "fijo-discontinuo": 90,
+        }.get(contrato, 30)
+        fin_prueba = inicio + timedelta(days=prueba_dias)
+        if fin_prueba >= date.today():
+            save_alert(
+                user_id=emp["user_id"],
+                alert_type="fin_prueba",
+                title=f"Fin período de prueba — {emp['nombre']}",
+                description=f"Categoría: {emp['categoria']}. Revisa si continúa.",
+                due_date=fin_prueba.isoformat(),
+                worker_name=emp["nombre"],
+                category=emp["categoria"],
+            )
+
+        # Fin de contrato (si es temporal con fecha fin)
+        if emp.get("fecha_fin"):
+            fin = date.fromisoformat(emp["fecha_fin"])
+            aviso = fin - timedelta(days=15)
+            if aviso >= date.today():
+                save_alert(
+                    user_id=emp["user_id"],
+                    alert_type="fin_contrato",
+                    title=f"Vencimiento contrato — {emp['nombre']}",
+                    description=f"El contrato temporal vence el {emp['fecha_fin']}. Decide si renovar o finalizar.",
+                    due_date=aviso.isoformat(),
+                    worker_name=emp["nombre"],
+                    category=emp["categoria"],
+                )
+    except (ValueError, KeyError):
+        pass
 
 
 # ------------------------------------------------------------------
