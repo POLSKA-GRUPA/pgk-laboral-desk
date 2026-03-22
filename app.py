@@ -33,11 +33,26 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(32))
 
 # Inicializar DB y motor
 init_db()
-engine = LaboralEngine.from_json_file()
 chat_parser = ChatParser()
 client_mgr = ClientManager()
 client_mgr.init_tables()
 convenio_verifier = ConvenioVerifier()
+
+# Cache de engines por convenio (evita recargar JSON en cada request)
+_engine_cache: dict[str, LaboralEngine] = {}
+
+
+def _get_engine(convenio_id: str | None = None) -> LaboralEngine:
+    """Devuelve el engine del convenio indicado (o el del usuario en sesión)."""
+    cid = convenio_id or session.get("convenio_id", "")
+    if not cid:
+        cid = "convenio_acuaticas_2025_2027"  # fallback
+    if cid not in _engine_cache:
+        try:
+            _engine_cache[cid] = LaboralEngine.from_convenio_id(cid)
+        except FileNotFoundError:
+            _engine_cache[cid] = LaboralEngine.from_json_file()  # fallback
+    return _engine_cache[cid]
 
 
 # ------------------------------------------------------------------
@@ -128,13 +143,19 @@ def api_me():
 @app.route("/api/categories")
 @login_required
 def api_categories():
-    return jsonify(engine.get_categories())
+    return jsonify(_get_engine().get_categories())
 
 
 @app.route("/api/contract-types")
 @login_required
 def api_contract_types():
-    return jsonify(engine.get_contract_types())
+    return jsonify(_get_engine().get_contract_types())
+
+
+@app.route("/api/regions")
+@login_required
+def api_regions():
+    return jsonify(_get_engine().get_regions())
 
 
 # ------------------------------------------------------------------
@@ -149,7 +170,8 @@ def api_simulate():
     if not category:
         return jsonify({"error": "Selecciona una categoría profesional"}), 400
 
-    result = engine.simulate(
+    eng = _get_engine()
+    result = eng.simulate(
         category=category,
         contract_type=str(data.get("contract_type", "indefinido")),
         weekly_hours=float(data.get("weekly_hours", 40)),
@@ -157,6 +179,8 @@ def api_simulate():
         extras_prorated=bool(data.get("extras_prorated", False)),
         num_children=int(data.get("num_children", 0)),
         children_under_3=int(data.get("children_under_3", 0)),
+        region=str(data.get("region", "generica")),
+        contract_days=data.get("contract_days"),
     )
 
     if "error" in result:
@@ -192,9 +216,10 @@ def api_history():
 @app.route("/api/convenio")
 @login_required
 def api_convenio():
+    eng = _get_engine()
     return jsonify({
-        "convenio": engine.data["convenio"],
-        "sections": engine.data["sections"],
+        "convenio": eng.data["convenio"],
+        "sections": eng.data["sections"],
     })
 
 
@@ -259,7 +284,7 @@ def api_chat():
     session["chat_context"] = result.get("context", {})
 
     if action == "ready":
-        sim_result = engine.simulate(**result["params"])
+        sim_result = _get_engine().simulate(**result["params"])
         if "error" in sim_result:
             return jsonify({"type": "error", "message": sim_result["error"]})
 
@@ -402,7 +427,8 @@ def api_verify_convenio():
 
 @app.route("/api/health")
 def api_health():
-    return jsonify({"ok": True, "convenio": engine.data["convenio"]["nombre"]})
+    convenios = LaboralEngine.list_available_convenios()
+    return jsonify({"ok": True, "convenios_disponibles": len(convenios)})
 
 
 # ------------------------------------------------------------------

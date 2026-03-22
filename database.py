@@ -68,7 +68,7 @@ def init_db(db_path: Path | None = None) -> None:
                 ON alerts(user_id, due_date);
         """)
 
-        # Sembrar usuario MPC si no existe
+        # Sembrar usuario MPC si no existe (cliente acuáticas)
         existing = conn.execute(
             "SELECT id FROM users WHERE username = ?", ("mpc",)
         ).fetchone()
@@ -86,7 +86,7 @@ def init_db(db_path: Path | None = None) -> None:
                     "client",
                 ),
             )
-        # Sembrar usuario admin PGK
+        # Sembrar usuario admin PGK (oficinas y despachos Alicante)
         existing_admin = conn.execute(
             "SELECT id FROM users WHERE username = ?", ("pgk",)
         ).fetchone()
@@ -100,9 +100,15 @@ def init_db(db_path: Path | None = None) -> None:
                     generate_password_hash("pgk2025"),
                     "PGK Hispania",
                     "",
-                    "convenio_acuaticas_2025_2027",
+                    "convenio_oficinas_despachos_alicante_2024_2026",
                     "admin",
                 ),
+            )
+        else:
+            # Actualizar convenio de pgk si ya existe con el viejo
+            conn.execute(
+                "UPDATE users SET convenio_id = ? WHERE username = ?",
+                ("convenio_oficinas_despachos_alicante_2024_2026", "pgk"),
             )
         conn.commit()
     finally:
