@@ -10,6 +10,8 @@ const apiStatus = document.getElementById("apiStatus");
 const responseBadge = document.getElementById("responseBadge");
 const convenioName = document.getElementById("convenioName");
 const decisionBody = document.querySelector(".decision-body");
+const kpiBar = document.getElementById("kpiBar");
+const kpiTotal = document.getElementById("kpiTotal");
 
 document.querySelectorAll(".prompt-chip").forEach((button) => {
   button.addEventListener("click", () => {
@@ -18,18 +20,29 @@ document.querySelectorAll(".prompt-chip").forEach((button) => {
   });
 });
 
+function resetKpi() {
+  kpiTotal.textContent = "\u2014";
+  kpiBar.classList.add("kpi-pending");
+}
+
+function updateKpi(totalEur) {
+  kpiTotal.textContent = totalEur.toFixed(2);
+  kpiBar.classList.remove("kpi-pending");
+}
+
 clearButton.addEventListener("click", () => {
   queryInput.value = "";
-  answerBox.textContent = "La respuesta aparecerá aquí.";
+  answerBox.textContent = "La respuesta aparecer\u00e1 aqu\u00ed.";
   answerBox.classList.add("empty");
   clarificationsBox.classList.add("hidden");
   clarificationsBox.innerHTML = "";
   decisionBody.classList.add("no-clarifications");
-  requestSummary.innerHTML = "Esperando análisis.";
-  payrollBox.innerHTML = "Sin cálculo todavía.";
-  conditionsBox.innerHTML = "Aquí se mostrarán las condiciones relevantes.";
+  requestSummary.innerHTML = "Esperando an\u00e1lisis.";
+  payrollBox.innerHTML = "Sin c\u00e1lculo todav\u00eda.";
+  conditionsBox.innerHTML = "Aqu\u00ed se mostrar\u00e1n las condiciones relevantes.";
   responseBadge.textContent = "Pendiente";
   responseBadge.className = "response-badge muted";
+  resetKpi();
 });
 
 analyzeButton.addEventListener("click", analyzeQuery);
@@ -59,7 +72,7 @@ async function analyzeQuery() {
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.error || "Error de análisis");
+      throw new Error(result.error || "Error de an\u00e1lisis");
     }
 
     renderResult(result);
@@ -68,6 +81,7 @@ async function analyzeQuery() {
     answerBox.classList.remove("empty");
     responseBadge.textContent = "Error";
     responseBadge.className = "response-badge needs";
+    resetKpi();
   } finally {
     analyzeButton.disabled = false;
     analyzeButton.textContent = "Analizar";
@@ -80,7 +94,7 @@ function renderResult(result) {
   answerBox.classList.remove("empty");
 
   responseBadge.textContent = result.status === "ready"
-    ? "Pre-nómina disponible"
+    ? "Pre-n\u00f3mina disponible"
     : `Faltan ${result.clarifications.length} datos`;
   responseBadge.className = result.status === "ready" ? "response-badge ready" : "response-badge needs";
 
@@ -97,6 +111,12 @@ function renderResult(result) {
     decisionBody.classList.add("no-clarifications");
   }
 
+  if (result.payroll_draft) {
+    updateKpi(result.payroll_draft.totals.total_devengado_convenio_eur);
+  } else {
+    resetKpi();
+  }
+
   requestSummary.innerHTML = buildRequestSummary(result.request, result.contract_fit);
   payrollBox.innerHTML = buildPayroll(result.payroll_draft);
   conditionsBox.innerHTML = buildConditions(result.relevant_sections);
@@ -105,7 +125,7 @@ function renderResult(result) {
 function buildRequestSummary(request, contractFit) {
   const sensitivePoint = buildSensitivePoint(contractFit);
   const cards = [
-    summaryCard("Categoría", request.category_match.row ? request.category_match.row.category : "Sin cerrar"),
+    summaryCard("Categor\u00eda", request.category_match.row ? request.category_match.row.category : "Sin cerrar"),
     summaryCard("Modalidad", request.contract_type || "No detectada"),
     summaryCard("Jornada", request.weekly_hours ? `${request.weekly_hours} h/semana` : "No detectada"),
     summaryCard("Trienios", `${request.trienios}`),
@@ -136,11 +156,11 @@ function summaryCard(label, value) {
 
 function buildPayroll(payroll) {
   if (!payroll) {
-    return "La pre-nómina se genera cuando la categoría y la jornada están claras.";
+    return "La pre-n\u00f3mina se genera cuando la categor\u00eda y la jornada est\u00e1n claras.";
   }
 
   const metrics = [
-    payrollMetric("Categoría", payroll.category),
+    payrollMetric("Categor\u00eda", payroll.category),
     payrollMetric("Jornada aplicada", `${Math.round(payroll.jornada_ratio * 100)} %`),
     payrollMetric("Salario base 14 pagas", `${payroll.monthly_reference_14_payments_eur.toFixed(2)} EUR`),
     payrollMetric("Hora referencia", `${payroll.hourly_reference_eur.toFixed(2)} EUR`),
@@ -203,7 +223,7 @@ function buildConditions(sections) {
 }
 
 function buildSectionPreview(items) {
-  return items.slice(0, 3).map((item) => item.label).join(" · ");
+  return items.slice(0, 3).map((item) => item.label).join(" \u00b7 ");
 }
 
 async function loadHealth() {
@@ -212,7 +232,7 @@ async function loadHealth() {
     const result = await response.json();
     if (result.ok) {
       apiStatus.textContent = "API conectada";
-      convenioName.textContent = "Convenio acuáticas 2025-2027";
+      convenioName.textContent = "Convenio acu\u00e1ticas 2025-2027";
     }
   } catch (error) {
     apiStatus.textContent = "API no disponible";
@@ -228,4 +248,5 @@ function escapeHtml(value) {
 }
 
 decisionBody.classList.add("no-clarifications");
+resetKpi();
 loadHealth();
