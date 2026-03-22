@@ -1,0 +1,24 @@
+name: Deploy laboral-pgk
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: root
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: 22
+          script: |
+            set -e
+            cd /opt/laboral-pgk
+            git pull origin main 2>/dev/null || (git init && git remote add origin https://github.com/POLSKA-GRUPA/pgk-laboral-desk.git && git fetch origin main && git checkout -f origin/main)
+            docker build -t laboral-pgk:latest .
+            docker service update --image laboral-pgk:latest --force laboral-pgk
+            echo "✅ Deploy complete"
