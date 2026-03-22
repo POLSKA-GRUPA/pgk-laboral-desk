@@ -1,0 +1,421 @@
+{
+  "boe_id": null,
+  "bopa_referencia": "BOP Alicante Nº 28 de 11/02/2025 — 802/2025",
+  "convenio": {
+    "nombre": "Convenio colectivo provincial de Oficinas y Despachos de Alicante",
+    "codigo": "03001005011983",
+    "ambito": "provincial",
+    "provincia": "Alicante",
+    "comunidad_autonoma": "Comunitat Valenciana",
+    "publicacion_bopa": "2025-02-11",
+    "vigencia_desde_ano": 2024,
+    "vigencia_hasta_ano": 2026,
+    "anexo_salarial_ano": 2026,
+    "incrementos": {
+      "2024": 3.1,
+      "2025": 3.0,
+      "2026": 2.5,
+      "_nota_2026": "Si IPC 2026 > 2,5% se compensa con incremento hasta 1% adicional. Se aplicará en tablas 2027."
+    }
+  },
+  "resumen_operativo": {
+    "foco_categoria": null,
+    "usa_filtros_categoria": false,
+    "categorias_mostradas": 23,
+    "base_laboral_espana": true,
+    "pagas_extras": 3,
+    "_nota_pagas": "Junio, Diciembre y Marzo (Art. 19 y 20)"
+  },
+  "sections": [
+    {
+      "title": "Contratación y modalidad",
+      "items": [
+        {
+          "label": "Ámbito funcional",
+          "detail": "Oficinas y despachos, servicios administrativos generales, despachos profesionales: abogacía, administración de fincas, agentes comerciales, arquitectura, colegios profesionales, graduados sociales, ingenierías, informática, traductores, detectives, etc.",
+          "source": "Art. 2"
+        },
+        {
+          "label": "Periodo de prueba",
+          "detail": "Grupos I y II: 6 meses. Grupo III: 3 meses. Grupos IV y V: 2 meses. Grupo VI: 1 mes.",
+          "source": "Art. 48"
+        },
+        {
+          "label": "Preaviso por dimisión",
+          "detail": "Grupos I y II: 60 días. Grupo III: 1 mes. Resto de grupos: 15 días.",
+          "source": "Art. 50"
+        },
+        {
+          "label": "Contratos formativos",
+          "detail": "Formación en alternancia: retribución mínima 60% (1er año) y 75% (2do año) del salario del grupo. Práctica profesional: mínimo 75% del salario del grupo, nunca inferior al SMI.",
+          "source": "Art. 49"
+        }
+      ]
+    },
+    {
+      "title": "Jornada y descansos",
+      "items": [
+        {
+          "label": "Jornada anual efectiva",
+          "detail": "2024: 1782 horas. 2025: 1774 horas.",
+          "source": "Art. 27"
+        },
+        {
+          "label": "Jornada semanal máxima",
+          "detail": "40 horas semanales.",
+          "source": "Art. 27"
+        },
+        {
+          "label": "Jornada intensiva",
+          "detail": "Desde el 1 de junio al 30 de septiembre, jornada continuada de 7 a 15 horas o similar.",
+          "source": "Art. 27"
+        },
+        {
+          "label": "Descanso semanal",
+          "detail": "Mínimo de día y medio continuado.",
+          "source": "Art. 27"
+        },
+        {
+          "label": "Vacaciones",
+          "detail": "30 días naturales al año. Disfrute preferente entre junio y septiembre salvo acuerdo.",
+          "source": "Art. 30"
+        },
+        {
+          "label": "Calendario laboral",
+          "detail": "La empresa elaborará calendario anual antes del 31 de enero de cada año.",
+          "source": "Art. 28"
+        }
+      ]
+    },
+    {
+      "title": "Retribución",
+      "items": [
+        {
+          "label": "Estructura salarial",
+          "detail": "Salario base + complementos salariales. Los salarios mensuales mínimos por grupo profesional y nivel se recogen en el anexo.",
+          "source": "Art. 17"
+        },
+        {
+          "label": "Salarios — tabla es ANUAL",
+          "detail": "Los importes del anexo son anuales e incluyen las pagas extraordinarias.",
+          "source": "Anexo tablas salariales"
+        },
+        {
+          "label": "Gratificaciones extraordinarias",
+          "detail": "Dos pagas extras: junio (primera quincena) y diciembre (primera quincena). Cada una = 1 mensualidad de salario base + antigüedad consolidada.",
+          "source": "Art. 19"
+        },
+        {
+          "label": "Paga de marzo",
+          "detail": "Una mensualidad adicional de salario convenio + antigüedad consolidada, a abonar en el primer trimestre.",
+          "source": "Art. 20"
+        },
+        {
+          "label": "Plus nocturno",
+          "detail": "30% del salario base + antigüedad consolidada. Nocturno = 22:00 a 07:00.",
+          "source": "Art. 21"
+        },
+        {
+          "label": "Plus festivo y domingos",
+          "detail": "Horas festivos = (salario bruto anual / jornada anual) × 1,75.",
+          "source": "Art. 22"
+        },
+        {
+          "label": "Plus transporte",
+          "detail": "2026: 2,75 EUR/día trabajado (mensual fijo: 55,59 EUR).",
+          "source": "Anexo tablas 2026"
+        },
+        {
+          "label": "Plus teletrabajo",
+          "detail": "2026: 2,75 EUR/día trabajado (mensual fijo: 55,59 EUR).",
+          "source": "Anexo tablas 2026"
+        },
+        {
+          "label": "Dietas",
+          "detail": "2026: media dieta 21,32 EUR, dieta completa 62,71 EUR. Desplazamiento: 0,26 EUR/km.",
+          "source": "Art. 25 y Anexo 2026"
+        },
+        {
+          "label": "Horas extraordinarias",
+          "detail": "Máximo 80 al año. Se compensan con descanso equivalente dentro de los 4 meses siguientes, salvo acuerdo de compensación económica.",
+          "source": "Art. 29"
+        },
+        {
+          "label": "Antigüedad consolidada",
+          "detail": "Complemento ad personam congelado desde 01/01/2004. No es susceptible de futuros incrementos, absorción o compensación.",
+          "source": "Art. 8"
+        },
+        {
+          "label": "Peligrosidad/toxicidad/penosidad",
+          "detail": "20% del salario base, proporcional al tiempo efectivo en puesto con riesgo.",
+          "source": "Art. 23"
+        },
+        {
+          "label": "Complemento idiomas",
+          "detail": "20% sobre salario base para quienes usen idiomas por necesidad del trabajo.",
+          "source": "Art. 24"
+        },
+        {
+          "label": "Ayuda hijos con diversidad funcional",
+          "detail": "2026: 132,79 EUR/mes por hijo menor de 18 años con diversidad funcional reconocida.",
+          "source": "Disposición adicional primera"
+        }
+      ]
+    },
+    {
+      "title": "Vacaciones, permisos y coberturas",
+      "items": [
+        {
+          "label": "Licencias retribuidas",
+          "detail": "Matrimonio: 15 días. Nacimiento hijo: según ET. Fallecimiento cónyuge/padres/hijos: 3 días (5 si desplazamiento). Traslado domicilio: 1 día. Examen oficial: tiempo necesario. Deber público inexcusable: tiempo indispensable.",
+          "source": "Art. 31"
+        },
+        {
+          "label": "Premio fidelidad",
+          "detail": "Permisos retribuidos por cese voluntario a partir de 62 años: a los 62 → 1 mes por cada 3 años de servicio; a los 63 → 20 días; a los 64 → 14 días; a los 65 → 8 días.",
+          "source": "Art. 52"
+        },
+        {
+          "label": "IT y complemento empresa",
+          "detail": "Desde el primer día de baja por contingencias comunes, la empresa complementa hasta el 100% del salario durante los primeros 6 meses. AT/EP: 100% desde el primer día.",
+          "source": "Art. 47"
+        }
+      ]
+    },
+    {
+      "title": "Clasificación profesional",
+      "items": [
+        {
+          "label": "Sistema de grupos",
+          "detail": "6 grupos profesionales con niveles internos. La clasificación se basa en funciones efectivamente realizadas, no en titulación.",
+          "source": "Art. 11"
+        },
+        {
+          "label": "Grupo 1",
+          "detail": "Titulados superiores. Responsabilidad directa en gestión de áreas funcionales. Alta autonomía.",
+          "source": "Art. 11 y Anexo 2"
+        },
+        {
+          "label": "Grupo 2",
+          "detail": "Titulados medios. Tareas técnicas complejas con alto grado de autonomía.",
+          "source": "Art. 11 y Anexo 2"
+        },
+        {
+          "label": "Grupo 3",
+          "detail": "Jefes administrativos, delineantes, encargados laboratorio, analistas informática, programadores.",
+          "source": "Art. 11 y Anexo 2"
+        },
+        {
+          "label": "Grupo 4",
+          "detail": "Jefes administrativos 2ª, cajeros con firma, secretarios dirección, técnicos analistas.",
+          "source": "Art. 11 y Anexo 2"
+        },
+        {
+          "label": "Grupo 5",
+          "detail": "Oficiales administrativos, taquígrafos, cajeros sin firma, operadores ordenadores.",
+          "source": "Art. 11 y Anexo 2"
+        },
+        {
+          "label": "Grupo 6",
+          "detail": "Auxiliares administrativos, recepcionistas, telefonistas, tareas manuales y reprografía.",
+          "source": "Art. 11 y Anexo 2"
+        }
+      ]
+    },
+    {
+      "title": "Alertas de aplicación",
+      "items": [
+        {
+          "label": "Salarios anuales con pagas incluidas",
+          "detail": "Las tablas del anexo expresan el salario ANUAL incluyendo las 3 pagas extras (junio, diciembre y marzo). Para obtener el mensual en 15 pagas, dividir entre 15.",
+          "source": "Nota al pie del anexo salarial"
+        },
+        {
+          "label": "Grupo 6 Nivel 2 = SMI",
+          "detail": "El nivel más bajo del convenio remite al SMI vigente. Verificar siempre el SMI del año en curso.",
+          "source": "Anexo tablas salariales"
+        },
+        {
+          "label": "Auxiliar Administrativo de entrada → Grupo 6.1",
+          "detail": "Los auxiliares de nueva contratación entran en Grupo 6.1. Tras 3 años pasan a Grupo 5.4.",
+          "source": "Disposición complementaria primera.b"
+        },
+        {
+          "label": "Titulados: escala por antigüedad",
+          "detail": "Titulados grado superior/medio: Nivel 3 el 1er año, Nivel 2 el 2do año, Nivel 1 a partir del 3er año.",
+          "source": "Disposición complementaria primera.a"
+        }
+      ]
+    }
+  ],
+  "salarios_por_categoria": [
+    {
+      "section": "Grupo 1",
+      "category": "Grupo 1 Nivel 1 — Titulado Superior (desde 3er año)",
+      "monthly_15_payments_eur": 1913.44,
+      "annual_eur": 28701.58,
+      "grupo_ss": "1"
+    },
+    {
+      "section": "Grupo 1",
+      "category": "Grupo 1 Nivel 2 — Titulado Superior (2do año)",
+      "monthly_15_payments_eur": 1530.76,
+      "annual_eur": 22961.40,
+      "grupo_ss": "1"
+    },
+    {
+      "section": "Grupo 1",
+      "category": "Grupo 1 Nivel 3 — Titulado Superior (1er año)",
+      "monthly_15_payments_eur": 1339.42,
+      "annual_eur": 20091.24,
+      "grupo_ss": "1"
+    },
+    {
+      "section": "Grupo 2",
+      "category": "Grupo 2 Nivel 1 — Titulado Medio (desde 3er año)",
+      "monthly_15_payments_eur": 1711.01,
+      "annual_eur": 25665.21,
+      "grupo_ss": "2"
+    },
+    {
+      "section": "Grupo 2",
+      "category": "Grupo 2 Nivel 2 — Titulado Medio (2do año)",
+      "monthly_15_payments_eur": 1368.87,
+      "annual_eur": 20533.00,
+      "grupo_ss": "2"
+    },
+    {
+      "section": "Grupo 2",
+      "category": "Grupo 2 Nivel 3 — Titulado Medio (1er año)",
+      "monthly_15_payments_eur": 1197.70,
+      "annual_eur": 17965.54,
+      "grupo_ss": "2"
+    },
+    {
+      "section": "Grupo 3",
+      "category": "Grupo 3 Nivel 1A — Jefe Admón. Superior / Jefe Delineación",
+      "monthly_15_payments_eur": 1711.07,
+      "annual_eur": 25666.03,
+      "grupo_ss": "3"
+    },
+    {
+      "section": "Grupo 3",
+      "category": "Grupo 3 Nivel 1B — Delineante proyectista",
+      "monthly_15_payments_eur": 1693.69,
+      "annual_eur": 25405.29,
+      "grupo_ss": "3"
+    },
+    {
+      "section": "Grupo 3",
+      "category": "Grupo 3 Nivel 2 — Encargado laboratorio / Jefe 1ª Admón. / Analista informática",
+      "monthly_15_payments_eur": 1501.28,
+      "annual_eur": 22519.27,
+      "grupo_ss": "3"
+    },
+    {
+      "section": "Grupo 3",
+      "category": "Grupo 3 Nivel 3A — Delineante de primera",
+      "monthly_15_payments_eur": 1462.14,
+      "annual_eur": 21932.17,
+      "grupo_ss": "3"
+    },
+    {
+      "section": "Grupo 3",
+      "category": "Grupo 3 Nivel 3B — Delineante de segunda",
+      "monthly_15_payments_eur": 1388.99,
+      "annual_eur": 20834.83,
+      "grupo_ss": "3"
+    },
+    {
+      "section": "Grupo 4",
+      "category": "Grupo 4 Nivel 1 — Jefe Admón. 2ª / Cajero firma / Secretario Dirección",
+      "monthly_15_payments_eur": 1361.49,
+      "annual_eur": 20422.28,
+      "grupo_ss": "4"
+    },
+    {
+      "section": "Grupo 4",
+      "category": "Grupo 4 Nivel 2A — Técnico analista / Analista 1ª",
+      "monthly_15_payments_eur": 1339.03,
+      "annual_eur": 20085.50,
+      "grupo_ss": "4"
+    },
+    {
+      "section": "Grupo 4",
+      "category": "Grupo 4 Nivel 2B — Analista 2ª / Oficial admón. 1ª / Encargado oficios",
+      "monthly_15_payments_eur": 1288.76,
+      "annual_eur": 19331.37,
+      "grupo_ss": "4"
+    },
+    {
+      "section": "Grupo 4",
+      "category": "Grupo 4 Nivel 2C — Inspector entrevistador / Operador tabuladores",
+      "monthly_15_payments_eur": 1268.81,
+      "annual_eur": 19032.18,
+      "grupo_ss": "4"
+    },
+    {
+      "section": "Grupo 5",
+      "category": "Grupo 5 Nivel 1 — Taquígrafo / Cajero sin firma / Jefe máquinas",
+      "monthly_15_payments_eur": 1251.11,
+      "annual_eur": 18766.68,
+      "grupo_ss": "5"
+    },
+    {
+      "section": "Grupo 5",
+      "category": "Grupo 5 Nivel 2A — Oficial laboratorio 1ª",
+      "monthly_15_payments_eur": 1235.99,
+      "annual_eur": 18539.87,
+      "grupo_ss": "5"
+    },
+    {
+      "section": "Grupo 5",
+      "category": "Grupo 5 Nivel 2B — Oficial admón. 2ª / Operador ordenadores",
+      "monthly_15_payments_eur": 1191.80,
+      "annual_eur": 17877.04,
+      "grupo_ss": "5"
+    },
+    {
+      "section": "Grupo 5",
+      "category": "Grupo 5 Nivel 3 — Conserje / Telefonista / Clasificador",
+      "monthly_15_payments_eur": 1184.84,
+      "annual_eur": 17772.62,
+      "grupo_ss": "6"
+    },
+    {
+      "section": "Grupo 5",
+      "category": "Grupo 5 Nivel 4 — Vigilante / Ordenanza / Cobrador",
+      "monthly_15_payments_eur": 1177.48,
+      "annual_eur": 17662.26,
+      "grupo_ss": "6"
+    },
+    {
+      "section": "Grupo 6",
+      "category": "Grupo 6 Nivel 1 — Auxiliar admón. (>3 años) / Recepcionista",
+      "monthly_15_payments_eur": 1154.29,
+      "annual_eur": 17314.30,
+      "grupo_ss": "7"
+    },
+    {
+      "section": "Grupo 6",
+      "category": "Grupo 6 Nivel 2 — Auxiliar admón. entrada / Personal limpieza",
+      "monthly_15_payments_eur": null,
+      "annual_eur": null,
+      "_nota": "SMI vigente",
+      "grupo_ss": "7"
+    }
+  ],
+  "extras_convenio": {
+    "plus_transporte_dia_eur": 2.75,
+    "plus_transporte_mensual_eur": 55.59,
+    "plus_teletrabajo_dia_eur": 2.75,
+    "plus_teletrabajo_mensual_eur": 55.59,
+    "media_dieta_eur": 21.32,
+    "dieta_completa_eur": 62.71,
+    "km_vehiculo_propio_eur": 0.26,
+    "ayuda_especial_mensual_eur": 132.79,
+    "plus_nocturno_pct": 30.0,
+    "plus_peligrosidad_pct": 20.0,
+    "plus_idiomas_pct": 20.0
+  }
+}
