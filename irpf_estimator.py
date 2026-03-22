@@ -1,18 +1,10 @@
-"""Estimación de retención IRPF sobre rendimientos del trabajo — 2025.
+"""Estimación de retención IRPF — 2026.
 
-Implementa el algoritmo simplificado de la AEAT para cálculo del tipo
-de retención (arts. 80-86 RIRPF, RD 439/2007 modificado).
+Escalas separadas: estatal + autonómica (por CC.AA.).
+CC.AA. soportadas: Madrid, Cataluña, Andalucía, C. Valenciana + genérica.
 
-NOTA: Este cálculo es ORIENTATIVO.  El tipo definitivo depende de la
-situación personal y familiar completa del contribuyente.
-
-Escala general 2025 (estatal + CC.AA. media):
-  0 – 12.450 €        → 19 %
-  12.450 – 20.200 €   → 24 %
-  20.200 – 35.200 €   → 30 %
-  35.200 – 60.000 €   → 37 %
-  60.000 – 300.000 €  → 45 %
-  > 300.000 €         → 47 %
+NOTA: Cálculo ORIENTATIVO. El tipo definitivo depende de la situación
+personal y familiar completa del contribuyente.
 """
 
 from __future__ import annotations
@@ -21,32 +13,85 @@ from dataclasses import dataclass
 from typing import Any
 
 
-# Escala general combinada (estado + CC.AA. media) — 2025
-_BRACKETS: list[tuple[float, float]] = [
-    (12_450.0, 0.19),
-    (20_200.0, 0.24),
-    (35_200.0, 0.30),
-    (60_000.0, 0.37),
-    (300_000.0, 0.45),
-    (float("inf"), 0.47),
+# ======================================================================
+# Escalas IRPF 2026
+# ======================================================================
+
+# Escala estatal (igual para todas las CC.AA.)
+_STATE_BRACKETS: list[tuple[float, float]] = [
+    (12_450.0, 0.095),
+    (20_200.0, 0.12),
+    (35_200.0, 0.15),
+    (60_000.0, 0.185),
+    (300_000.0, 0.225),
+    (float("inf"), 0.245),
 ]
 
-# Mínimo personal y familiar (art. 57-61 LIRPF)
+# Escalas autonómicas
+_REGIONAL_BRACKETS: dict[str, list[tuple[float, float]]] = {
+    "madrid": [
+        (12_450.0, 0.085),
+        (17_707.2, 0.1070),
+        (33_007.2, 0.1280),
+        (53_407.2, 0.1790),
+        (float("inf"), 0.2060),
+    ],
+    "cataluna": [
+        (12_450.0, 0.105),
+        (17_707.2, 0.12),
+        (33_007.2, 0.15),
+        (53_407.2, 0.185),
+        (90_000.0, 0.2125),
+        (120_000.0, 0.2350),
+        (175_000.0, 0.2450),
+        (float("inf"), 0.255),
+    ],
+    "andalucia": [
+        (12_450.0, 0.095),
+        (20_200.0, 0.12),
+        (28_000.0, 0.15),
+        (35_200.0, 0.155),
+        (50_000.0, 0.185),
+        (60_000.0, 0.1850),
+        (120_000.0, 0.225),
+        (float("inf"), 0.245),
+    ],
+    "valencia": [
+        (12_450.0, 0.10),
+        (17_707.2, 0.12),
+        (33_007.2, 0.14),
+        (53_407.2, 0.18),
+        (80_000.0, 0.225),
+        (120_000.0, 0.245),
+        (175_000.0, 0.255),
+        (float("inf"), 0.295),
+    ],
+}
+
+# Genérica: aproximación media = misma que estatal (50/50)
+_REGIONAL_BRACKETS["generica"] = _STATE_BRACKETS
+
+SUPPORTED_REGIONS = ["generica", "madrid", "cataluna", "andalucia", "valencia"]
+
+
+# ======================================================================
+# Constantes
+# ======================================================================
+
 _PERSONAL_MINIMUM = 5_550.0
-_CHILD_MINIMUMS = [2_400.0, 2_700.0, 4_000.0, 4_500.0]  # 1º, 2º, 3º, 4º+
+_CHILD_MINIMUMS = [2_400.0, 2_700.0, 4_000.0, 4_500.0]
 _CHILD_UNDER_3_EXTRA = 2_800.0
-
-# Otros gastos deducibles del rendimiento del trabajo (art. 19.2 LIRPF)
 _OTHER_WORK_EXPENSES = 2_000.0
-
-# Mínimos de retención
-_MIN_RETENTION_TEMPORAL = 2.0  # % mínimo para contratos temporales < 1 año
+_MIN_RETENTION_TEMPORAL = 2.0
 _MIN_RETENTION_GENERAL = 0.0
 
 
+# ======================================================================
+# Resultado
+# ======================================================================
+
 @dataclass(frozen=True)
 class IRPFResult:
-    """Resultado del cálculo estimado de retención IRPF."""
     annual_gross: float
     annual_ss_worker: float
     taxable_base: float
@@ -57,6 +102,7 @@ class IRPFResult:
     annual_retention: float
     retention_rate_pct: float
     monthly_retention: float
+    region: str = "generica"
     is_estimate: bool = True
 
     def to_dict(self) -> dict[str, Any]:
@@ -71,12 +117,16 @@ class IRPFResult:
             "retencion_anual_eur": round(self.annual_retention, 2),
             "tipo_retencion_pct": round(self.retention_rate_pct, 2),
             "retencion_mensual_eur": round(self.monthly_retention, 2),
+            "comunidad_autonoma": self.region,
             "es_estimacion": True,
         }
 
 
+# ======================================================================
+# Estimador
+# ======================================================================
+
 class IRPFEstimator:
-    """Calcula el tipo de retención estimado de IRPF."""
 
     def estimate(
         self,
@@ -86,50 +136,42 @@ class IRPFEstimator:
         children_under_3: int = 0,
         contract_type: str = "indefinido",
         num_payments: int = 14,
+        region: str = "generica",
     ) -> IRPFResult:
-        """Estima la retención mensual de IRPF.
+        # Rendimiento neto
+        net_income = max(annual_gross - annual_ss_worker - _OTHER_WORK_EXPENSES, 0.0)
 
-        Args:
-            annual_gross: Retribución bruta anual (salario + extras).
-            annual_ss_worker: Cotización anual del trabajador a SS.
-            num_children: Número de hijos a cargo (< 25 años o discapacitados).
-            children_under_3: De esos hijos, cuántos son menores de 3 años.
-            contract_type: Tipo de contrato (afecta retención mínima).
-            num_payments: 12 o 14 (para distribuir la retención mensual).
-        """
-        # Paso 1: Rendimiento neto del trabajo
-        net_income = annual_gross - annual_ss_worker - _OTHER_WORK_EXPENSES
-        net_income = max(net_income, 0.0)
-
-        # Paso 2: Reducción por obtención de rendimientos del trabajo
+        # Reducción rendimientos del trabajo
         work_reduction = self._work_income_reduction(net_income)
 
-        # Paso 3: Base liquidable
+        # Base liquidable
         taxable_base = max(net_income - work_reduction, 0.0)
 
-        # Paso 4: Mínimo personal y familiar
+        # Mínimo personal y familiar
         personal_minimum = self._personal_family_minimum(num_children, children_under_3)
 
-        # Paso 5: Cuota sobre la renta
-        tax_on_income = self._apply_scale(taxable_base)
+        # Cuotas: estatal + autonómica
+        region_key = region.lower().replace("ñ", "n").replace("í", "i").replace("á", "a")
+        if region_key not in _REGIONAL_BRACKETS:
+            region_key = "generica"
 
-        # Paso 6: Cuota sobre el mínimo
-        tax_on_minimum = self._apply_scale(personal_minimum)
+        tax_state = self._apply_scale(taxable_base, _STATE_BRACKETS)
+        tax_region = self._apply_scale(taxable_base, _REGIONAL_BRACKETS[region_key])
+        tax_on_income = tax_state + tax_region
 
-        # Paso 7: Retención
+        min_state = self._apply_scale(personal_minimum, _STATE_BRACKETS)
+        min_region = self._apply_scale(personal_minimum, _REGIONAL_BRACKETS[region_key])
+        tax_on_minimum = min_state + min_region
+
+        # Retención
         annual_retention = max(tax_on_income - tax_on_minimum, 0.0)
-
-        # Paso 8: Tipo de retención (%)
         retention_rate = (annual_retention / annual_gross * 100) if annual_gross > 0 else 0.0
 
-        # Paso 9: Aplicar mínimo de retención
-        is_temporal = contract_type in (
-            "temporal", "temporal-produccion", "sustitucion",
-        )
+        # Mínimo de retención
+        is_temporal = contract_type in ("temporal", "temporal-produccion", "sustitucion")
         min_rate = _MIN_RETENTION_TEMPORAL if is_temporal else _MIN_RETENTION_GENERAL
         retention_rate = max(retention_rate, min_rate)
 
-        # Recalcular retención anual con el tipo ajustado
         annual_retention = annual_gross * retention_rate / 100
         monthly_retention = annual_retention / num_payments
 
@@ -144,11 +186,11 @@ class IRPFEstimator:
             annual_retention=annual_retention,
             retention_rate_pct=retention_rate,
             monthly_retention=monthly_retention,
+            region=region_key,
         )
 
     @staticmethod
     def _work_income_reduction(net_income: float) -> float:
-        """Reducción por obtención de rendimientos del trabajo (art. 20 LIRPF 2025)."""
         if net_income <= 14_852.0:
             return 7_302.0
         if net_income <= 17_673.52:
@@ -157,7 +199,6 @@ class IRPFEstimator:
 
     @staticmethod
     def _personal_family_minimum(num_children: int, children_under_3: int) -> float:
-        """Mínimo personal y familiar."""
         total = _PERSONAL_MINIMUM
         for i in range(num_children):
             idx = min(i, len(_CHILD_MINIMUMS) - 1)
@@ -166,14 +207,13 @@ class IRPFEstimator:
         return total
 
     @staticmethod
-    def _apply_scale(amount: float) -> float:
-        """Aplica la escala progresiva a un importe."""
+    def _apply_scale(amount: float, brackets: list[tuple[float, float]]) -> float:
         tax = 0.0
         prev_limit = 0.0
-        for limit, rate in _BRACKETS:
-            taxable_in_bracket = min(amount, limit) - prev_limit
-            if taxable_in_bracket <= 0:
+        for limit, rate in brackets:
+            chunk = min(amount, limit) - prev_limit
+            if chunk <= 0:
                 break
-            tax += taxable_in_bracket * rate
+            tax += chunk * rate
             prev_limit = limit
         return tax

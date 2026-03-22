@@ -1,9 +1,10 @@
-"""Cálculo de cotizaciones a la Seguridad Social — tasas 2025.
+"""Cálculo de cotizaciones a la Seguridad Social — tasas 2026.
 
 Fuentes:
-- Orden PJC/51/2025 de cotización para 2025 (Régimen General)
+- Orden cotización 2026 (Régimen General)
 - Art. 119 LGSS y Disposición adicional cuarta Ley 42/2006 (AT/EP)
-- RDL 2/2023 art. 127bis (MEI)
+- RDL 2/2023 art. 127bis (MEI) — 0,75% total (0,58 empresa + 0,17 trabajador)
+- DA 7ª ET — recargo contratos ≤30 días
 
 Las tasas son configurables vía data/ss_config.json para futuros ajustes.
 """
@@ -18,9 +19,13 @@ from typing import Any
 
 _DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent / "data" / "ss_config.json"
 
-# Topes de cotización 2025 (Régimen General)
-BASE_MIN_MENSUAL_2025 = 1184.00  # SMI 2025 aprox (14 pagas)
-BASE_MAX_MENSUAL_2025 = 4720.50
+# Topes de cotización 2026 (Régimen General)
+BASE_MIN_MENSUAL = 1323.00  # Base mínima 2026
+BASE_MAX_MENSUAL = 4720.50
+
+# Recargo contratos cortos (DA 7ª ET)
+_SHORT_CONTRACT_DAYS_LIMIT = 30
+_SHORT_CONTRACT_SURCHARGE = 29.74
 
 
 @dataclass(frozen=True)
@@ -46,9 +51,13 @@ class SSResult:
 
     # Base utilizada
     base_cotizacion: float
+    grupo_cotizacion: str = ""
+
+    # Recargo contratos cortos
+    recargo_contrato_corto: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        d: dict[str, Any] = {
             "base_cotizacion_eur": round(self.base_cotizacion, 2),
             "empresa": {
                 "contingencias_comunes": round(self.emp_contingencias_comunes, 2),
@@ -69,6 +78,11 @@ class SSResult:
                 "pct_total": round(self.trab_pct_total, 4),
             },
         }
+        if self.grupo_cotizacion:
+            d["grupo_cotizacion"] = self.grupo_cotizacion
+        if self.recargo_contrato_corto > 0:
+            d["recargo_contrato_corto_eur"] = round(self.recargo_contrato_corto, 2)
+        return d
 
 
 class SSCalculator:
@@ -83,6 +97,8 @@ class SSCalculator:
         base_mensual_bruta: float,
         contract_type: str = "indefinido",
         at_ep_pct: float | None = None,
+        category: str = "",
+        contract_days: int | None = None,
     ) -> SSResult:
         """Calcula cotizaciones mensuales sobre la base bruta mensual.
 
@@ -90,12 +106,17 @@ class SSCalculator:
             base_mensual_bruta: Salario bruto mensual (todos los devengos cotizables).
             contract_type: 'indefinido' o 'temporal' (afecta tasa desempleo).
             at_ep_pct: % AT/EP. Si None, usa el default de config.
+            category: Categoría del convenio (para determinar grupo de cotización).
+            contract_days: Duración del contrato en días. Si ≤30, aplica recargo.
         """
         cfg_emp = self.config["empresa"]
         cfg_trab = self.config["trabajador"]
 
-        # Determinar base de cotización (con topes)
-        base = self._apply_topes(base_mensual_bruta)
+        # Determinar grupo de cotización
+        grupo = self._resolve_grupo(category)
+
+        # Determinar base de cotización (con topes por grupo)
+        base = self._apply_topes(base_mensual_bruta, grupo)
 
         # Seleccionar tasa de desempleo según tipo de contrato
         is_temporal = contract_type in (
@@ -126,6 +147,9 @@ class SSCalculator:
         trab_total = trab_cc + trab_des + trab_fp + trab_mei
         trab_pct = (trab_total / base * 100) if base else 0.0
 
+        # --- Recargo contratos cortos ---
+        recargo = self._short_contract_surcharge(contract_days)
+
         return SSResult(
             emp_contingencias_comunes=emp_cc,
             emp_desempleo=emp_des,
@@ -142,10 +166,43 @@ class SSCalculator:
             trab_total=trab_total,
             trab_pct_total=trab_pct,
             base_cotizacion=base,
+            grupo_cotizacion=grupo,
+            recargo_contrato_corto=recargo,
         )
 
-    def _apply_topes(self, base: float) -> float:
-        topes = self.config.get("topes", {})
-        base_min = topes.get("base_min_mensual", BASE_MIN_MENSUAL_2025)
-        base_max = topes.get("base_max_mensual", BASE_MAX_MENSUAL_2025)
+    def _resolve_grupo(self, category: str) -> str:
+        """Resuelve el grupo de cotización SS a partir de la categoría del convenio."""
+        mapa = self.config.get("mapa_categoria_grupo", {})
+        grupo = mapa.get(category, "")
+        if not grupo:
+            # Intentar sin punto final
+            grupo = mapa.get(category.rstrip("."), "")
+        return grupo
+
+    def _apply_topes(self, base: float, grupo: str = "") -> float:
+        """Aplica topes de cotización. Si hay grupo, usa bases específicas del grupo."""
+        grupos_cfg = self.config.get("grupos_cotizacion", {})
+        if grupo and grupo in grupos_cfg:
+            g = grupos_cfg[grupo]
+            base_min = g["base_min"]
+            base_max = g["base_max"]
+            # Grupos 8-11 tienen bases diarias: convertir a mensual (×30)
+            if g.get("_diario"):
+                base_min *= 30
+                base_max *= 30
+        else:
+            topes = self.config.get("topes", {})
+            base_min = topes.get("base_min_mensual", BASE_MIN_MENSUAL)
+            base_max = topes.get("base_max_mensual", BASE_MAX_MENSUAL)
         return max(base_min, min(base, base_max))
+
+    def _short_contract_surcharge(self, contract_days: int | None) -> float:
+        """Recargo adicional para contratos de duración ≤30 días (DA 7ª ET)."""
+        if contract_days is None:
+            return 0.0
+        cfg = self.config.get("recargo_contratos_cortos", {})
+        limit = cfg.get("dias_limite", _SHORT_CONTRACT_DAYS_LIMIT)
+        surcharge = cfg.get("importe_eur", _SHORT_CONTRACT_SURCHARGE)
+        if contract_days <= limit:
+            return surcharge
+        return 0.0

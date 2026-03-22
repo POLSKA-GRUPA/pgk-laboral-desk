@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from ss_calculator import SSCalculator
-from irpf_estimator import IRPFEstimator
+from irpf_estimator import IRPFEstimator, SUPPORTED_REGIONS
 
 
 FULL_TIME_WEEKLY_HOURS = 40.0
@@ -84,6 +84,17 @@ class LaboralEngine:
         """Tipos de contrato disponibles."""
         return [{"value": k, "label": v} for k, v in CONTRACT_LABELS.items()]
 
+    def get_regions(self) -> list[dict[str, str]]:
+        """Regiones IRPF disponibles."""
+        labels = {
+            "generica": "Genérica (media estatal)",
+            "madrid": "Madrid",
+            "cataluna": "Cataluña",
+            "andalucia": "Andalucía",
+            "valencia": "C. Valenciana",
+        }
+        return [{"value": r, "label": labels.get(r, r)} for r in SUPPORTED_REGIONS]
+
     def simulate(
         self,
         category: str,
@@ -94,6 +105,8 @@ class LaboralEngine:
         num_children: int = 0,
         children_under_3: int = 0,
         at_ep_pct: float | None = None,
+        region: str = "generica",
+        contract_days: int | None = None,
     ) -> dict[str, Any]:
         """Simulación completa de coste de contratación."""
 
@@ -127,14 +140,16 @@ class LaboralEngine:
             paga_extra = base_mensual + antiguedad  # Art. 31: 30 días salario convenio
             bruto_anual = round(mensual_ordinario * 12 + paga_extra * 2, 2)
 
-        # 6. Seguridad Social
+        # 6. Seguridad Social (con grupo de cotización y recargo contratos cortos)
         ss_result = self.ss.calculate(
             base_mensual_bruta=bruto_mensual,
             contract_type=contract_type,
             at_ep_pct=at_ep_pct,
+            category=row.category,
+            contract_days=contract_days,
         )
 
-        # 7. IRPF estimado
+        # 7. IRPF estimado (con CC.AA.)
         meses_cotizacion = 12 if extras_prorated else 14
         annual_ss_worker = round(ss_result.trab_total * meses_cotizacion, 2)
         irpf_result = self.irpf.estimate(
@@ -144,6 +159,7 @@ class LaboralEngine:
             children_under_3=children_under_3,
             contract_type=contract_type,
             num_payments=num_pagas,
+            region=region,
         )
 
         # 8. Neto mensual estimado
@@ -151,8 +167,9 @@ class LaboralEngine:
             bruto_mensual - ss_result.trab_total - irpf_result.monthly_retention, 2
         )
 
-        # 9. Coste empresa
-        coste_empresa_mes = round(bruto_mensual + ss_result.emp_total, 2)
+        # 9. Coste empresa (incluye recargo contrato corto si aplica)
+        recargo = ss_result.recargo_contrato_corto
+        coste_empresa_mes = round(bruto_mensual + ss_result.emp_total + recargo, 2)
         if extras_prorated:
             coste_empresa_anual = round(coste_empresa_mes * 12, 2)
         else:
@@ -199,6 +216,8 @@ class LaboralEngine:
             "irpf_retencion_pct": round(irpf_result.retention_rate_pct, 2),
             "irpf_mensual_eur": round(irpf_result.monthly_retention, 2),
             "neto_mensual_eur": neto_mensual,
+            "grupo_cotizacion_ss": ss_result.grupo_cotizacion,
+            "region_irpf": irpf_result.region,
 
             # Desglose
             "devengos": devengos,
@@ -215,11 +234,9 @@ class LaboralEngine:
             ],
 
             # Notas
-            "notas": [
-                "IRPF estimado para contribuyente soltero sin hijos. Ajustar según situación personal.",
-                f"AT/EP aplicado: {at_ep_used:.2f}%. Verificar tarifa real según CNAE.",
-                "Pre-nómina orientativa. No sustituye validación profesional.",
-            ],
+            "notas": self._build_notas(
+                at_ep_used, irpf_result.region, ss_result.grupo_cotizacion, recargo
+            ),
 
             # Condiciones relevantes
             "condiciones_convenio": self._select_conditions(contract_type),
@@ -228,6 +245,23 @@ class LaboralEngine:
     # ------------------------------------------------------------------
     # Internos
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _build_notas(
+        at_ep_pct: float, region: str, grupo: str, recargo: float,
+    ) -> list[str]:
+        notas = []
+        if region and region != "generica":
+            notas.append(f"IRPF calculado con escala autonómica: {region}.")
+        else:
+            notas.append("IRPF estimado con escala genérica (media estatal). Ajustar según CC.AA.")
+        notas.append(f"AT/EP aplicado: {at_ep_pct:.2f}%. Verificar tarifa real según CNAE.")
+        if grupo:
+            notas.append(f"Grupo de cotización SS: {grupo}.")
+        if recargo > 0:
+            notas.append(f"Recargo contrato ≤30 días: {recargo:.2f}€ (DA 7ª ET).")
+        notas.append("Pre-nómina orientativa. No sustituye validación profesional.")
+        return notas
 
     def _find_category(self, category: str) -> SalaryRow | None:
         for row in self.salary_rows:

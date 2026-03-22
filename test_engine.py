@@ -30,9 +30,9 @@ def test_ss_calculator_temporal():
 
 def test_ss_topes():
     ss = SSCalculator()
-    # Base below minimum should be capped up
+    # Base below minimum should be capped up (2026: 1323€)
     result_low = ss.calculate(base_mensual_bruta=500.0)
-    assert result_low.base_cotizacion >= 1184.0
+    assert result_low.base_cotizacion >= 1323.0
     # Base above maximum should be capped down
     result_high = ss.calculate(base_mensual_bruta=6000.0)
     assert result_high.base_cotizacion <= 4720.50
@@ -126,6 +126,86 @@ def test_engine_result_structure():
         "irpf_detalle",
         "notas",
         "fuentes",
+        "grupo_cotizacion_ss",
+        "region_irpf",
     ]
     for key in required_keys:
         assert key in result, f"Missing key: {key}"
+
+
+# ======================================================================
+# Tests 2026: IRPF regional, recargo contratos cortos, grupo SS
+# ======================================================================
+
+def test_irpf_regional_madrid_lower_than_cataluna():
+    """Madrid tiene tipos más bajos que Cataluña."""
+    irpf = IRPFEstimator()
+    madrid = irpf.estimate(annual_gross=35000.0, annual_ss_worker=2300.0, region="madrid")
+    cataluna = irpf.estimate(annual_gross=35000.0, annual_ss_worker=2300.0, region="cataluña")
+    assert madrid.retention_rate_pct < cataluna.retention_rate_pct
+    assert madrid.region == "madrid"
+    assert cataluna.region == "cataluna"  # normalized
+
+
+def test_irpf_generica_is_default():
+    irpf = IRPFEstimator()
+    result = irpf.estimate(annual_gross=30000.0, annual_ss_worker=2000.0)
+    assert result.region == "generica"
+
+
+def test_ss_grupo_cotizacion():
+    """Nivel B. debe mapearse a grupo 6 (Subalternos)."""
+    ss = SSCalculator()
+    result = ss.calculate(base_mensual_bruta=1318.85, category="Nivel B.")
+    assert result.grupo_cotizacion == "6"
+
+
+def test_ss_grupo_tecnico_titulado():
+    """Técnico Titulado → grupo 1 con base mínima 1903.50."""
+    ss = SSCalculator()
+    result = ss.calculate(base_mensual_bruta=1500.0, category="Técnico Titulado.")
+    assert result.grupo_cotizacion == "1"
+    # Base should be capped UP to grupo 1 minimum (1903.50)
+    assert result.base_cotizacion >= 1903.0
+
+
+def test_ss_recargo_contrato_corto():
+    ss = SSCalculator()
+    result_short = ss.calculate(base_mensual_bruta=1400.0, contract_days=15)
+    result_long = ss.calculate(base_mensual_bruta=1400.0, contract_days=60)
+    result_none = ss.calculate(base_mensual_bruta=1400.0)
+    assert result_short.recargo_contrato_corto > 0
+    assert result_long.recargo_contrato_corto == 0.0
+    assert result_none.recargo_contrato_corto == 0.0
+
+
+def test_ss_recargo_in_dict():
+    ss = SSCalculator()
+    result = ss.calculate(base_mensual_bruta=1400.0, contract_days=20)
+    d = result.to_dict()
+    assert "recargo_contrato_corto_eur" in d
+    assert d["recargo_contrato_corto_eur"] == 29.74
+
+
+def test_engine_simulate_with_region():
+    engine = LaboralEngine.from_json_file()
+    result = engine.simulate(category="Nivel B.", region="madrid")
+    assert result["region_irpf"] == "madrid"
+    # Should mention autonomic scale in notas
+    assert any("madrid" in n.lower() for n in result["notas"])
+
+
+def test_engine_simulate_short_contract():
+    engine = LaboralEngine.from_json_file()
+    result = engine.simulate(category="Nivel B.", contract_type="temporal", contract_days=15)
+    # Should include surcharge note
+    assert any("recargo" in n.lower() for n in result["notas"])
+
+
+def test_engine_regions_list():
+    engine = LaboralEngine.from_json_file()
+    regions = engine.get_regions()
+    assert len(regions) >= 5
+    values = [r["value"] for r in regions]
+    assert "madrid" in values
+    assert "generica" in values

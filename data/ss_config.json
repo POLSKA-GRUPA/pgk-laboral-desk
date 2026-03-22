@@ -1,5 +1,5 @@
 {
-  "_fuente": "Orden PJC/51/2025 de cotización (Régimen General) + RDL 2/2023 (MEI)",
+  "_fuente": "Orden cotización 2026 (Régimen General) + RDL 2/2023 (MEI)",
   "_nota": "Porcentajes sobre base de cotización. AT/EP depende del CNAE.",
   "empresa": {
     "contingencias_comunes": 23.60,
@@ -9,18 +9,64 @@
     "formacion_profesional": 0.60,
     "mei": 0.58,
     "at_ep_default": 1.50,
-    "_at_ep_nota": "1.50% es valor medio para sector piscinas (CNAE 8129/8130). Ajustar según tarifa de primas real de la empresa."
+    "_at_ep_nota": "1.50% valor medio sector piscinas (CNAE 8129/8130). Ajustar según tarifa real."
   },
   "trabajador": {
     "contingencias_comunes": 4.70,
     "desempleo_indefinido": 1.55,
     "desempleo_temporal": 1.60,
     "formacion_profesional": 0.10,
-    "mei": 0.12
+    "mei": 0.17
   },
   "topes": {
-    "base_min_mensual": 1184.00,
+    "base_min_mensual": 1323.00,
     "base_max_mensual": 4720.50,
-    "_nota": "Base mínima ≈ SMI 2025 en 14 pagas. Base máxima según Orden PJC/51/2025."
+    "_nota": "Base mínima 2026: 1.323€. Base máxima: 4.720,50€."
+  },
+  "recargo_contratos_cortos": {
+    "dias_limite": 30,
+    "importe_eur": 29.74,
+    "_nota": "Recargo fijo adicional para contratos de duración ≤30 días (DA 7ª ET)."
+  },
+  "grupos_cotizacion": {
+    "_nota": "11 grupos oficiales SS. Base min/max mensual por grupo (2026).",
+    "1": {"nombre": "Ingenieros y Licenciados", "base_min": 1903.50, "base_max": 4720.50},
+    "2": {"nombre": "Ingenieros Técnicos y Diplomados", "base_min": 1578.30, "base_max": 4720.50},
+    "3": {"nombre": "Jefes Administrativos y de Taller", "base_min": 1372.80, "base_max": 4720.50},
+    "4": {"nombre": "Ayudantes no Titulados", "base_min": 1323.00, "base_max": 4720.50},
+    "5": {"nombre": "Oficiales Administrativos", "base_min": 1323.00, "base_max": 4720.50},
+    "6": {"nombre": "Subalternos", "base_min": 1323.00, "base_max": 4720.50},
+    "7": {"nombre": "Auxiliares Administrativos", "base_min": 1323.00, "base_max": 4720.50},
+    "8": {"nombre": "Oficiales 1ª y 2ª", "base_min": 44.10, "base_max": 157.35, "_diario": true},
+    "9": {"nombre": "Oficiales 3ª y Especialistas", "base_min": 44.10, "base_max": 157.35, "_diario": true},
+    "10": {"nombre": "Peones", "base_min": 44.10, "base_max": 157.35, "_diario": true},
+    "11": {"nombre": "Menores de 18 años", "base_min": 44.10, "base_max": 157.35, "_diario": true}
+  },
+  "mapa_categoria_grupo": {
+    "_nota": "Mapeo categorías del convenio acuáticas → grupo SS.",
+    "Técnico Titulado.": "1",
+    "Técnico Diplomado.": "2",
+    "Jefe Administrativo.": "3",
+    "Oficial Administrativo.": "5",
+    "Auxiliar Administrativo.": "7",
+    "Recepcionista-telefonista.": "7",
+    "Nivel A.": "4",
+    "Nivel B.": "6",
+    "Nivel C.": "6",
+    "Socorrista correturnos.": "4",
+    "Monitor de natación.": "4",
+    "Comercial.": "5",
+    "Encargado.": "3",
+    "Conductor especialista.": "8",
+    "Conductor.": "9",
+    "Instalador de montajes eléctricos.": "8",
+    "Técnico de Mantenimiento en Instalaciones de Piscinas.": "8",
+    "Instalador de montajes de circuitos de depuración y fontanería.": "8",
+    "Ayudante de maquinista.": "9",
+    "Almacenero.": "10",
+    "Controlador de acceso al recinto de la instalación.": "6",
+    "Auxiliar de oficios.": "10",
+    "Limpiador de piscinas.": "10",
+    "Auxiliar de instalaciones.": "10"
   }
 }
