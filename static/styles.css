@@ -1753,3 +1753,99 @@ h1, h2, h3, h4, h5, h6 {
     gap: 8px;
   }
 }
+
+/* ============================================================
+   RATES VERIFICATION STRIP
+   ============================================================ */
+
+.rates-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.rates-strip[data-status="ok"] {
+  border-left: 3px solid #2d6a4f;
+  background: #f0faf5;
+  color: #1b4332;
+}
+
+.rates-strip[data-status="warning"] {
+  border-left: 3px solid #b5451b;
+  background: #fff8f5;
+  color: #7c2d12;
+}
+
+.rates-strip[data-status="uncertain"],
+.rates-strip[data-status="unavailable"] {
+  border-left: 3px solid #a0aec0;
+  background: #f7fafc;
+  color: #4a5568;
+}
+
+.rates-strip-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.rates-strip-msg {
+  flex: 1;
+  min-width: 0;
+}
+
+.rates-strip-date {
+  font-size: 11px;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+.rates-strip-btn {
+  font-size: 12px;
+  white-space: nowrap;
+  color: inherit;
+  opacity: 0.8;
+}
+
+.rates-strip-btn:hover {
+  opacity: 1;
+}
+
+/* Discrepancy table */
+.rates-discrepancy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.rates-discrepancy-table th {
+  text-align: left;
+  padding: 6px 10px;
+  background: #fff8f5;
+  color: var(--text-muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+}
+
+.rates-discrepancy-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.rates-discrepancy-table tr:last-child td {
+  border-bottom: none;
+}
+
+.disc-diff {
+  color: #b5451b;
+  font-weight: 600;
+}

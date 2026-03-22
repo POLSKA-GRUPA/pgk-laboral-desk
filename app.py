@@ -25,6 +25,7 @@ from engine import LaboralEngine
 from chat_parser import ChatParser
 from client_manager import ClientManager
 from convenio_verifier import ConvenioVerifier
+from rates_verifier import RatesVerifier
 
 APP_ROOT = Path(__file__).resolve().parent
 STATIC_DIR = APP_ROOT / "static"
@@ -38,6 +39,7 @@ chat_parser = ChatParser()
 client_mgr = ClientManager()
 client_mgr.init_tables()
 convenio_verifier = ConvenioVerifier()
+rates_verifier = RatesVerifier()
 
 # Cache de engines por convenio (evita recargar JSON en cada request)
 _engine_cache: dict[str, LaboralEngine] = {}
@@ -593,6 +595,19 @@ def api_client_simulate(client_id: int):
 
     result["cliente"] = {"empresa": client.empresa, "cif": client.cif}
     return jsonify(result)
+
+
+@app.route("/api/verify-rates")
+@login_required
+def api_verify_rates():
+    """Verificación orientativa de tasas SS vía Perplexity.
+
+    Parámetro opcional: ?force=1 para saltarse la caché y forzar nueva consulta.
+    La respuesta se cachea 24h para no saturar la API.
+    """
+    force = request.args.get("force", "0") == "1"
+    result = rates_verifier.verify_ss_rates(force=force)
+    return jsonify(result.to_dict())
 
 
 @app.route("/api/verify-convenio", methods=["POST"])

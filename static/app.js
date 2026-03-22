@@ -828,9 +828,94 @@
     });
   }
 
+  // ------------------------------------------------------------------
+  // Verificación de tasas SS (orientativa — usa Perplexity)
+  // ------------------------------------------------------------------
+  async function loadRatesVerification(force = false) {
+    const strip = $('ratesVerifyStrip');
+    if (!strip) return;
+
+    // Mostrar estado "verificando..."
+    strip.hidden = false;
+    strip.dataset.status = 'checking';
+    $('ratesStripIcon').textContent = '🔄';
+    $('ratesStripMsg').textContent = 'Verificando tasas SS 2026…';
+    $('ratesStripDate').textContent = '';
+
+    const url = force ? '/api/verify-rates?force=1' : '/api/verify-rates';
+    const res = await api(url);
+
+    if (!res) {
+      strip.dataset.status = 'unavailable';
+      $('ratesStripIcon').textContent = '⚪';
+      $('ratesStripMsg').textContent = 'Verificación de tasas no disponible.';
+      return;
+    }
+
+    const { status, message, discrepancies = [], sources = [], verified_at = '' } = res;
+
+    strip.dataset.status = status;
+
+    const iconMap = { ok: '✅', warning: '⚠️', uncertain: '❓', unavailable: '⚪' };
+    $('ratesStripIcon').textContent = iconMap[status] || '⚪';
+    $('ratesStripMsg').textContent = message;
+    $('ratesStripDate').textContent = verified_at ? `Verificado: ${verified_at}` : '';
+
+    // Mostrar discrepancias si las hay
+    const card = $('ratesDiscrepanciesCard');
+    const box = $('ratesDiscrepanciesBox');
+    if (card && box) {
+      if (discrepancies.length > 0) {
+        card.hidden = false;
+        const rows = discrepancies.map(d => `
+          <tr>
+            <td>${esc(d.label)}</td>
+            <td>${esc(String(d.nuestro))}</td>
+            <td>${esc(String(d.perplexity))}</td>
+            <td class="disc-diff">Δ ${esc(String(d.diferencia))}</td>
+          </tr>`).join('');
+        box.innerHTML = `
+          <p style="margin:0 0 8px;color:#7c2d12">
+            Perplexity detecta posibles diferencias respecto a nuestros valores.
+            <strong>Verifica manualmente</strong> con la Orden de Cotización oficial antes de actuar.
+          </p>
+          <table class="rates-discrepancy-table">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th>Nuestro valor</th>
+                <th>Perplexity dice</th>
+                <th>Diferencia</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          ${sources.length ? `<p style="margin:8px 0 0;font-size:11px;color:#a0aec0">Fuente: ${esc(sources.join(', '))}</p>` : ''}
+        `;
+      } else {
+        card.hidden = true;
+      }
+    }
+  }
+
+  function setupRatesVerifyBtn() {
+    const btn = $('ratesVerifyBtn');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.textContent = 'Verificando…';
+      await loadRatesVerification(true);
+      btn.disabled = false;
+      btn.textContent = 'Verificar ahora';
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     init().then(() => {
       if (state.user?.role === 'admin') setupClientForm();
+      // Cargar verificación de tasas en background (silencioso si no hay API key)
+      loadRatesVerification(false);
+      setupRatesVerifyBtn();
     });
   });
 
