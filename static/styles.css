@@ -654,7 +654,7 @@ body {
     grid-template-columns: 1fr;
   }
 
-  /* Reorder blocks for mobile: input → decision → kpi → payroll → reading → conditions → prompts → method */
+  /* Reorder blocks for mobile: input → decision → kpi → payroll → reading → conditions → method */
   .dashboard {
     display: flex;
     flex-direction: column;
@@ -668,13 +668,11 @@ body {
   .input-panel { order: 1; }
   .decision-panel { order: 2; }
   .kpi-bar { order: 3; }
-  .results-grid { order: 4; }
+  .results-grid { order: 4; display: contents; }
+  .payroll-panel { order: 4; }
   .reading-panel { order: 5; }
-  .method-drawer { order: 6; }
-
-  .results-grid {
-    grid-template-columns: 1fr;
-  }
+  .conditions-panel { order: 6; }
+  .method-drawer { order: 7; }
 
   #queryInput {
     min-height: 140px;
