@@ -1,0 +1,384 @@
+{
+  "boe_id": "BOE-A-2026-5849",
+  "convenio": {
+    "nombre": "Convenio colectivo estatal de mantenimiento y conservación de instalaciones acuáticas",
+    "codigo": "99011925012000",
+    "publicacion_boe": "2026-03-12",
+    "vigencia_desde_ano": 2025,
+    "vigencia_hasta_ano": 2027,
+    "anexo_salarial_ano": 2025
+  },
+  "resumen_operativo": {
+    "foco_categoria": null,
+    "usa_filtros_categoria": false,
+    "categorias_mostradas": 24,
+    "base_laboral_espana": true
+  },
+  "sections": [
+    {
+      "title": "Contratación y modalidad",
+      "items": [
+        {
+          "label": "Formalización contractual",
+          "detail": "Todos los contratos deben formalizarse por escrito en modelo oficial.",
+          "source": "Art. 25"
+        },
+        {
+          "label": "Modalidades previstas",
+          "detail": "Fijos o indefinidos, fijos de carácter discontinuo, contratados por tiempo determinado, eventuales por circunstancias de la producción, y contratados a tiempo parcial",
+          "source": "Art. 26"
+        },
+        {
+          "label": "Regla general",
+          "detail": "El contrato de trabajo se presume concertado por tiempo indefinido.",
+          "source": "Art. 26"
+        },
+        {
+          "label": "Temporal por circunstancias imprevisibles",
+          "detail": "Solo con causa justificada, expresada con precisión en contrato, y con duración máxima de 6 meses.",
+          "source": "Art. 26"
+        },
+        {
+          "label": "Temporal por necesidades previsibles",
+          "detail": "Hasta 90 días en el año natural, identificando la situación concreta en el contrato.",
+          "source": "Art. 26"
+        },
+        {
+          "label": "Fijo-discontinuo",
+          "detail": "Procede para trabajos estacionales, de temporada o de prestación intermitente con periodos de ejecución ciertos, determinados o indeterminados.",
+          "source": "Art. 26"
+        },
+        {
+          "label": "Periodo de prueba",
+          "detail": "Grupo 1 y Grupo 2: hasta 3 meses. Grupo 3: hasta 30 días. Socorristas A, B, C y correturno: 15 días.",
+          "source": "Arts. 20-21"
+        },
+        {
+          "label": "Preaviso de baja voluntaria",
+          "detail": "15 días por escrito. El retraso puede descontarse de la liquidación y el retraso empresarial genera indemnización equivalente.",
+          "source": "Art. 23"
+        }
+      ]
+    },
+    {
+      "title": "Jornada y descansos",
+      "items": [
+        {
+          "label": "Jornada semanal",
+          "detail": "40 horas semanales.",
+          "source": "Art. 35"
+        },
+        {
+          "label": "Jornada máxima anual",
+          "detail": "2025: 1778 horas, 2026: 1770 horas, 2027: 1770 horas",
+          "source": "Art. 35"
+        },
+        {
+          "label": "Descanso entre jornadas",
+          "detail": "Mínimo de 12 horas.",
+          "source": "Art. 35"
+        },
+        {
+          "label": "Descanso semanal",
+          "detail": "Mínimo de día y medio continuado.",
+          "source": "Art. 35"
+        },
+        {
+          "label": "Festivos propios del convenio",
+          "detail": "24 y 31 de diciembre como festivos abonables y no recuperables.",
+          "source": "Art. 35"
+        },
+        {
+          "label": "Jornada flexible",
+          "detail": "Hasta 135 horas/año para Socorrista niveles A, B, C, socorrista correturnos y controlador de accesos. La compensación puede ser en descanso o retribución.",
+          "source": "Art. 35"
+        },
+        {
+          "label": "Descanso no disfrutado por necesidad no previsible",
+          "detail": "Compensación con incremento de 1,25 del tiempo no disfrutado.",
+          "source": "Art. 35"
+        },
+        {
+          "label": "Registro de jornada",
+          "detail": "Registro diario por medios digitales; en tiempo parcial debe entregarse resumen mensual junto con la nómina.",
+          "source": "Art. 35"
+        }
+      ]
+    },
+    {
+      "title": "Retribución",
+      "items": [
+        {
+          "label": "Salario base",
+          "detail": "Las tablas extraídas corresponden al año 2025 y cubren 24 categorías.",
+          "source": "Art. 30 y Anexo I"
+        },
+        {
+          "label": "Pagas extraordinarias",
+          "detail": "Dos pagas extraordinarias, Verano y Navidad, cada una por 30 días de salario convenio.",
+          "source": "Art. 31"
+        },
+        {
+          "label": "Fechas límite de pago de extras",
+          "detail": "Verano: 15 de julio. Navidad: 15 de diciembre.",
+          "source": "Art. 31"
+        },
+        {
+          "label": "Antigüedad",
+          "detail": "Trienios del 3 % del salario base por cada trienio vencido. En fijos-discontinuos computa toda la relación laboral y no solo el tiempo efectivamente trabajado.",
+          "source": "Art. 32"
+        },
+        {
+          "label": "Plus transporte",
+          "detail": "134.85 EUR",
+          "source": "Art. 33 y Anexo I"
+        },
+        {
+          "label": "Hora extraordinaria",
+          "detail": "17.38 EUR",
+          "source": "Art. 34 y Anexo I"
+        },
+        {
+          "label": "Horas extraordinarias",
+          "detail": "Máximo 80 al año y carácter voluntario, con registro diario y entrega de resumen mensual.",
+          "source": "Art. 34"
+        },
+        {
+          "label": "Nocturnidad",
+          "detail": "Complemento del 25 % del salario convenio cuando la jornada se realice entre las 22:00 y las 06:00.",
+          "source": "Art. 36"
+        },
+        {
+          "label": "Otros conceptos extraídos",
+          "detail": "Hora extraordinaria. 17.38 EUR, Plus transporte. 134.85 EUR, Media dieta. 13.80 EUR, Precio kilómetro. 0.29 EUR",
+          "source": "Anexo I"
+        }
+      ]
+    },
+    {
+      "title": "Vacaciones, permisos y coberturas",
+      "items": [
+        {
+          "label": "Vacaciones",
+          "detail": "30 días naturales al año.",
+          "source": "Arts. 36-37"
+        },
+        {
+          "label": "Periodo preferente de vacaciones",
+          "detail": "Preferentemente entre el 1 de octubre y el 1 de mayo.",
+          "source": "Arts. 36-37"
+        },
+        {
+          "label": "Vacaciones al cese",
+          "detail": "Parte proporcional según meses trabajados y abono a la finalización del contrato o según acuerdo.",
+          "source": "Arts. 36-37"
+        },
+        {
+          "label": "Permisos relevantes",
+          "detail": "Matrimonio o pareja de hecho: 15 días. Libre disposición: 3 días/año. Traslado de domicilio: 2 días. Deber inexcusable: tiempo indispensable. Consulta médica: tiempo necesario con justificante.",
+          "source": "Art. 38"
+        },
+        {
+          "label": "IT y contingencias comunes",
+          "detail": "La empresa complementa desde la baja hasta el alta hasta alcanzar la base de cotización del mes anterior. No aplica a contratos que no superen o no se prevea que superen 6 meses ininterrumpidos.",
+          "source": "Art. 39"
+        },
+        {
+          "label": "Seguro de accidentes",
+          "detail": "Cobertura de 18.000 EUR en caso de fallecimiento por accidente laboral o incapacidad permanente absoluta.",
+          "source": "Art. 27"
+        }
+      ]
+    },
+    {
+      "title": "Alertas de aplicación",
+      "items": [
+        {
+          "label": "Nacimiento y cuidado de menor",
+          "detail": "El texto del convenio contiene una redacción histórica de permisos por nacimiento. Para uso operativo debe prevalecer la normativa laboral vigente de rango superior antes de emitir oferta o contrato.",
+          "source": "Art. 38 del convenio; verificar ET art. 48"
+        },
+        {
+          "label": "Uso empresarial del informe",
+          "detail": "Este informe fija la capa laboral del convenio aplicable en España. Extranjería, permiso de trabajo, fiscalidad y Seguridad Social internacional deben resolverse en expediente separado.",
+          "source": "Criterio operativo"
+        },
+        {
+          "label": "Datos mínimos para emitir oferta individual",
+          "detail": "Categoría profesional, tipo de contrato, jornada, centro de trabajo, calendario o periodo de actividad y fecha de inicio.",
+          "source": "Checklist operativa"
+        }
+      ]
+    }
+  ],
+  "salarios_por_categoria": [
+    {
+      "section": "",
+      "category": "Técnico Titulado.",
+      "monthly_14_payments_eur": 2008.0,
+      "annual_eur": 28112.0,
+      "hourly_ordinary_or_flexible_eur": 15.75
+    },
+    {
+      "section": "",
+      "category": "Técnico Diplomado.",
+      "monthly_14_payments_eur": 1620.0,
+      "annual_eur": 22680.0,
+      "hourly_ordinary_or_flexible_eur": 12.7
+    },
+    {
+      "section": "",
+      "category": "Jefe Administrativo.",
+      "monthly_14_payments_eur": 1415.0,
+      "annual_eur": 19810.0,
+      "hourly_ordinary_or_flexible_eur": 11.08
+    },
+    {
+      "section": "",
+      "category": "Oficial Administrativo.",
+      "monthly_14_payments_eur": 1292.0,
+      "annual_eur": 18088.0,
+      "hourly_ordinary_or_flexible_eur": 10.12
+    },
+    {
+      "section": "",
+      "category": "Auxiliar Administrativo.",
+      "monthly_14_payments_eur": 1184.0,
+      "annual_eur": 16576.0,
+      "hourly_ordinary_or_flexible_eur": 9.28
+    },
+    {
+      "section": "",
+      "category": "Recepcionista-telefonista.",
+      "monthly_14_payments_eur": 1184.0,
+      "annual_eur": 16576.0,
+      "hourly_ordinary_or_flexible_eur": 9.28
+    },
+    {
+      "section": "",
+      "category": "Nivel A.",
+      "monthly_14_payments_eur": 1297.0,
+      "annual_eur": 18158.0,
+      "hourly_ordinary_or_flexible_eur": 10.16
+    },
+    {
+      "section": "",
+      "category": "Nivel B.",
+      "monthly_14_payments_eur": 1184.0,
+      "annual_eur": 16576.0,
+      "hourly_ordinary_or_flexible_eur": 9.28
+    },
+    {
+      "section": "",
+      "category": "Nivel C.",
+      "monthly_14_payments_eur": 1184.0,
+      "annual_eur": 16576.0,
+      "hourly_ordinary_or_flexible_eur": 9.28
+    },
+    {
+      "section": "",
+      "category": "Socorrista correturnos.",
+      "monthly_14_payments_eur": 1297.0,
+      "annual_eur": 18158.0,
+      "hourly_ordinary_or_flexible_eur": 10.16
+    },
+    {
+      "section": "",
+      "category": "Monitor de natación.",
+      "monthly_14_payments_eur": 1184.0,
+      "annual_eur": 16576.0,
+      "hourly_ordinary_or_flexible_eur": 9.28
+    },
+    {
+      "section": "",
+      "category": "Comercial.",
+      "monthly_14_payments_eur": 1413.0,
+      "annual_eur": 19782.0,
+      "hourly_ordinary_or_flexible_eur": 11.07
+    },
+    {
+      "section": "",
+      "category": "Encargado.",
+      "monthly_14_payments_eur": 1393.0,
+      "annual_eur": 19502.0,
+      "hourly_ordinary_or_flexible_eur": 10.92
+    },
+    {
+      "section": "",
+      "category": "Conductor especialista.",
+      "monthly_14_payments_eur": 1348.0,
+      "annual_eur": 18872.0,
+      "hourly_ordinary_or_flexible_eur": 10.57
+    },
+    {
+      "section": "",
+      "category": "Conductor.",
+      "monthly_14_payments_eur": 1282.0,
+      "annual_eur": 17948.0,
+      "hourly_ordinary_or_flexible_eur": 10.05
+    },
+    {
+      "section": "",
+      "category": "Instalador de montajes eléctricos.",
+      "monthly_14_payments_eur": 1348.0,
+      "annual_eur": 18872.0,
+      "hourly_ordinary_or_flexible_eur": 10.57
+    },
+    {
+      "section": "",
+      "category": "Técnico de Mantenimiento en Instalaciones de Piscinas.",
+      "monthly_14_payments_eur": 1327.0,
+      "annual_eur": 18578.0,
+      "hourly_ordinary_or_flexible_eur": 10.09
+    },
+    {
+      "section": "",
+      "category": "Instalador de montajes de circuitos de depuración y fontanería.",
+      "monthly_14_payments_eur": 1348.0,
+      "annual_eur": 18872.0,
+      "hourly_ordinary_or_flexible_eur": 10.57
+    },
+    {
+      "section": "",
+      "category": "Ayudante de maquinista.",
+      "monthly_14_payments_eur": 1260.0,
+      "annual_eur": 17640.0,
+      "hourly_ordinary_or_flexible_eur": 9.87
+    },
+    {
+      "section": "",
+      "category": "Almacenero.",
+      "monthly_14_payments_eur": 1184.0,
+      "annual_eur": 16576.0,
+      "hourly_ordinary_or_flexible_eur": 9.28
+    },
+    {
+      "section": "",
+      "category": "Controlador de acceso al recinto de la instalación.",
+      "monthly_14_payments_eur": 1184.0,
+      "annual_eur": 16576.0,
+      "hourly_ordinary_or_flexible_eur": 9.28
+    },
+    {
+      "section": "",
+      "category": "Auxiliar de oficios.",
+      "monthly_14_payments_eur": 1184.0,
+      "annual_eur": 16576.0,
+      "hourly_ordinary_or_flexible_eur": 9.28
+    },
+    {
+      "section": "",
+      "category": "Limpiador de piscinas.",
+      "monthly_14_payments_eur": 1184.0,
+      "annual_eur": 16576.0,
+      "hourly_ordinary_or_flexible_eur": 9.28
+    },
+    {
+      "section": "",
+      "category": "Auxiliar de instalaciones.",
+      "monthly_14_payments_eur": 1184.0,
+      "annual_eur": 16576.0,
+      "hourly_ordinary_or_flexible_eur": 9.28
+    }
+  ]
+}

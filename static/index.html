@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PGK Laboral Desk</title>
+  <link rel="stylesheet" href="/styles.css?v=20260322-ui">
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">PGK · Laboral Desk</span>
+        <h1>Mesa de decisión laboral para dirección</h1>
+        <p>Convierte una petición libre en lectura del caso, decisión laboral, base convencional y pre-nómina de trabajo con trazabilidad al convenio.</p>
+      </div>
+      <div class="hero-meta">
+        <div class="meta-card">
+          <span class="meta-label">Convenio activo</span>
+          <span class="meta-value" id="convenioName">Cargando...</span>
+        </div>
+        <div class="meta-card">
+          <span class="meta-label">Motor</span>
+          <span class="meta-value">Determinista + trazable</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="top-grid">
+        <section class="panel prompts-panel">
+          <div class="panel-head">
+            <div>
+              <span class="section-kicker">Entrada rápida</span>
+              <h2>Prompts útiles</h2>
+            </div>
+          </div>
+          <div class="prompt-list">
+            <button class="prompt-chip" data-prompt="Quiero contratar un socorrista nivel B fijo discontinuo a 40 horas semanales para la temporada de verano en España.">Socorrista verano</button>
+            <button class="prompt-chip" data-prompt="Necesito un auxiliar administrativo indefinido a jornada completa y con 6 años de antigüedad acumulada.">Auxiliar administrativo</button>
+            <button class="prompt-chip" data-prompt="Voy a contratar desde Perú un monitor de natación a media jornada. Dime condiciones y borrador de nómina.">Monitor media jornada</button>
+            <button class="prompt-chip" data-prompt="Quiero contratar un controlador de acceso a 30 horas semanales con 1 trienio y pagas extra prorrateadas.">Controlador con prorrata</button>
+          </div>
+        </section>
+
+        <section class="panel input-panel">
+          <div class="panel-head">
+            <div>
+              <span class="section-kicker">Consulta</span>
+              <h2>Qué quieres contratar</h2>
+            </div>
+            <span class="status-pill" id="apiStatus">API conectando</span>
+          </div>
+          <textarea id="queryInput" placeholder="Escribe puesto, jornada, modalidad, temporada, antigüedad, prorrata de extras o cualquier dato que afecte a la contratación..."></textarea>
+          <div class="actions">
+            <button id="analyzeButton" class="primary-btn">Analizar</button>
+            <button id="clearButton" class="ghost-btn">Limpiar</button>
+          </div>
+        </section>
+
+        <section class="panel reading-panel">
+          <div class="panel-head">
+            <div>
+              <span class="section-kicker">Lectura</span>
+              <h2>Lo que he entendido</h2>
+            </div>
+          </div>
+          <div id="requestSummary" class="summary-grid empty-state">Esperando análisis.</div>
+        </section>
+      </section>
+
+      <section class="decision-panel panel">
+        <div class="decision-head">
+          <div>
+            <span class="section-kicker">Diagnóstico</span>
+            <h2>Conclusión del caso</h2>
+          </div>
+          <span id="responseBadge" class="response-badge muted">Pendiente</span>
+        </div>
+        <div class="decision-body">
+          <div id="answerBox" class="answer-box empty">La respuesta aparecerá aquí.</div>
+          <div id="clarificationsBox" class="clarifications hidden"></div>
+        </div>
+      </section>
+
+      <section class="results-grid">
+        <section class="panel payroll-panel">
+          <div class="panel-head">
+            <div>
+              <span class="section-kicker">Cálculo</span>
+              <h2>Pre-nómina orientativa</h2>
+            </div>
+          </div>
+          <div id="payrollBox" class="payroll-box empty-state">Sin cálculo todavía.</div>
+        </section>
+
+        <section class="panel conditions-panel">
+          <div class="panel-head">
+            <div>
+              <span class="section-kicker">Fundamento</span>
+              <h2>Condiciones aplicables</h2>
+            </div>
+          </div>
+          <div id="conditionsBox" class="conditions-box empty-state">Aquí se mostrarán las condiciones relevantes.</div>
+        </section>
+      </section>
+
+      <section class="panel method-panel">
+        <div class="panel-head">
+          <div>
+            <span class="section-kicker">Criterio</span>
+            <h2>Reglas del motor</h2>
+          </div>
+        </div>
+        <ul class="rules">
+          <li>No inventa categorías ni importes fuera del convenio.</li>
+          <li>Si el encaje del fijo-discontinuo no está claro, lo dice.</li>
+          <li>La pre-nómina solo cierra devengos convencionales.</li>
+          <li>Seguridad Social e IRPF quedan identificados como pendiente legal.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="/app.js?v=20260322-ui"></script>
+</body>
+</html>
