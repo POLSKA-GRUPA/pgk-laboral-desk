@@ -209,3 +209,64 @@ def test_engine_regions_list():
     values = [r["value"] for r in regions]
     assert "madrid" in values
     assert "generica" in values
+
+
+# ======================================================================
+# Tests multi-convenio: oficinas y despachos Alicante
+# ======================================================================
+
+def test_engine_oficinas_loads():
+    engine = LaboralEngine.from_convenio_id("convenio_oficinas_despachos_alicante_2024_2026")
+    cats = engine.get_categories()
+    assert len(cats) >= 20
+    assert engine._convenio_pagas == 15  # 3 extras + 12
+
+
+def test_engine_oficinas_simulate_grupo4():
+    engine = LaboralEngine.from_convenio_id("convenio_oficinas_despachos_alicante_2024_2026")
+    result = engine.simulate(
+        category="Grupo 4 Nivel 1 \u2014 Jefe Adm\u00f3n. 2\u00aa / Cajero firma / Secretario Direcci\u00f3n",
+        contract_type="indefinido",
+        weekly_hours=40.0,
+    )
+    assert "error" not in result
+    assert result["bruto_mensual_eur"] > 0
+    assert result["neto_mensual_eur"] > 0
+    assert result["pagas"] == "15"
+    # Convenio should be oficinas
+    assert "Oficinas" in result["convenio"]["nombre"]
+
+
+def test_engine_oficinas_simulate_grupo6():
+    engine = LaboralEngine.from_convenio_id("convenio_oficinas_despachos_alicante_2024_2026")
+    result = engine.simulate(
+        category="Grupo 6 Nivel 1 \u2014 Auxiliar adm\u00f3n. (>3 a\u00f1os) / Recepcionista",
+    )
+    assert "error" not in result
+    assert result["bruto_mensual_eur"] > 0
+
+
+def test_engine_oficinas_15_pagas_anual():
+    """Con 15 pagas, el bruto anual debe ser ~15x el mensual base."""
+    engine = LaboralEngine.from_convenio_id("convenio_oficinas_despachos_alicante_2024_2026")
+    result = engine.simulate(
+        category="Grupo 1 Nivel 1 \u2014 Titulado Superior (desde 3er a\u00f1o)",
+    )
+    assert "error" not in result
+    # Anual should be roughly 15 * mensual (plus transporte adds a bit)
+    ratio = result["bruto_anual_eur"] / result["bruto_mensual_eur"]
+    assert 14 < ratio < 16
+
+
+def test_engine_list_available_convenios():
+    convenios = LaboralEngine.list_available_convenios()
+    assert len(convenios) >= 2
+    ids = [c["id"] for c in convenios]
+    assert "convenio_acuaticas_2025_2027" in ids
+    assert "convenio_oficinas_despachos_alicante_2024_2026" in ids
+
+
+def test_engine_from_convenio_id_not_found():
+    import pytest
+    with pytest.raises(FileNotFoundError):
+        LaboralEngine.from_convenio_id("convenio_inexistente")

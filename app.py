@@ -22,6 +22,8 @@ from database import (
 )
 from engine import LaboralEngine
 from chat_parser import ChatParser
+from client_manager import ClientManager
+from convenio_verifier import ConvenioVerifier
 
 APP_ROOT = Path(__file__).resolve().parent
 STATIC_DIR = APP_ROOT / "static"
@@ -33,6 +35,9 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(32))
 init_db()
 engine = LaboralEngine.from_json_file()
 chat_parser = ChatParser()
+client_mgr = ClientManager()
+client_mgr.init_tables()
+convenio_verifier = ConvenioVerifier()
 
 
 # ------------------------------------------------------------------
@@ -292,6 +297,103 @@ def api_chat():
 def api_chat_reset():
     session.pop("chat_context", None)
     return jsonify({"ok": True})
+
+
+# ------------------------------------------------------------------
+# Clientes (multi-convenio)
+# ------------------------------------------------------------------
+
+@app.route("/api/convenios")
+def api_convenios_list():
+    """Lista convenios disponibles."""
+    return jsonify(LaboralEngine.list_available_convenios())
+
+
+@app.route("/api/clients", methods=["GET"])
+@login_required
+def api_clients_list():
+    if session.get("role") != "admin":
+        return jsonify({"error": "Solo administradores"}), 403
+    return jsonify(client_mgr.list_clients())
+
+
+@app.route("/api/clients", methods=["POST"])
+@login_required
+def api_clients_register():
+    if session.get("role") != "admin":
+        return jsonify({"error": "Solo administradores"}), 403
+    data = request.get_json(silent=True) or {}
+    required = ["empresa", "cif", "convenio_id"]
+    for field in required:
+        if not data.get(field):
+            return jsonify({"error": f"Campo requerido: {field}"}), 400
+    try:
+        client_id = client_mgr.register_client(
+            empresa=data["empresa"],
+            cif=data["cif"],
+            convenio_id=data["convenio_id"],
+            provincia=data.get("provincia", ""),
+            comunidad_autonoma=data.get("comunidad_autonoma", ""),
+            cnae=data.get("cnae", ""),
+        )
+        client = client_mgr.get_client(client_id)
+        return jsonify({"ok": True, "client": client.to_dict()}), 201
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@app.route("/api/clients/<int:client_id>/simulate", methods=["POST"])
+@login_required
+def api_client_simulate(client_id: int):
+    """Simula usando el convenio del cliente."""
+    client = client_mgr.get_client(client_id)
+    if not client:
+        return jsonify({"error": "Cliente no encontrado"}), 404
+    try:
+        client_engine = LaboralEngine.from_convenio_id(client.convenio_id)
+    except FileNotFoundError:
+        return jsonify({"error": f"Convenio no encontrado: {client.convenio_id}"}), 404
+
+    data = request.get_json(silent=True) or {}
+    category = str(data.get("category", "")).strip()
+    if not category:
+        return jsonify({"error": "Selecciona una categoría profesional"}), 400
+
+    result = client_engine.simulate(
+        category=category,
+        contract_type=str(data.get("contract_type", "indefinido")),
+        weekly_hours=float(data.get("weekly_hours", 40)),
+        seniority_years=int(data.get("seniority_years", 0)),
+        extras_prorated=bool(data.get("extras_prorated", False)),
+        num_children=int(data.get("num_children", 0)),
+        children_under_3=int(data.get("children_under_3", 0)),
+        region=str(data.get("region", "generica")),
+        contract_days=data.get("contract_days"),
+    )
+    if "error" in result:
+        return jsonify(result), 400
+
+    result["cliente"] = {"empresa": client.empresa, "cif": client.cif}
+    return jsonify(result)
+
+
+@app.route("/api/verify-convenio", methods=["POST"])
+@login_required
+def api_verify_convenio():
+    """Verificación orientativa de vigencia vía Perplexity."""
+    data = request.get_json(silent=True) or {}
+    sector = str(data.get("sector", "")).strip()
+    provincia = str(data.get("provincia", "Estatal")).strip()
+    if not sector:
+        return jsonify({"error": "Campo requerido: sector"}), 400
+
+    result = convenio_verifier.verify(
+        sector=sector,
+        provincia=provincia,
+        codigo_convenio=str(data.get("codigo_convenio", "")),
+        vigencia_hasta=data.get("vigencia_hasta"),
+    )
+    return jsonify(result.to_dict())
 
 
 # ------------------------------------------------------------------

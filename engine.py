@@ -43,9 +43,11 @@ CONTRACT_LABELS: dict[str, str] = {
 class SalaryRow:
     section: str
     category: str
-    monthly_14_payments_eur: float
     annual_eur: float
-    hourly_ordinary_or_flexible_eur: float
+    monthly_base_eur: float  # mensual base (anual / num_pagas)
+    num_pagas: int
+    grupo_ss: str = ""
+    hourly_ordinary_or_flexible_eur: float = 0.0
 
 
 class LaboralEngine:
@@ -53,7 +55,10 @@ class LaboralEngine:
 
     def __init__(self, data: dict[str, Any]) -> None:
         self.data = data
-        self.salary_rows = [SalaryRow(**row) for row in data["salarios_por_categoria"]]
+        # Detectar número de pagas del convenio
+        resumen = data.get("resumen_operativo", {})
+        self._convenio_pagas = resumen.get("pagas_extras", 2) + 12  # 14 o 15
+        self.salary_rows = self._parse_salary_rows(data)
         self.condition_index = {
             self._normalize(item["label"]): item
             for section in data["sections"]
@@ -63,11 +68,62 @@ class LaboralEngine:
         self.ss = SSCalculator()
         self.irpf = IRPFEstimator()
 
+    def _parse_salary_rows(self, data: dict[str, Any]) -> list[SalaryRow]:
+        """Parsea salarios soportando ambos schemas (14 o 15 pagas)."""
+        rows: list[SalaryRow] = []
+        for raw in data["salarios_por_categoria"]:
+            annual = raw.get("annual_eur")
+            if annual is None:  # Grupo 6 Nivel 2 = SMI
+                continue
+            # Detectar campo mensual: monthly_14 o monthly_15
+            monthly = (
+                raw.get("monthly_14_payments_eur")
+                or raw.get("monthly_15_payments_eur")
+            )
+            if monthly is None and annual:
+                monthly = round(annual / self._convenio_pagas, 2)
+            rows.append(SalaryRow(
+                section=raw.get("section", ""),
+                category=raw["category"],
+                annual_eur=annual,
+                monthly_base_eur=monthly,
+                num_pagas=self._convenio_pagas,
+                grupo_ss=raw.get("grupo_ss", ""),
+                hourly_ordinary_or_flexible_eur=raw.get("hourly_ordinary_or_flexible_eur", 0.0),
+            ))
+        return rows
+
     @classmethod
     def from_json_file(cls, path: str | Path | None = None) -> "LaboralEngine":
         p = Path(path) if path else DEFAULT_DATA_FILE
         data = json.loads(p.read_text(encoding="utf-8"))
         return cls(data)
+
+    @classmethod
+    def from_convenio_id(cls, convenio_id: str) -> "LaboralEngine":
+        """Carga un convenio por su ID (nombre del JSON sin extensión)."""
+        p = APP_ROOT / "data" / f"{convenio_id}.json"
+        if not p.exists():
+            raise FileNotFoundError(f"Convenio no encontrado: {convenio_id}")
+        return cls.from_json_file(p)
+
+    @staticmethod
+    def list_available_convenios() -> list[dict[str, Any]]:
+        """Lista convenios disponibles en data/."""
+        convenios: list[dict[str, Any]] = []
+        for f in sorted((APP_ROOT / "data").glob("convenio_*.json")):
+            try:
+                d = json.loads(f.read_text(encoding="utf-8"))
+                c = d.get("convenio", {})
+                convenios.append({
+                    "id": f.stem,
+                    "nombre": c.get("nombre", f.stem),
+                    "ambito": c.get("ambito", "estatal"),
+                    "vigencia": f"{c.get('vigencia_desde_ano', '?')}–{c.get('vigencia_hasta_ano', '?')}",
+                })
+            except (json.JSONDecodeError, KeyError):
+                continue
+        return convenios
 
     # ------------------------------------------------------------------
     # API pública
@@ -122,30 +178,32 @@ class LaboralEngine:
         trienios = math.floor(seniority_years / 3)
 
         # 4. Devengos mensuales
-        base_mensual = round(row.monthly_14_payments_eur * jornada_ratio, 2)
+        base_mensual = round(row.monthly_base_eur * jornada_ratio, 2)
         antiguedad = round(base_mensual * 0.03 * trienios, 2)
         plus_transporte = self._get_plus_transporte()
-        prorrata_extras = round(base_mensual / 6.0, 2) if extras_prorated else 0.0
+        n_extras = self._convenio_pagas - 12  # 2 o 3 pagas extras
+        prorrata_extras = round(base_mensual * n_extras / 12.0, 2) if extras_prorated else 0.0
 
         bruto_mensual = round(
             base_mensual + antiguedad + plus_transporte + prorrata_extras, 2
         )
 
         # 5. Bruto anual
-        num_pagas = 12 if extras_prorated else 14
+        num_pagas = 12 if extras_prorated else self._convenio_pagas
         if extras_prorated:
             bruto_anual = round(bruto_mensual * 12, 2)
         else:
             mensual_ordinario = base_mensual + antiguedad + plus_transporte
-            paga_extra = base_mensual + antiguedad  # Art. 31: 30 días salario convenio
-            bruto_anual = round(mensual_ordinario * 12 + paga_extra * 2, 2)
+            paga_extra = base_mensual + antiguedad
+            bruto_anual = round(mensual_ordinario * 12 + paga_extra * n_extras, 2)
 
         # 6. Seguridad Social (con grupo de cotización y recargo contratos cortos)
+        ss_category = row.grupo_ss or row.category
         ss_result = self.ss.calculate(
             base_mensual_bruta=bruto_mensual,
             contract_type=contract_type,
             at_ep_pct=at_ep_pct,
-            category=row.category,
+            category=ss_category,
             contract_days=contract_days,
         )
 
@@ -204,7 +262,7 @@ class LaboralEngine:
             "jornada_pct": round(jornada_ratio * 100, 1),
             "antiguedad_anos": seniority_years,
             "trienios": trienios,
-            "pagas": "12 (prorrateadas)" if extras_prorated else "14",
+            "pagas": "12 (prorrateadas)" if extras_prorated else str(self._convenio_pagas),
 
             # Cifras clave
             "coste_total_empresa_mes_eur": coste_empresa_mes,
@@ -226,12 +284,7 @@ class LaboralEngine:
 
             # Convenio
             "convenio": self.data["convenio"],
-            "fuentes": [
-                "Convenio colectivo estatal de mantenimiento y conservación de instalaciones acuáticas (BOE-A-2026-5849)",
-                "Anexo I salarial — tablas 2025",
-                "Orden PJC/51/2025 de cotización SS",
-                "Arts. 80-86 RIRPF (retención estimada)",
-            ],
+            "fuentes": self._build_fuentes(),
 
             # Notas
             "notas": self._build_notas(
@@ -262,6 +315,16 @@ class LaboralEngine:
             notas.append(f"Recargo contrato ≤30 días: {recargo:.2f}€ (DA 7ª ET).")
         notas.append("Pre-nómina orientativa. No sustituye validación profesional.")
         return notas
+
+    def _build_fuentes(self) -> list[str]:
+        conv = self.data.get("convenio", {})
+        nombre = conv.get("nombre", "Convenio cargado")
+        fuentes = [nombre]
+        if conv.get("anexo_salarial_ano"):
+            fuentes.append(f"Anexo salarial — tablas {conv['anexo_salarial_ano']}")
+        fuentes.append("Orden cotización SS 2026")
+        fuentes.append("Arts. 80-86 RIRPF (retención estimada)")
+        return fuentes
 
     def _find_category(self, category: str) -> SalaryRow | None:
         for row in self.salary_rows:
