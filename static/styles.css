@@ -1,20 +1,42 @@
+/* ============================================================
+   PGK Hispania -- Laboral Desk Brand Stylesheet
+   Palette from pgkhiszpania.com + conta-pgk-hispania
+   Fonts: Cormorant Garamond (headings) + Jost (body/UI)
+   ============================================================ */
+
 :root {
-  --bg: #ece4d8;
-  --paper: rgba(255, 252, 247, 0.92);
-  --paper-strong: #fffdfa;
-  --ink: #14202a;
-  --muted: #66727c;
-  --line: rgba(102, 114, 124, 0.18);
-  --brand: #173a57;
-  --brand-2: #274d6b;
-  --brand-soft: #e7eef5;
-  --accent: #8a5a37;
-  --accent-soft: #f4e6d8;
+  /* Brand core */
+  --pgk-green: #152621;
+  --pgk-green-light: #1a3029;
+  --pgk-green-dark: #0e1a17;
+  --pgk-gold: #DCCBB3;
+  --pgk-gold-hover: #c9b499;
+  --pgk-gold-dim: rgba(220, 203, 179, 0.35);
+  --pgk-cream: #F2F1ED;
+  --pgk-beige: #F3EAE1;
+  --pgk-black: #141414;
+
+  /* Functional tokens mapped to brand */
+  --bg: var(--pgk-green);
+  --paper: rgba(243, 234, 225, 0.94);
+  --paper-strong: #FAF6F1;
+  --ink: var(--pgk-black);
+  --muted: #6b6358;
+  --line: rgba(220, 203, 179, 0.28);
+  --brand: var(--pgk-green);
+  --brand-2: var(--pgk-green-light);
+  --brand-soft: rgba(220, 203, 179, 0.15);
+  --accent: #C05621;
+  --accent-soft: #FFF7ED;
   --ok: #0f766e;
   --ok-soft: #e9fbf6;
   --warn: #9a3412;
   --warn-soft: #fff1e8;
-  --shadow: 0 18px 48px rgba(24, 38, 49, 0.09);
+  --shadow: 0 18px 48px rgba(21, 38, 33, 0.12);
+
+  /* Typography */
+  --font-heading: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-body: 'Jost', 'Segoe UI', Roboto, Arial, sans-serif;
 }
 
 * {
@@ -25,11 +47,12 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
-  color: var(--ink);
-  background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.92) 0, rgba(244, 236, 225, 0.65) 32%, transparent 62%),
-    linear-gradient(180deg, #f4eee5 0, var(--bg) 100%);
+  font-family: var(--font-body);
+  font-weight: 300;
+  color: var(--pgk-cream);
+  background: var(--pgk-green);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -41,7 +64,7 @@ body {
   margin: 0 auto;
 }
 
-/* ── Compact top bar ── */
+/* -- Compact top bar -- */
 
 .top-bar {
   display: flex;
@@ -49,20 +72,19 @@ body {
   justify-content: space-between;
   gap: 16px;
   padding: 14px 22px;
-  border-radius: 18px;
-  color: #fff;
-  background:
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.08) 0, transparent 34%),
-    linear-gradient(135deg, #102a43 0, #163a57 58%, #2f5a78 100%);
-  box-shadow: 0 12px 32px rgba(16, 42, 67, 0.22);
+  border-radius: 0;
+  color: var(--pgk-cream);
+  background: var(--pgk-green-dark);
+  border-bottom: 1px solid rgba(220, 203, 179, 0.15);
 }
 
 .top-bar-brand {
-  letter-spacing: 0.12em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  font-family: var(--font-body);
   font-size: 13px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+  color: var(--pgk-gold);
 }
 
 .top-bar-meta {
@@ -72,24 +94,35 @@ body {
 }
 
 .top-bar-convenio {
+  font-family: var(--font-body);
   font-size: 14px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
+  color: rgba(242, 241, 237, 0.8);
 }
 
-/* ── Section kicker ── */
+/* -- Section kicker -- */
 
 .section-kicker {
   display: inline-block;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  font-family: var(--font-body);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 500;
   margin-bottom: 8px;
-  color: var(--accent);
+  color: var(--pgk-gold);
 }
 
-/* ── Dashboard grid ── */
+/* -- Headings use Cormorant Garamond -- */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* -- Dashboard grid -- */
 
 .dashboard {
   display: grid;
@@ -97,7 +130,7 @@ body {
   margin-top: 18px;
 }
 
-/* ── Input row: 2-col (input ~55% + reading ~45%) ── */
+/* -- Input row: 2-col (input ~55% + reading ~45%) -- */
 
 .input-row {
   display: grid;
@@ -106,7 +139,7 @@ body {
   align-items: stretch;
 }
 
-/* ── Results row: payroll left, conditions right ── */
+/* -- Results row: payroll left, conditions right -- */
 
 .results-grid {
   display: grid;
@@ -115,15 +148,15 @@ body {
   align-items: start;
 }
 
-/* ── Panel base ── */
+/* -- Panel base -- */
 
 .panel {
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 24px;
+  border-radius: 16px;
   padding: 22px;
   box-shadow: var(--shadow);
-  backdrop-filter: blur(12px);
+  color: var(--ink);
 }
 
 .panel-head {
@@ -138,13 +171,14 @@ body {
   margin: 0;
   font-size: 28px;
   line-height: 1.05;
+  color: var(--pgk-green);
 }
 
-/* ── Input panel ── */
+/* -- Input panel -- */
 
 .input-panel {
   background:
-    linear-gradient(180deg, rgba(255, 252, 247, 0.98) 0, rgba(255, 249, 241, 0.92) 100%);
+    linear-gradient(180deg, rgba(250, 246, 241, 0.98) 0, rgba(243, 234, 225, 0.94) 100%);
 }
 
 #queryInput {
@@ -152,20 +186,21 @@ body {
   min-height: 200px;
   resize: vertical;
   padding: 18px 20px;
-  border-radius: 18px;
-  border: 1px solid rgba(23, 58, 87, 0.16);
+  border-radius: 12px;
+  border: 1px solid rgba(220, 203, 179, 0.4);
   background: rgba(255, 255, 255, 0.88);
   color: var(--ink);
-  font: inherit;
-  font-size: 17px;
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 16px;
   line-height: 1.55;
-  box-shadow: inset 0 1px 2px rgba(20, 32, 42, 0.04);
+  box-shadow: inset 0 1px 2px rgba(21, 38, 33, 0.04);
 }
 
 #queryInput:focus {
   outline: none;
-  border-color: rgba(23, 58, 87, 0.42);
-  box-shadow: 0 0 0 4px rgba(23, 58, 87, 0.08);
+  border-color: var(--pgk-gold);
+  box-shadow: 0 0 0 3px rgba(220, 203, 179, 0.25);
 }
 
 .actions {
@@ -178,9 +213,12 @@ body {
 .ghost-btn {
   border: 0;
   cursor: pointer;
-  font: inherit;
-  font-weight: 700;
-  transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 13px;
+  transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease, background 0.2s ease, color 0.2s ease;
 }
 
 .primary-btn:hover,
@@ -189,26 +227,37 @@ body {
 }
 
 .primary-btn {
-  padding: 13px 20px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--brand) 0, var(--brand-2) 100%);
-  color: #fff;
-  box-shadow: 0 12px 18px rgba(23, 58, 87, 0.16);
+  padding: 13px 24px;
+  border-radius: 0;
+  background: transparent;
+  color: var(--pgk-gold);
+  border: 1px solid var(--pgk-gold);
+}
+
+.primary-btn:hover {
+  background: var(--pgk-gold);
+  color: var(--pgk-green);
 }
 
 .ghost-btn {
   padding: 13px 18px;
-  border-radius: 14px;
-  background: var(--accent-soft);
+  border-radius: 0;
+  background: transparent;
   color: var(--accent);
+  border: 1px solid var(--accent);
 }
 
-/* ── Prompts drawer (collapsible inside input panel) ── */
+.ghost-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* -- Prompts drawer (collapsible inside input panel) -- */
 
 .prompts-drawer {
   margin-top: 16px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
 }
 
@@ -216,13 +265,14 @@ body {
   display: block;
   padding: 12px 16px;
   cursor: pointer;
-  font: inherit;
+  font-family: var(--font-body);
   font-size: 14px;
-  font-weight: 700;
-  color: var(--brand);
-  background: var(--brand-soft);
+  font-weight: 500;
+  color: var(--pgk-green);
+  background: rgba(220, 203, 179, 0.2);
   list-style: none;
   user-select: none;
+  letter-spacing: 0.04em;
 }
 
 .prompts-toggle::-webkit-details-marker {
@@ -249,13 +299,14 @@ body {
 .prompt-chip {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid #dae5ef;
-  border-radius: 14px;
+  border: 1px solid rgba(220, 203, 179, 0.4);
+  border-radius: 8px;
   background:
-    linear-gradient(90deg, rgba(229, 238, 247, 0.9) 0, rgba(241, 245, 249, 0.95) 100%);
-  color: var(--brand);
+    linear-gradient(90deg, rgba(243, 234, 225, 0.7) 0, rgba(250, 246, 241, 0.9) 100%);
+  color: var(--pgk-green);
   text-align: left;
-  font: inherit;
+  font-family: var(--font-body);
+  font-weight: 400;
   font-size: 15px;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
@@ -263,11 +314,11 @@ body {
 
 .prompt-chip:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 18px rgba(23, 58, 87, 0.1);
-  border-color: #bfd0e0;
+  box-shadow: 0 10px 18px rgba(21, 38, 33, 0.08);
+  border-color: var(--pgk-gold);
 }
 
-/* ── Status pill & badges ── */
+/* -- Status pill & badges -- */
 
 .status-pill,
 .response-badge {
@@ -277,14 +328,17 @@ body {
   min-height: 30px;
   padding: 6px 12px;
   border-radius: 999px;
+  font-family: var(--font-body);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
+  letter-spacing: 0.04em;
 }
 
 .status-pill {
-  background: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.9);
+  background: rgba(220, 203, 179, 0.2);
+  color: var(--pgk-gold);
+  border: 1px solid rgba(220, 203, 179, 0.3);
 }
 
 .response-badge.ready {
@@ -298,11 +352,11 @@ body {
 }
 
 .response-badge.muted {
-  background: #e8e1d6;
+  background: rgba(220, 203, 179, 0.2);
   color: var(--muted);
 }
 
-/* ── Reading panel (summary cards) ── */
+/* -- Reading panel (summary cards) -- */
 
 .reading-panel {
   min-height: 100%;
@@ -317,15 +371,16 @@ body {
 .summary-card {
   min-height: 90px;
   padding: 14px 15px;
-  border-radius: 18px;
-  border: 1px solid rgba(23, 58, 87, 0.1);
+  border-radius: 12px;
+  border: 1px solid var(--line);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0, rgba(247, 243, 236, 0.96) 100%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0, rgba(250, 246, 241, 0.96) 100%);
 }
 
 .summary-card .label {
   display: block;
   margin-bottom: 6px;
+  font-family: var(--font-body);
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -334,12 +389,14 @@ body {
 
 .summary-card .value {
   display: block;
-  font-size: 17px;
+  font-family: var(--font-heading);
+  font-size: 18px;
   line-height: 1.25;
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--pgk-green);
 }
 
-/* ── Decision panel ── */
+/* -- Decision panel -- */
 
 .decision-panel {
   padding: 0;
@@ -353,8 +410,8 @@ body {
   gap: 16px;
   padding: 20px 24px 14px;
   background:
-    linear-gradient(180deg, rgba(23, 58, 87, 0.04) 0, rgba(23, 58, 87, 0.01) 100%);
-  border-bottom: 1px solid rgba(23, 58, 87, 0.08);
+    linear-gradient(180deg, rgba(220, 203, 179, 0.08) 0, transparent 100%);
+  border-bottom: 1px solid var(--line);
 }
 
 .decision-body {
@@ -371,8 +428,11 @@ body {
   min-height: 140px;
   padding: 22px 24px;
   background: transparent;
-  font-size: 20px;
-  line-height: 1.45;
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 19px;
+  line-height: 1.5;
+  color: var(--ink);
 }
 
 .answer-box.empty,
@@ -410,44 +470,49 @@ body {
   margin-top: 9px;
 }
 
-/* ── KPI bar ── */
+/* -- KPI bar -- */
 
 .kpi-bar {
   display: flex;
   align-items: baseline;
   gap: 14px;
   padding: 20px 28px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, var(--brand) 0, var(--brand-2) 100%);
-  color: #fff;
-  box-shadow: 0 14px 36px rgba(16, 42, 67, 0.22);
+  border-radius: 0;
+  background: linear-gradient(135deg, var(--pgk-green-dark) 0, var(--pgk-green-light) 100%);
+  color: var(--pgk-cream);
+  border: 1px solid rgba(220, 203, 179, 0.2);
+  box-shadow: 0 14px 36px rgba(21, 38, 33, 0.25);
 }
 
 .kpi-label {
+  font-family: var(--font-body);
   font-size: 13px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.72);
+  font-weight: 500;
+  color: rgba(220, 203, 179, 0.7);
 }
 
 .kpi-value {
+  font-family: var(--font-heading);
   font-size: 42px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1;
+  color: var(--pgk-gold);
 }
 
 .kpi-suffix {
+  font-family: var(--font-body);
   font-size: 16px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.78);
+  font-weight: 400;
+  color: rgba(220, 203, 179, 0.7);
 }
 
 .kpi-bar.kpi-pending {
   opacity: 0.45;
 }
 
-/* ── Payroll panel ── */
+/* -- Payroll panel -- */
 
 .payroll-panel {
   position: sticky;
@@ -468,15 +533,16 @@ body {
 
 .payroll-metric {
   padding: 14px;
-  border-radius: 16px;
+  border-radius: 12px;
   background:
-    linear-gradient(180deg, rgba(232, 241, 247, 0.92) 0, rgba(255, 255, 255, 0.9) 100%);
-  border: 1px solid rgba(23, 58, 87, 0.1);
+    linear-gradient(180deg, rgba(250, 246, 241, 0.95) 0, rgba(255, 255, 255, 0.9) 100%);
+  border: 1px solid var(--line);
 }
 
 .payroll-metric .label {
   display: block;
   margin-bottom: 5px;
+  font-family: var(--font-body);
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -485,17 +551,19 @@ body {
 
 .payroll-metric .value {
   display: block;
+  font-family: var(--font-heading);
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--pgk-green);
 }
 
 .payroll-table {
   width: 100%;
   border-collapse: collapse;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 12px;
   background: var(--paper-strong);
-  border: 1px solid rgba(23, 58, 87, 0.1);
+  border: 1px solid var(--line);
 }
 
 .payroll-table th,
@@ -503,35 +571,39 @@ body {
   padding: 12px 12px;
   text-align: left;
   vertical-align: top;
-  border-bottom: 1px solid rgba(23, 58, 87, 0.08);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-body);
+  font-weight: 300;
 }
 
 .payroll-table th {
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-weight: 500;
   color: var(--muted);
-  background: #f1ebe2;
+  background: rgba(220, 203, 179, 0.15);
 }
 
 .payroll-total {
   padding: 18px 20px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, var(--brand) 0, var(--brand-2) 100%);
-  color: #fff;
+  border-radius: 0;
+  background: linear-gradient(135deg, var(--pgk-green) 0, var(--pgk-green-light) 100%);
+  color: var(--pgk-gold);
+  font-family: var(--font-heading);
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
-/* ── Conditions panel ── */
+/* -- Conditions panel -- */
 
 .conditions-box {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .conditions-section {
-  border: 1px solid rgba(23, 58, 87, 0.1);
-  border-radius: 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
   overflow: hidden;
   background: var(--paper-strong);
 }
@@ -540,7 +612,7 @@ body {
   list-style: none;
   cursor: pointer;
   padding: 14px 16px;
-  background: #f5eee5;
+  background: rgba(220, 203, 179, 0.12);
 }
 
 .conditions-title::-webkit-details-marker {
@@ -549,8 +621,10 @@ body {
 
 .conditions-title strong {
   display: block;
+  font-family: var(--font-heading);
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--pgk-green);
 }
 
 .conditions-preview {
@@ -563,7 +637,7 @@ body {
 
 .condition-item {
   padding: 14px 16px;
-  border-top: 1px solid rgba(23, 58, 87, 0.08);
+  border-top: 1px solid var(--line);
 }
 
 .condition-item strong {
@@ -578,14 +652,14 @@ body {
   color: var(--muted);
 }
 
-/* ── Method drawer (collapsed by default) ── */
+/* -- Method drawer (collapsed by default) -- */
 
 .method-drawer {
-  border: 1px solid var(--line);
-  border-radius: 20px;
+  border: 1px solid rgba(220, 203, 179, 0.2);
+  border-radius: 0;
   overflow: hidden;
-  background:
-    linear-gradient(180deg, rgba(255, 249, 241, 0.95) 0, rgba(248, 243, 235, 0.92) 100%);
+  background: var(--pgk-green-dark);
+  color: var(--pgk-cream);
 }
 
 .method-toggle {
@@ -607,18 +681,20 @@ body {
 }
 
 .method-toggle-title {
+  font-family: var(--font-heading);
   font-size: 18px;
-  font-weight: 700;
-  color: var(--ink);
+  font-weight: 400;
+  color: var(--pgk-cream);
 }
 
 .method-drawer .rules {
   padding: 0 22px 20px 40px;
   columns: 2;
   column-gap: 28px;
+  color: rgba(242, 241, 237, 0.8);
 }
 
-/* ── Responsive: tablet ── */
+/* -- Responsive: tablet -- */
 
 @media (max-width: 1320px) {
   .input-row,
@@ -636,7 +712,7 @@ body {
   }
 }
 
-/* ── Responsive: mobile ── */
+/* -- Responsive: mobile -- */
 
 @media (max-width: 980px) {
   body {
@@ -654,7 +730,6 @@ body {
     grid-template-columns: 1fr;
   }
 
-  /* Reorder blocks for mobile: input → decision → kpi → payroll → reading → conditions → method */
   .dashboard {
     display: flex;
     flex-direction: column;
