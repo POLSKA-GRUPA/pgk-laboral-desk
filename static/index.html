@@ -8,111 +8,68 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=20260322-brand">
+  <style>
+    :root{--pgk-green:#152621;--pgk-green-light:#1a3029;--pgk-gold:#DCCBB3;--pgk-cream:#F2F1ED;--pgk-black:#141414;--font-heading:'Cormorant Garamond',Georgia,serif;--font-body:'Jost','Segoe UI',Roboto,sans-serif}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+    body{display:flex;align-items:center;justify-content:center;background:var(--pgk-green);background-image:radial-gradient(ellipse at 20% 50%,rgba(220,203,179,.06) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(220,203,179,.04) 0%,transparent 50%);padding:24px}
+    .lc{width:100%;max-width:420px}
+    .brand{text-align:center;margin-bottom:40px}
+    .brand-name{font-family:var(--font-body);font-size:13px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--pgk-gold)}
+    .brand-title{font-family:var(--font-heading);font-size:42px;font-weight:400;color:var(--pgk-cream);margin-top:8px;letter-spacing:-.02em;line-height:1.1}
+    .brand-sub{font-size:14px;font-weight:300;color:rgba(242,241,237,.5);margin-top:8px}
+    .card{background:rgba(243,234,225,.96);border:1px solid rgba(220,203,179,.28);border-radius:16px;padding:36px 32px;box-shadow:0 24px 64px rgba(0,0,0,.25)}
+    .card h2{font-family:var(--font-heading);font-size:24px;font-weight:400;color:var(--pgk-green);margin-bottom:24px}
+    .fld{margin-bottom:18px}
+    .fld label{display:block;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#6b6358;margin-bottom:6px}
+    .fld input{width:100%;padding:12px 16px;border:1px solid rgba(220,203,179,.45);border-radius:10px;background:rgba(255,255,255,.85);font-family:var(--font-body);font-size:15px;font-weight:400;color:var(--pgk-black);outline:none;transition:border-color .2s}
+    .fld input:focus{border-color:var(--pgk-green);box-shadow:0 0 0 3px rgba(21,38,33,.08)}
+    .btn{width:100%;padding:14px;border:none;border-radius:10px;background:var(--pgk-green);color:var(--pgk-gold);font-family:var(--font-body);font-size:14px;font-weight:500;letter-spacing:.06em;cursor:pointer;transition:background .2s;margin-top:8px}
+    .btn:hover{background:var(--pgk-green-light)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .err{background:#fff1e8;color:#9a3412;font-size:13px;padding:10px 14px;border-radius:8px;margin-bottom:16px;display:none}
+    .err.show{display:block}
+    .ft{text-align:center;margin-top:28px;font-size:12px;color:rgba(242,241,237,.3)}
+    .ft a{color:var(--pgk-gold);text-decoration:none;opacity:.6}
+  </style>
 </head>
 <body>
-  <div class="shell">
-    <header class="top-bar">
-      <span class="top-bar-brand">PGK &middot; Laboral Desk</span>
-      <div class="top-bar-meta">
-        <span class="top-bar-convenio" id="convenioName">Cargando...</span>
-        <span class="status-pill" id="apiStatus">API conectando</span>
-      </div>
-    </header>
-
-    <main class="dashboard">
-      <section class="input-row">
-        <section class="panel input-panel">
-          <div class="panel-head">
-            <div>
-              <span class="section-kicker">Consulta</span>
-              <h2>Qu&eacute; quieres contratar</h2>
-            </div>
-          </div>
-          <textarea id="queryInput" placeholder="Escribe puesto, jornada, modalidad, temporada, antig&uuml;edad, prorrata de extras o cualquier dato que afecte a la contrataci&oacute;n..."></textarea>
-          <div class="actions">
-            <button id="analyzeButton" class="primary-btn">Analizar</button>
-            <button id="clearButton" class="ghost-btn">Limpiar</button>
-          </div>
-          <details class="prompts-drawer">
-            <summary class="prompts-toggle">Ejemplos r&aacute;pidos</summary>
-            <div class="prompt-list">
-              <button class="prompt-chip" data-prompt="Quiero contratar un socorrista nivel B fijo discontinuo a 40 horas semanales para la temporada de verano en Espa&ntilde;a.">Socorrista verano</button>
-              <button class="prompt-chip" data-prompt="Necesito un auxiliar administrativo indefinido a jornada completa y con 6 a&ntilde;os de antig&uuml;edad acumulada.">Auxiliar administrativo</button>
-              <button class="prompt-chip" data-prompt="Voy a contratar desde Per&uacute; un monitor de nataci&oacute;n a media jornada. Dime condiciones y borrador de n&oacute;mina.">Monitor media jornada</button>
-              <button class="prompt-chip" data-prompt="Quiero contratar un controlador de acceso a 30 horas semanales con 1 trienio y pagas extra prorrateadas.">Controlador con prorrata</button>
-            </div>
-          </details>
-        </section>
-
-        <section class="panel reading-panel">
-          <div class="panel-head">
-            <div>
-              <span class="section-kicker">Lectura</span>
-              <h2>Lo que he entendido</h2>
-            </div>
-          </div>
-          <div id="requestSummary" class="summary-grid empty-state">Esperando an&aacute;lisis.</div>
-        </section>
-      </section>
-
-      <section class="decision-panel panel">
-        <div class="decision-head">
-          <div>
-            <span class="section-kicker">Diagn&oacute;stico</span>
-            <h2>Conclusi&oacute;n del caso</h2>
-          </div>
-          <span id="responseBadge" class="response-badge muted">Pendiente</span>
+  <div class="lc">
+    <div class="brand">
+      <div class="brand-name">Polska Grupa Konsultingowa</div>
+      <div class="brand-title">Laboral Desk</div>
+      <div class="brand-sub">Plataforma de apoyo laboral y pre-n&oacute;mina</div>
+    </div>
+    <div class="card">
+      <h2>Acceso</h2>
+      <div class="err" id="e"></div>
+      <form id="f">
+        <div class="fld">
+          <label for="u">Usuario</label>
+          <input id="u" type="text" autocomplete="username" required autofocus>
         </div>
-        <div class="decision-body">
-          <div id="answerBox" class="answer-box empty">La respuesta aparecer&aacute; aqu&iacute;.</div>
-          <div id="clarificationsBox" class="clarifications hidden"></div>
+        <div class="fld">
+          <label for="p">Contrase&ntilde;a</label>
+          <input id="p" type="password" autocomplete="current-password" required>
         </div>
-      </section>
-
-      <div class="kpi-bar" id="kpiBar">
-        <span class="kpi-label">Total devengado convenio</span>
-        <span class="kpi-value" id="kpiTotal">&mdash;</span>
-        <span class="kpi-suffix">EUR / mes</span>
-      </div>
-
-      <section class="results-grid">
-        <section class="panel payroll-panel">
-          <div class="panel-head">
-            <div>
-              <span class="section-kicker">C&aacute;lculo</span>
-              <h2>Pre-n&oacute;mina orientativa</h2>
-            </div>
-          </div>
-          <div id="payrollBox" class="payroll-box empty-state">Sin c&aacute;lculo todav&iacute;a.</div>
-        </section>
-
-        <section class="panel conditions-panel">
-          <div class="panel-head">
-            <div>
-              <span class="section-kicker">Fundamento</span>
-              <h2>Condiciones aplicables</h2>
-            </div>
-          </div>
-          <div id="conditionsBox" class="conditions-box empty-state">Aqu&iacute; se mostrar&aacute;n las condiciones relevantes.</div>
-        </section>
-      </section>
-
-      <details class="method-drawer">
-        <summary class="method-toggle">
-          <span class="section-kicker">Criterio</span>
-          <span class="method-toggle-title">Reglas del motor</span>
-        </summary>
-        <ul class="rules">
-          <li>No inventa categor&iacute;as ni importes fuera del convenio.</li>
-          <li>Si el encaje del fijo-discontinuo no est&aacute; claro, lo dice.</li>
-          <li>La pre-n&oacute;mina solo cierra devengos convencionales.</li>
-          <li>Seguridad Social e IRPF quedan identificados como pendiente legal.</li>
-        </ul>
-      </details>
-    </main>
+        <button type="submit" class="btn" id="b">Entrar</button>
+      </form>
+    </div>
+    <div class="ft">&copy; 2026 <a href="https://pgk.es" target="_blank">PGK Hispania</a></div>
   </div>
-
-  <script src="/app.js?v=20260322-redesign"></script>
+  <script>
+    const f=document.getElementById('f'),e=document.getElementById('e'),b=document.getElementById('b');
+    f.addEventListener('submit',async(ev)=>{
+      ev.preventDefault();e.classList.remove('show');b.disabled=true;b.textContent='Entrando...';
+      try{
+        const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({username:document.getElementById('u').value,password:document.getElementById('p').value})});
+        const d=await r.json();
+        if(r.ok&&d.ok){window.location.href='/panel'}
+        else{e.textContent=d.error||'Credenciales incorrectas';e.classList.add('show')}
+      }catch(err){e.textContent='Error de conexi\u00f3n';e.classList.add('show')}
+      finally{b.disabled=false;b.textContent='Entrar'}
+    });
+  </script>
 </body>
 </html>
