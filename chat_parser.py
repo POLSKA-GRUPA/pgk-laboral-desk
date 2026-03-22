@@ -367,12 +367,12 @@ class ChatParser:
         params["category"] = ctx["category"]
 
         # Jornada (usar raw para capturar %)
-        if "jornada" not in params or params["jornada"] is None:
+        if "jornada" not in params or params["jornada"] is None or self._is_parcial_sentinel(params.get("jornada")):
             hours = self._extract_hours(raw)
             if hours is None:
                 hours = self._extract_hours(norm)
             if hours is not None:
-                params["jornada"] = hours
+                params["jornada"] = hours  # puede ser -1 (centinela parcial)
 
         # Tipo de contrato
         if "contract_type" not in params or params["contract_type"] is None:
@@ -398,7 +398,8 @@ class ChatParser:
 
         # ¿Falta algo crítico? (básicos primero)
         missing = []
-        if params.get("jornada") is None:
+        jornada_val = params.get("jornada")
+        if jornada_val is None or self._is_parcial_sentinel(jornada_val):
             missing.append("jornada")
         if params.get("contract_type") is None:
             missing.append("contract_type")
@@ -409,7 +410,11 @@ class ChatParser:
             ctx["_had_questions"] = True
             questions = []
             if "jornada" in missing:
-                questions.append("¿Jornada completa (40h) o parcial?")
+                if self._is_parcial_sentinel(jornada_val):
+                    # Usuario ya dijo "parcial" → preguntar cuántas horas exactamente
+                    questions.append("¿Cuántas horas semanales? (ej: 20h, 25h, 30h, 32h)")
+                else:
+                    questions.append("¿Jornada completa (40h) o cuántas horas semanales?")
             if "contract_type" in missing:
                 questions.append("¿Tipo de contrato? Indefinido, temporal, fijo-discontinuo...")
 
@@ -513,19 +518,47 @@ class ChatParser:
 
     @staticmethod
     def _extract_hours(text: str) -> float | None:
-        m = re.search(r"(\d+(?:[.,]\d+)?)\s*(?:horas?|h)\s*(?:semana|semanal)?", text)
+        # Horas explícitas: "20 horas", "20h", "20 h/semana", "20 horas semanales"
+        m = re.search(r"(\d+(?:[.,]\d+)?)\s*(?:horas?|h)\b", text)
         if m:
             return float(m.group(1).replace(",", "."))
+
+        # Porcentaje de jornada: "50%", "75 %", "80%"
         pct = re.search(r"(\d{1,3})\s*%", text)
         if pct:
             return round(40.0 * float(pct.group(1)) / 100, 2)
-        if "media jornada" in text or "medio tiempo" in text:
+
+        # Fracciones: tres cuartos, 3/4 → 30h
+        if "tres cuartos" in text or "3/4" in text or "3 4" in text:
+            return 30.0
+
+        # Media jornada (sin número) → 20h
+        if "media jornada" in text or "medio tiempo" in text or "jornada media" in text:
             return 20.0
-        if "jornada completa" in text or "tiempo completo" in text or "40 horas" in text:
+
+        # Jornada completa → 40h
+        _completa_hints = ["jornada completa", "tiempo completo", "40 horas", "jornada entera", "jornada total"]
+        if any(h in text for h in _completa_hints):
             return 40.0
         if "completa" in text and ("jornada" in text or "horas" in text):
             return 40.0
+
+        # Jornada parcial sin número → centinela -1 (caller preguntará las horas)
+        _parcial_hints = [
+            "jornada parcial", "tiempo parcial", "a tiempo parcial",
+            "media jornada", "jornada reducida", "reducida",
+        ]
+        if any(h in text for h in _parcial_hints) or (
+            "parcial" in text and "jornada" not in text  # "parcial" a secas
+        ) or text.strip() in ("parcial", "tiempo parcial", "jornada parcial"):
+            return -1.0  # señal: el usuario dijo parcial pero falta el número de horas
+
         return None
+
+    @staticmethod
+    def _is_parcial_sentinel(hours: float | None) -> bool:
+        """True si el valor es el centinela de 'parcial sin horas'."""
+        return hours is not None and hours < 0
 
     @staticmethod
     def _extract_contract_type(text: str) -> str | None:
@@ -539,8 +572,8 @@ class ChatParser:
             return "temporal"
         if "indefinid" in text or "fijo" in text:
             return "indefinido"
-        if "tiempo parcial" in text:
-            return "tiempo-parcial"
+        # NOTA: "tiempo parcial" NO es un tipo de contrato, es una jornada.
+        # Se gestiona en _extract_hours como centinela -1.
         return None
 
     @staticmethod
