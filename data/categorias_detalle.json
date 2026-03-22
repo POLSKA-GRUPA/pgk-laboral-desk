@@ -1,0 +1,469 @@
+{
+  "_fuente": "BOE-A-2026-5849, Arts. 12-19 — Clasificación profesional",
+  "grupos": [
+    {
+      "id": "G1",
+      "nombre": "Técnicos y Administrativos",
+      "descripcion": "Personal técnico titulado, administrativo y comercial"
+    },
+    {
+      "id": "G2",
+      "nombre": "Socorristas",
+      "descripcion": "Personal de salvamento, socorrismo y actividades acuáticas"
+    },
+    {
+      "id": "G3",
+      "nombre": "Personal de Mantenimiento y Oficios",
+      "descripcion": "Personal de mantenimiento, instalaciones, limpieza y servicios"
+    }
+  ],
+  "categorias": [
+    {
+      "category": "Técnico Titulado.",
+      "grupo": "G1",
+      "nombre_corto": "Técnico Titulado",
+      "descripcion": "Profesional con titulación universitaria superior que realiza funciones técnicas de alto nivel: dirección técnica, planificación, diseño de instalaciones, informes periciales.",
+      "funciones": [
+        "Dirección técnica de proyectos",
+        "Planificación y diseño de instalaciones acuáticas",
+        "Elaboración de informes técnicos y periciales",
+        "Supervisión de cumplimiento normativo",
+        "Asesoramiento técnico especializado"
+      ],
+      "requisitos": ["Titulación universitaria superior"],
+      "keywords": ["ingeniero", "arquitecto", "titulado superior", "director técnico", "técnico superior", "licenciado", "máster", "proyecto", "diseño instalaciones", "perito"],
+      "confundible_con": ["Técnico Diplomado."],
+      "diferencia_clave": "Titulación superior vs. diplomatura. Funciones de dirección técnica vs. apoyo técnico."
+    },
+    {
+      "category": "Técnico Diplomado.",
+      "grupo": "G1",
+      "nombre_corto": "Técnico Diplomado",
+      "descripcion": "Profesional con titulación universitaria de grado medio o diplomatura que realiza funciones de apoyo técnico y gestión técnica bajo supervisión.",
+      "funciones": [
+        "Apoyo técnico a la dirección",
+        "Gestión técnica de instalaciones",
+        "Control de calidad del agua",
+        "Supervisión de procesos técnicos",
+        "Coordinación técnica de equipos"
+      ],
+      "requisitos": ["Titulación universitaria media o diplomatura"],
+      "keywords": ["diplomado", "graduado", "técnico medio", "control calidad", "analista", "laboratorio", "calidad agua"],
+      "confundible_con": ["Técnico Titulado."],
+      "diferencia_clave": "Diplomatura/grado medio. Funciones de apoyo técnico, no dirección."
+    },
+    {
+      "category": "Jefe Administrativo.",
+      "grupo": "G1",
+      "nombre_corto": "Jefe Administrativo",
+      "descripcion": "Responsable del departamento administrativo. Coordina y supervisa al personal administrativo, gestiona contabilidad, facturación y relaciones con clientes y proveedores.",
+      "funciones": [
+        "Dirección del departamento administrativo",
+        "Supervisión de contabilidad y facturación",
+        "Gestión de cobros y pagos",
+        "Coordinación con clientes y proveedores",
+        "Elaboración de presupuestos",
+        "Control de documentación y contratos"
+      ],
+      "requisitos": ["Experiencia administrativa", "Capacidad de dirección"],
+      "keywords": ["jefe administración", "responsable administrativo", "director administrativo", "contabilidad", "facturación", "presupuestos", "jefe oficina", "responsable oficina"],
+      "confundible_con": ["Oficial Administrativo.", "Auxiliar Administrativo."],
+      "diferencia_clave": "Dirige el departamento. No ejecuta tareas básicas, las supervisa."
+    },
+    {
+      "category": "Oficial Administrativo.",
+      "grupo": "G1",
+      "nombre_corto": "Oficial Administrativo",
+      "descripcion": "Realiza tareas administrativas con cierta autonomía e iniciativa propia: contabilidad, correspondencia, gestión de expedientes, atención a clientes.",
+      "funciones": [
+        "Contabilidad y registro de operaciones",
+        "Gestión de correspondencia y documentación",
+        "Atención a clientes y proveedores",
+        "Elaboración de informes administrativos",
+        "Gestión de expedientes y archivos",
+        "Tramitaciones con administraciones públicas"
+      ],
+      "requisitos": ["Conocimientos administrativos"],
+      "keywords": ["administrativo", "contable", "gestión administrativa", "oficial administrativo", "administración", "expedientes", "documentación", "trámites"],
+      "confundible_con": ["Jefe Administrativo.", "Auxiliar Administrativo."],
+      "diferencia_clave": "Autonomía intermedia. Más cualificado que auxiliar pero no dirige departamento."
+    },
+    {
+      "category": "Auxiliar Administrativo.",
+      "grupo": "G1",
+      "nombre_corto": "Auxiliar Administrativo",
+      "descripcion": "Realiza tareas administrativas básicas bajo supervisión directa: archivo, mecanografía, introducción de datos, atención telefónica básica.",
+      "funciones": [
+        "Archivo y clasificación de documentos",
+        "Introducción de datos",
+        "Tareas de apoyo administrativo",
+        "Gestión básica de correspondencia",
+        "Fotocopias y encuadernación",
+        "Apoyo general a oficina"
+      ],
+      "requisitos": ["Formación básica administrativa"],
+      "keywords": ["auxiliar", "administrativo básico", "archivo", "datos", "oficina", "apoyo administrativo", "mecanógrafo", "secretaría"],
+      "confundible_con": ["Oficial Administrativo.", "Recepcionista-telefonista."],
+      "diferencia_clave": "Tareas básicas bajo supervisión. Sin autonomía ni gestión propia."
+    },
+    {
+      "category": "Recepcionista-telefonista.",
+      "grupo": "G1",
+      "nombre_corto": "Recepcionista-telefonista",
+      "descripcion": "Atiende la recepción de la instalación y centralita telefónica. Control de acceso de visitas, gestión de llamadas, información general al público.",
+      "funciones": [
+        "Atención en recepción",
+        "Gestión de centralita telefónica",
+        "Control de visitas",
+        "Información al público",
+        "Gestión de citas y reservas",
+        "Recepción de correspondencia y paquetería"
+      ],
+      "requisitos": ["Don de gentes", "Capacidad de comunicación"],
+      "keywords": ["recepcionista", "telefonista", "recepción", "centralita", "atención al público", "teléfono", "información", "citas"],
+      "confundible_con": ["Auxiliar Administrativo.", "Controlador de acceso al recinto de la instalación."],
+      "diferencia_clave": "Centrado en atención directa al público y teléfono, no en tareas admin de oficina ni control de acceso a piscina."
+    },
+    {
+      "category": "Comercial.",
+      "grupo": "G1",
+      "nombre_corto": "Comercial",
+      "descripcion": "Responsable de captación de clientes, gestión de cartera comercial, presupuestos y seguimiento de servicios contratados.",
+      "funciones": [
+        "Captación de nuevos clientes",
+        "Visitas comerciales a comunidades",
+        "Elaboración de presupuestos comerciales",
+        "Seguimiento de contratos y renovaciones",
+        "Gestión de cartera de clientes",
+        "Negociación de condiciones"
+      ],
+      "requisitos": ["Habilidades comerciales", "Carnet de conducir"],
+      "keywords": ["comercial", "ventas", "vendedor", "captación", "clientes", "presupuestos", "cartera comercial", "representante"],
+      "confundible_con": [],
+      "diferencia_clave": "Única categoría comercial. Claramente diferenciada."
+    },
+    {
+      "category": "Nivel A.",
+      "grupo": "G2",
+      "nombre_corto": "Socorrista Nivel A",
+      "descripcion": "Socorrista con máxima cualificación. Coordina al equipo de socorristas, puede ser responsable de seguridad de la instalación. Requiere titulación de socorrismo de máximo nivel.",
+      "funciones": [
+        "Vigilancia y salvamento acuático",
+        "Coordinación del equipo de socorristas",
+        "Responsable de seguridad de la instalación",
+        "Primeros auxilios avanzados",
+        "Supervisión del cumplimiento de normas de seguridad",
+        "Gestión de protocolos de emergencia"
+      ],
+      "requisitos": ["Titulación de socorrismo nivel máximo", "Experiencia en coordinación"],
+      "keywords": ["socorrista jefe", "coordinador socorristas", "socorrista nivel a", "socorrista principal", "jefe socorristas", "responsable salvamento", "socorrista senior"],
+      "confundible_con": ["Nivel B.", "Nivel C.", "Socorrista correturnos."],
+      "diferencia_clave": "Máxima cualificación + función de coordinación. El que manda entre los socorristas."
+    },
+    {
+      "category": "Nivel B.",
+      "grupo": "G2",
+      "nombre_corto": "Socorrista Nivel B",
+      "descripcion": "Socorrista estándar con titulación completa de socorrismo acuático. Realiza vigilancia, salvamento y primeros auxilios en la instalación.",
+      "funciones": [
+        "Vigilancia de bañistas",
+        "Salvamento acuático",
+        "Primeros auxilios",
+        "Control de aforo y normas",
+        "Mantenimiento básico de botiquín y equipo de rescate"
+      ],
+      "requisitos": ["Titulación de socorrismo acuático"],
+      "keywords": ["socorrista", "socorrista nivel b", "vigilante piscina", "salvamento", "socorrista estándar", "socorrista piscina"],
+      "confundible_con": ["Nivel A.", "Nivel C.", "Socorrista correturnos."],
+      "diferencia_clave": "Socorrista estándar con titulación completa. No coordina (eso es Nivel A)."
+    },
+    {
+      "category": "Nivel C.",
+      "grupo": "G2",
+      "nombre_corto": "Socorrista Nivel C",
+      "descripcion": "Socorrista con cualificación básica. Realiza vigilancia y asistencia en piscinas de menor complejidad o como apoyo a socorristas de nivel superior.",
+      "funciones": [
+        "Vigilancia de bañistas",
+        "Asistencia básica",
+        "Apoyo a socorristas de nivel superior",
+        "Control de normas de uso"
+      ],
+      "requisitos": ["Titulación básica de socorrismo"],
+      "keywords": ["socorrista básico", "socorrista nivel c", "socorrista auxiliar", "socorrista apoyo", "socorrista junior"],
+      "confundible_con": ["Nivel B.", "Socorrista correturnos."],
+      "diferencia_clave": "Cualificación más básica. Para piscinas pequeñas o como apoyo."
+    },
+    {
+      "category": "Socorrista correturnos.",
+      "grupo": "G2",
+      "nombre_corto": "Socorrista Correturnos",
+      "descripcion": "Socorrista que cubre turnos, ausencias, vacaciones y sustituciones de otros socorristas. Debe poder desempeñarse en cualquier nivel.",
+      "funciones": [
+        "Sustitución de socorristas ausentes",
+        "Cobertura de vacaciones y bajas",
+        "Cobertura de turnos rotativos",
+        "Disponibilidad para diferentes instalaciones"
+      ],
+      "requisitos": ["Titulación de socorrismo", "Disponibilidad horaria amplia"],
+      "keywords": ["correturnos", "sustituto", "socorrista sustituto", "cubre turnos", "socorrista volante", "socorrista suplente", "cubrir turnos", "vacaciones", "sustitución"],
+      "confundible_con": ["Nivel A.", "Nivel B."],
+      "diferencia_clave": "No tiene puesto fijo. Su función es cubrir huecos. Retribución igual que Nivel A por la disponibilidad."
+    },
+    {
+      "category": "Monitor de natación.",
+      "grupo": "G2",
+      "nombre_corto": "Monitor de Natación",
+      "descripcion": "Imparte clases y actividades de natación y actividades acuáticas. Planifica sesiones de enseñanza y supervisa la práctica.",
+      "funciones": [
+        "Impartir clases de natación",
+        "Planificación de sesiones y programas",
+        "Enseñanza de estilos y técnicas",
+        "Actividades acuáticas dirigidas",
+        "Evaluación de progreso de alumnos"
+      ],
+      "requisitos": ["Titulación de monitor de natación o equivalente"],
+      "keywords": ["monitor", "natación", "profesor natación", "clases natación", "enseñanza natación", "actividades acuáticas", "cursos natación", "aquagym", "aquafitness"],
+      "confundible_con": [],
+      "diferencia_clave": "Enseña, no vigila. Distinto de socorrista."
+    },
+    {
+      "category": "Encargado.",
+      "grupo": "G3",
+      "nombre_corto": "Encargado",
+      "descripcion": "Responsable de obra o instalación. Supervisa al personal de mantenimiento, organiza los trabajos diarios, controla materiales y asegura la calidad del servicio.",
+      "funciones": [
+        "Supervisión del personal de mantenimiento",
+        "Organización de trabajos diarios",
+        "Control de materiales y herramientas",
+        "Aseguramiento de calidad del servicio",
+        "Contacto directo con el cliente",
+        "Resolución de incidencias en instalación"
+      ],
+      "requisitos": ["Experiencia en mantenimiento de piscinas", "Capacidad de mando"],
+      "keywords": ["encargado", "jefe de obra", "responsable instalación", "capataz", "jefe de equipo mantenimiento", "supervisor", "responsable mantenimiento"],
+      "confundible_con": [],
+      "diferencia_clave": "El jefe en la instalación. Manda sobre el equipo de mantenimiento."
+    },
+    {
+      "category": "Conductor especialista.",
+      "grupo": "G3",
+      "nombre_corto": "Conductor Especialista",
+      "descripcion": "Conduce vehículos especiales o de gran tonelaje para transporte de equipos, productos químicos, maquinaria. Puede operar maquinaria especial.",
+      "funciones": [
+        "Conducción de vehículos especiales o pesados",
+        "Transporte de productos químicos",
+        "Operación de maquinaria especial",
+        "Mantenimiento básico del vehículo"
+      ],
+      "requisitos": ["Carnet de conducir especial (C, C+E, etc.)", "ADR para mercancías peligrosas si aplica"],
+      "keywords": ["conductor camión", "conductor especialista", "transportista", "vehículo especial", "camión", "maquinaria pesada", "ADR", "mercancías peligrosas"],
+      "confundible_con": ["Conductor."],
+      "diferencia_clave": "Vehículos especiales/pesados vs. vehículos normales."
+    },
+    {
+      "category": "Conductor.",
+      "grupo": "G3",
+      "nombre_corto": "Conductor",
+      "descripcion": "Conduce vehículos ligeros de la empresa para transporte de personal, materiales y equipos entre instalaciones.",
+      "funciones": [
+        "Conducción de vehículos ligeros",
+        "Transporte de personal y materiales",
+        "Reparto entre instalaciones",
+        "Mantenimiento básico del vehículo",
+        "Carga y descarga"
+      ],
+      "requisitos": ["Carnet de conducir B"],
+      "keywords": ["conductor", "chófer", "repartidor", "transporte", "furgoneta", "vehículo empresa"],
+      "confundible_con": ["Conductor especialista."],
+      "diferencia_clave": "Vehículos ligeros/furgonetas. Sin requisitos especiales."
+    },
+    {
+      "category": "Instalador de montajes eléctricos.",
+      "grupo": "G3",
+      "nombre_corto": "Instalador Eléctrico",
+      "descripcion": "Realiza instalaciones eléctricas en las instalaciones acuáticas: cuadros eléctricos, iluminación, automatismos, bombas.",
+      "funciones": [
+        "Instalación de cuadros eléctricos",
+        "Montaje de sistemas de iluminación",
+        "Instalación de automatismos",
+        "Conexión eléctrica de bombas y motores",
+        "Mantenimiento eléctrico preventivo y correctivo",
+        "Diagnóstico de averías eléctricas"
+      ],
+      "requisitos": ["Formación en electricidad", "Certificado de instalador eléctrico si aplica"],
+      "keywords": ["electricista", "instalador eléctrico", "eléctrico", "cuadros eléctricos", "iluminación", "cableado", "automatismos", "bombas eléctricas", "averías eléctricas"],
+      "confundible_con": ["Técnico de Mantenimiento en Instalaciones de Piscinas.", "Instalador de montajes de circuitos de depuración y fontanería."],
+      "diferencia_clave": "Solo parte eléctrica. Fontanería es otra categoría."
+    },
+    {
+      "category": "Técnico de Mantenimiento en Instalaciones de Piscinas.",
+      "grupo": "G3",
+      "nombre_corto": "Técnico de Mantenimiento Piscinas",
+      "descripcion": "Realiza el mantenimiento integral de la piscina: tratamiento del agua, limpieza de vasos, control de parámetros, mantenimiento de equipos de depuración.",
+      "funciones": [
+        "Tratamiento químico del agua",
+        "Control de parámetros de calidad (pH, cloro, temperatura)",
+        "Limpieza de vasos y playas",
+        "Mantenimiento de equipos de depuración",
+        "Revisión de filtros y bombas",
+        "Puesta a punto de la instalación",
+        "Mantenimiento invernal"
+      ],
+      "requisitos": ["Conocimiento de tratamiento de aguas", "Formación en mantenimiento de piscinas"],
+      "keywords": ["mantenimiento piscinas", "piscinero", "tratamiento agua", "cloro", "pH", "depuración", "filtros", "bombas", "limpieza piscina", "químicos piscina", "mantenimiento agua", "técnico piscinas", "puesta a punto"],
+      "confundible_con": ["Limpiador de piscinas.", "Instalador de montajes de circuitos de depuración y fontanería."],
+      "diferencia_clave": "Mantenimiento integral (agua + equipos). Limpiador solo limpia. Instalador solo instala circuitos."
+    },
+    {
+      "category": "Instalador de montajes de circuitos de depuración y fontanería.",
+      "grupo": "G3",
+      "nombre_corto": "Instalador Fontanería/Depuración",
+      "descripcion": "Instala y repara circuitos de depuración de agua, fontanería, tuberías, válvulas y sistemas hidráulicos en instalaciones acuáticas.",
+      "funciones": [
+        "Instalación de circuitos de depuración",
+        "Montaje de tuberías y fontanería",
+        "Instalación y reparación de válvulas",
+        "Sistemas hidráulicos",
+        "Puesta en marcha de circuitos",
+        "Detección y reparación de fugas"
+      ],
+      "requisitos": ["Formación en fontanería o hidráulica"],
+      "keywords": ["fontanero", "fontanería", "depuración", "tuberías", "plomero", "circuitos agua", "válvulas", "hidráulica", "fugas", "instalador depuración"],
+      "confundible_con": ["Técnico de Mantenimiento en Instalaciones de Piscinas.", "Instalador de montajes eléctricos."],
+      "diferencia_clave": "Solo parte hidráulica/fontanería. No electricidad ni mantenimiento diario del agua."
+    },
+    {
+      "category": "Ayudante de maquinista.",
+      "grupo": "G3",
+      "nombre_corto": "Ayudante de Maquinista",
+      "descripcion": "Asiste al operador de maquinaria en la instalación. Ayuda en la operación de equipos de depuración, bombeo y calefacción.",
+      "funciones": [
+        "Asistencia en operación de maquinaria",
+        "Apoyo en sala de máquinas",
+        "Vigilancia de equipos en funcionamiento",
+        "Tareas auxiliares de mantenimiento de equipos"
+      ],
+      "requisitos": ["Formación básica en mecánica"],
+      "keywords": ["ayudante maquinista", "sala de máquinas", "operario máquinas", "ayudante máquinas", "maquinaria", "caldera", "calefacción"],
+      "confundible_con": ["Técnico de Mantenimiento en Instalaciones de Piscinas."],
+      "diferencia_clave": "Solo asiste. No es el responsable del mantenimiento integral."
+    },
+    {
+      "category": "Almacenero.",
+      "grupo": "G3",
+      "nombre_corto": "Almacenero",
+      "descripcion": "Gestiona el almacén de la empresa: recepción, almacenamiento y distribución de materiales, productos químicos, herramientas y repuestos.",
+      "funciones": [
+        "Recepción de materiales y productos",
+        "Almacenamiento organizado",
+        "Control de inventario",
+        "Distribución de materiales a instalaciones",
+        "Control de stock y pedidos"
+      ],
+      "requisitos": ["Formación básica", "Carnet de carretillero si aplica"],
+      "keywords": ["almacenero", "almacén", "inventario", "stock", "materiales", "repuestos", "logística", "carretillero"],
+      "confundible_con": [],
+      "diferencia_clave": "Función claramente diferenciada de almacén/logística."
+    },
+    {
+      "category": "Controlador de acceso al recinto de la instalación.",
+      "grupo": "G3",
+      "nombre_corto": "Controlador de Acceso",
+      "descripcion": "Controla el acceso al recinto de la instalación acuática. Verifica entradas, abonos, aforos y cumplimiento de normas de acceso.",
+      "funciones": [
+        "Control de entradas y abonos",
+        "Verificación de identidad y derecho de acceso",
+        "Control de aforo",
+        "Información básica al público",
+        "Vigilancia del cumplimiento de normas de acceso"
+      ],
+      "requisitos": ["Don de gentes"],
+      "keywords": ["control acceso", "portero", "entrada", "acceso piscina", "taquilla", "abonos", "aforo", "puerta", "vigilante entrada"],
+      "confundible_con": ["Recepcionista-telefonista."],
+      "diferencia_clave": "En la puerta/entrada de la instalación, no en recepción de oficina."
+    },
+    {
+      "category": "Auxiliar de oficios.",
+      "grupo": "G3",
+      "nombre_corto": "Auxiliar de Oficios",
+      "descripcion": "Peón o ayudante general que realiza tareas auxiliares diversas de mantenimiento sin especialización concreta.",
+      "funciones": [
+        "Tareas auxiliares de mantenimiento",
+        "Apoyo a otros profesionales",
+        "Trabajos de carga y descarga",
+        "Limpieza general de zonas técnicas",
+        "Tareas básicas no especializadas"
+      ],
+      "requisitos": ["Sin requisitos específicos"],
+      "keywords": ["peón", "ayudante", "auxiliar", "operario", "obrero", "personal base", "apoyo general", "sin cualificación", "mano de obra"],
+      "confundible_con": ["Limpiador de piscinas.", "Auxiliar de instalaciones."],
+      "diferencia_clave": "Peón general. Limpiador es específico de limpieza. Auxiliar de instalaciones es específico de la instalación."
+    },
+    {
+      "category": "Limpiador de piscinas.",
+      "grupo": "G3",
+      "nombre_corto": "Limpiador de Piscinas",
+      "descripcion": "Realiza la limpieza física de piscinas, vasos, playas, vestuarios y zonas comunes de la instalación acuática.",
+      "funciones": [
+        "Limpieza de vasos de piscina",
+        "Limpieza de playas y zonas circundantes",
+        "Limpieza de vestuarios y duchas",
+        "Limpieza de zonas comunes",
+        "Recogida de residuos"
+      ],
+      "requisitos": ["Sin requisitos específicos"],
+      "keywords": ["limpieza", "limpiador", "limpiar piscina", "limpieza piscina", "limpieza vestuarios", "limpieza comunidad", "limpiador piscinas"],
+      "confundible_con": ["Técnico de Mantenimiento en Instalaciones de Piscinas.", "Auxiliar de oficios."],
+      "diferencia_clave": "Solo limpieza física. No tratamiento del agua ni mantenimiento de equipos."
+    },
+    {
+      "category": "Auxiliar de instalaciones.",
+      "grupo": "G3",
+      "nombre_corto": "Auxiliar de Instalaciones",
+      "descripcion": "Personal auxiliar que realiza tareas de apoyo en la instalación acuática: preparación de zonas, colocación de mobiliario, pequeñas tareas de mantenimiento básico.",
+      "funciones": [
+        "Preparación de zonas para el público",
+        "Colocación de hamacas, sombrillas, mobiliario",
+        "Pequeñas tareas de mantenimiento básico",
+        "Apoyo general en la instalación",
+        "Apertura y cierre de instalaciones"
+      ],
+      "requisitos": ["Sin requisitos específicos"],
+      "keywords": ["auxiliar instalaciones", "ayudante piscina", "personal piscina", "preparación", "mobiliario", "hamacas", "apertura cierre"],
+      "confundible_con": ["Auxiliar de oficios.", "Limpiador de piscinas."],
+      "diferencia_clave": "Tareas en la propia instalación acuática. No es limpieza pura ni peón general."
+    }
+  ],
+  "familias_ambiguas": {
+    "administrativo": {
+      "mensaje": "Hay 3 niveles de personal administrativo en el convenio",
+      "opciones": ["Jefe Administrativo.", "Oficial Administrativo.", "Auxiliar Administrativo."],
+      "pregunta": "¿Qué nivel de responsabilidad necesitas?\n• Jefe: dirige el departamento administrativo\n• Oficial: gestión administrativa con autonomía\n• Auxiliar: tareas básicas de oficina bajo supervisión"
+    },
+    "socorrista": {
+      "mensaje": "Hay 4 categorías de socorrista",
+      "opciones": ["Nivel A.", "Nivel B.", "Nivel C.", "Socorrista correturnos."],
+      "pregunta": "¿Qué tipo de socorrista necesitas?\n• Nivel A: coordinador, máxima cualificación\n• Nivel B: socorrista estándar con titulación completa\n• Nivel C: socorrista básico o de apoyo\n• Correturnos: para cubrir turnos y sustituciones"
+    },
+    "mantenimiento": {
+      "mensaje": "Hay varias categorías relacionadas con mantenimiento",
+      "opciones": ["Técnico de Mantenimiento en Instalaciones de Piscinas.", "Instalador de montajes eléctricos.", "Instalador de montajes de circuitos de depuración y fontanería.", "Encargado."],
+      "pregunta": "¿Qué tipo de mantenimiento?\n• Técnico de piscinas: mantenimiento integral (agua, equipos, filtros)\n• Electricista: instalación y reparación eléctrica\n• Fontanero/depuración: circuitos hidráulicos y tuberías\n• Encargado: supervisión del equipo de mantenimiento"
+    },
+    "conductor": {
+      "mensaje": "Hay 2 categorías de conductor",
+      "opciones": ["Conductor especialista.", "Conductor."],
+      "pregunta": "¿Qué tipo de conductor?\n• Especialista: vehículos pesados/especiales (camiones, ADR)\n• Conductor: vehículos ligeros (furgoneta, turismo)"
+    },
+    "instalador": {
+      "mensaje": "Hay 2 tipos de instalador",
+      "opciones": ["Instalador de montajes eléctricos.", "Instalador de montajes de circuitos de depuración y fontanería."],
+      "pregunta": "¿Qué tipo de instalación?\n• Eléctrica: cuadros, cableado, automatismos, bombas\n• Fontanería/depuración: tuberías, válvulas, circuitos de agua"
+    },
+    "auxiliar": {
+      "mensaje": "Hay 3 tipos de auxiliar",
+      "opciones": ["Auxiliar Administrativo.", "Auxiliar de oficios.", "Auxiliar de instalaciones."],
+      "pregunta": "¿Qué tipo de auxiliar?\n• Administrativo: oficina, archivo, datos\n• De oficios: peón general de mantenimiento\n• De instalaciones: apoyo en la propia piscina"
+    }
+  }
+}

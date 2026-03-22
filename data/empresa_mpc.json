@@ -1,0 +1,21 @@
+{
+  "nombre": "Mantenimiento Piscinas Comunidad S.L.",
+  "nombre_corto": "MPC",
+  "web": "https://www.webmpc.com",
+  "sector": "Mantenimiento y conservación de instalaciones acuáticas",
+  "cnae_probable": "8129",
+  "at_ep_pct": 1.50,
+  "convenio_aplicable": "convenio_acuaticas_2025_2027",
+  "contacto": {
+    "telefono": "91 0133473",
+    "email": "info@webmpc.com"
+  },
+  "servicios_principales": [
+    "Mantenimiento de piscinas",
+    "Limpieza y puesta a punto",
+    "Servicio de socorristas",
+    "Mantenimiento invernal",
+    "Jardinería y paisajismo",
+    "Limpieza de comunidades"
+  ]
+}

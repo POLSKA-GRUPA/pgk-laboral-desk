@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PGK Laboral Desk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <span class="topbar-brand">PGK LABORAL DESK</span>
+    <div class="topbar-right">
+      <span id="empresaName" class="topbar-empresa"></span>
+      <button id="logoutBtn" class="btn-link">Salir</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- MODO: tabs -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" data-mode="chat">Consulta libre</button>
+      <button class="mode-tab" data-mode="form">Formulario</button>
+    </div>
+
+    <!-- CHAT -->
+    <section id="chatSection" class="card chat-card">
+      <h2>Describe lo que necesitas</h2>
+      <div id="chatLog" class="chat-log">
+        <div class="chat-bubble system">Hola. Dime qué puesto quieres cubrir y te calculo el coste real. Por ejemplo: <em>"Necesito un socorrista para verano a jornada completa"</em></div>
+      </div>
+      <form id="chatForm" class="chat-input-row">
+        <input id="chatInput" type="text" placeholder="Escribe aquí..." autocomplete="off" required>
+        <button type="submit" class="btn-primary">Enviar</button>
+      </form>
+      <button id="chatResetBtn" class="btn-link" style="margin-top:8px;color:var(--muted)">Nueva consulta</button>
+    </section>
+
+    <!-- FORMULARIO -->
+    <section class="card form-card" id="formSection" hidden>
+      <h2>¿Cuánto cuesta contratar?</h2>
+      <form id="simForm">
+        <div class="form-row">
+          <div class="field">
+            <label for="category">Categoría profesional</label>
+            <select id="category" required></select>
+          </div>
+          <div class="field">
+            <label for="contractType">Tipo de contrato</label>
+            <select id="contractType"></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="weeklyHours">Horas / semana</label>
+            <input id="weeklyHours" type="number" value="40" min="1" max="40" step="1">
+          </div>
+          <div class="field">
+            <label for="seniorityYears">Antigüedad (años)</label>
+            <input id="seniorityYears" type="number" value="0" min="0" max="50" step="1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Pagas extra</label>
+            <div class="radio-group">
+              <label class="radio"><input type="radio" name="extras" value="14" checked> 14 pagas</label>
+              <label class="radio"><input type="radio" name="extras" value="12"> 12 (prorrateadas)</label>
+            </div>
+          </div>
+          <div class="field">
+            <label for="numChildren">Hijos a cargo</label>
+            <input id="numChildren" type="number" value="0" min="0" max="10" step="1">
+          </div>
+        </div>
+        <button type="submit" class="btn-primary btn-full">Calcular coste</button>
+      </form>
+    </section>
+
+    <!-- RESULTADO -->
+    <section id="resultSection" class="card result-card" hidden>
+      <!-- Ficha rápida: lo único visible al principio -->
+      <div id="resultFicha" class="result-ficha">
+        <div class="ficha-context" id="fichaContext"></div>
+        <div class="ficha-numbers">
+          <div class="ficha-main">
+            <span class="ficha-label">Te cuesta</span>
+            <span class="ficha-big" id="heroCoste">—</span>
+            <span class="ficha-sub">al mes (empresa)</span>
+          </div>
+          <div class="ficha-pair">
+            <div class="ficha-item">
+              <span class="ficha-label">Bruto trabajador</span>
+              <span class="ficha-val" id="valBruto">—</span>
+            </div>
+            <div class="ficha-item highlight">
+              <span class="ficha-label">Neto trabajador</span>
+              <span class="ficha-val" id="valNeto">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="ficha-annual">
+          <span>Coste anual empresa:</span> <strong id="valAnual">—</strong>
+        </div>
+      </div>
+
+      <!-- Todo lo demás: UN solo bloque colapsable -->
+      <details class="details-block">
+        <summary>Ver desglose completo</summary>
+        <div class="desglose-inner">
+          <div class="desglose-section">
+            <h4>Cifras mensuales</h4>
+            <div class="desglose-row"><span>SS empresa</span><span id="valSSEmp">—</span></div>
+            <div class="desglose-row"><span>SS trabajador</span><span id="valSSTrab">—</span></div>
+            <div class="desglose-row"><span>IRPF (<span id="valIRPFPct">0</span>%)</span><span id="valIRPF">—</span></div>
+          </div>
+          <div class="desglose-section">
+            <h4>Devengos convenio</h4>
+            <table class="desglose-table" id="devengosTable">
+              <thead><tr><th>Concepto</th><th>Importe</th><th>Fuente</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="desglose-section">
+            <h4>Seguridad Social</h4>
+            <div id="ssDetalle" class="detail-text"></div>
+          </div>
+          <div class="notas" id="notasBox"></div>
+          <div class="fuentes" id="fuentesBox"></div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ALERTAS -->
+    <details class="card details-block" id="alertsSection">
+      <summary>Alertas y vencimientos</summary>
+      <div id="alertsBox" class="historial-list">Cargando...</div>
+      <form id="alertForm" class="alert-form" hidden>
+        <div class="form-row">
+          <div class="field"><label>Tipo</label><select id="alertType"><option value="fin_contrato">Fin contrato</option><option value="fin_prueba">Fin periodo prueba</option><option value="vencimiento_titulo">Vencimiento título</option><option value="otro">Otro</option></select></div>
+          <div class="field"><label>Fecha</label><input id="alertDate" type="date" required></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Trabajador</label><input id="alertWorker" type="text" placeholder="Nombre"></div>
+          <div class="field"><label>Descripción</label><input id="alertDesc" type="text" placeholder="Detalle"></div>
+        </div>
+        <button type="submit" class="btn-primary">Crear alerta</button>
+      </form>
+      <button id="toggleAlertForm" class="btn-link" style="margin:8px 16px;color:var(--muted)">+ Añadir alerta</button>
+    </details>
+
+    <!-- HISTORIAL -->
+    <details class="card details-block historial-block">
+      <summary>Historial de consultas</summary>
+      <div id="historialBox" class="historial-list">Cargando...</div>
+    </details>
+
+    <!-- CONVENIO -->
+    <details class="card details-block">
+      <summary>Convenio colectivo aplicable</summary>
+      <div id="convenioBox" class="convenio-content">Cargando...</div>
+    </details>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

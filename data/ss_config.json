@@ -1,0 +1,26 @@
+{
+  "_fuente": "Orden PJC/51/2025 de cotización (Régimen General) + RDL 2/2023 (MEI)",
+  "_nota": "Porcentajes sobre base de cotización. AT/EP depende del CNAE.",
+  "empresa": {
+    "contingencias_comunes": 23.60,
+    "desempleo_indefinido": 5.50,
+    "desempleo_temporal": 6.70,
+    "fogasa": 0.20,
+    "formacion_profesional": 0.60,
+    "mei": 0.58,
+    "at_ep_default": 1.50,
+    "_at_ep_nota": "1.50% es valor medio para sector piscinas (CNAE 8129/8130). Ajustar según tarifa de primas real de la empresa."
+  },
+  "trabajador": {
+    "contingencias_comunes": 4.70,
+    "desempleo_indefinido": 1.55,
+    "desempleo_temporal": 1.60,
+    "formacion_profesional": 0.10,
+    "mei": 0.12
+  },
+  "topes": {
+    "base_min_mensual": 1184.00,
+    "base_max_mensual": 4720.50,
+    "_nota": "Base mínima ≈ SMI 2025 en 14 pagas. Base máxima según Orden PJC/51/2025."
+  }
+}
