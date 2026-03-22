@@ -835,11 +835,10 @@
     const strip = $('ratesVerifyStrip');
     if (!strip) return;
 
-    // Mostrar estado "verificando..."
     strip.hidden = false;
     strip.dataset.status = 'checking';
     $('ratesStripIcon').textContent = '🔄';
-    $('ratesStripMsg').textContent = 'Verificando tasas SS 2026…';
+    $('ratesStripMsg').textContent = 'Verificando SS, IRPF, SMI y convenios…';
     $('ratesStripDate').textContent = '';
 
     const url = force ? '/api/verify-rates?force=1' : '/api/verify-rates';
@@ -848,54 +847,77 @@
     if (!res) {
       strip.dataset.status = 'unavailable';
       $('ratesStripIcon').textContent = '⚪';
-      $('ratesStripMsg').textContent = 'Verificación de tasas no disponible.';
+      $('ratesStripMsg').textContent = 'Verificación no disponible.';
       return;
     }
 
-    const { status, message, discrepancies = [], sources = [], verified_at = '' } = res;
+    const { overall_status, checks = [], verified_at = '' } = res;
+    const iconMap = { ok: '✅', warning: '⚠️', uncertain: '❓', unavailable: '⚪', error: '🔴' };
 
-    strip.dataset.status = status;
-
-    const iconMap = { ok: '✅', warning: '⚠️', uncertain: '❓', unavailable: '⚪' };
-    $('ratesStripIcon').textContent = iconMap[status] || '⚪';
-    $('ratesStripMsg').textContent = message;
+    strip.dataset.status = overall_status;
+    $('ratesStripIcon').textContent = iconMap[overall_status] || '⚪';
     $('ratesStripDate').textContent = verified_at ? `Verificado: ${verified_at}` : '';
 
-    // Mostrar discrepancias si las hay
+    // Resumen en el strip
+    const nOk = checks.filter(c => c.status === 'ok').length;
+    const nWarn = checks.filter(c => c.status === 'warning').length;
+    const nUncertain = checks.filter(c => ['uncertain', 'unavailable', 'error'].includes(c.status)).length;
+    if (overall_status === 'unavailable' || checks.length === 0) {
+      $('ratesStripMsg').textContent = checks[0]?.message || 'Verificación no disponible.';
+    } else {
+      const parts = [];
+      if (nOk) parts.push(`${nOk} ✅`);
+      if (nWarn) parts.push(`${nWarn} ⚠️`);
+      if (nUncertain) parts.push(`${nUncertain} ❓`);
+      $('ratesStripMsg').textContent = `Verificación: ${parts.join(' · ')} — ${overall_status === 'ok' ? 'todo correcto' : 'ver detalle'}`;
+    }
+
+    // Card de detalle
     const card = $('ratesDiscrepanciesCard');
     const box = $('ratesDiscrepanciesBox');
-    if (card && box) {
-      if (discrepancies.length > 0) {
-        card.hidden = false;
-        const rows = discrepancies.map(d => `
-          <tr>
-            <td>${esc(d.label)}</td>
-            <td>${esc(String(d.nuestro))}</td>
-            <td>${esc(String(d.perplexity))}</td>
-            <td class="disc-diff">Δ ${esc(String(d.diferencia))}</td>
-          </tr>`).join('');
-        box.innerHTML = `
-          <p style="margin:0 0 8px;color:#7c2d12">
-            Perplexity detecta posibles diferencias respecto a nuestros valores.
-            <strong>Verifica manualmente</strong> con la Orden de Cotización oficial antes de actuar.
-          </p>
-          <table class="rates-discrepancy-table">
-            <thead>
-              <tr>
-                <th>Concepto</th>
-                <th>Nuestro valor</th>
-                <th>Perplexity dice</th>
-                <th>Diferencia</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-          ${sources.length ? `<p style="margin:8px 0 0;font-size:11px;color:#a0aec0">Fuente: ${esc(sources.join(', '))}</p>` : ''}
-        `;
-      } else {
-        card.hidden = true;
-      }
+    if (!card || !box) return;
+
+    const hasDetail = checks.some(c => c.status !== 'ok' || c.discrepancies?.length > 0);
+    if (!hasDetail && overall_status === 'ok') {
+      card.hidden = true;
+      return;
     }
+
+    card.hidden = false;
+    const cardSummary = card.querySelector('summary');
+    if (cardSummary) {
+      const icons = { ok: '✅', warning: '⚠️', uncertain: '❓', unavailable: '⚪', error: '🔴' };
+      cardSummary.textContent = `${icons[overall_status] || '❓'} Verificación de datos normativos — detalle`;
+    }
+
+    box.innerHTML = checks.map(c => {
+      const icon = iconMap[c.status] || '⚪';
+      const discsHtml = c.discrepancies?.length ? `
+        <table class="rates-discrepancy-table" style="margin-top:6px">
+          <thead><tr><th>Concepto</th><th>Nuestro</th><th>Perplexity</th><th>Δ</th></tr></thead>
+          <tbody>
+            ${c.discrepancies.map(d => `
+              <tr>
+                <td>${esc(d.label)}</td>
+                <td>${esc(String(d.nuestro ?? '—'))}</td>
+                <td>${esc(String(d.perplexity ?? d.notas ?? '—'))}</td>
+                <td class="disc-diff">${esc(String(d.diferencia ?? ''))}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>` : '';
+      const srcHtml = c.sources?.length
+        ? `<p style="margin:4px 0 0;font-size:11px;color:#a0aec0">Fuente: ${esc(c.sources.join(', '))}</p>`
+        : '';
+      return `
+        <div class="rates-check-item" data-status="${esc(c.status)}">
+          <div class="rates-check-header">
+            <span class="rates-check-icon">${icon}</span>
+            <span class="rates-check-label">${esc(c.label)}</span>
+          </div>
+          <div class="rates-check-msg">${esc(c.message)}</div>
+          ${discsHtml}${srcHtml}
+        </div>`;
+    }).join('');
   }
 
   function setupRatesVerifyBtn() {

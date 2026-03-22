@@ -600,13 +600,12 @@ def api_client_simulate(client_id: int):
 @app.route("/api/verify-rates")
 @login_required
 def api_verify_rates():
-    """Verificación orientativa de tasas SS vía Perplexity.
+    """Verificación completa: SS, IRPF, SMI y revisión de convenios vía Perplexity.
 
-    Parámetro opcional: ?force=1 para saltarse la caché y forzar nueva consulta.
-    La respuesta se cachea 24h para no saturar la API.
+    ?force=1 salta la caché de 24h y fuerza nueva consulta.
     """
     force = request.args.get("force", "0") == "1"
-    result = rates_verifier.verify_ss_rates(force=force)
+    result = rates_verifier.verify_all(force=force)
     return jsonify(result.to_dict())
 
 

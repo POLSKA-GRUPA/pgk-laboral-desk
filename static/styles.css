@@ -1849,3 +1849,46 @@ h1, h2, h3, h4, h5, h6 {
   color: #b5451b;
   font-weight: 600;
 }
+
+/* Individual check items inside the rates detail card */
+.rates-check-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.rates-check-item:last-child {
+  border-bottom: none;
+}
+
+.rates-check-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.rates-check-icon {
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.rates-check-label {
+  font-weight: 500;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.rates-check-msg {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: 23px;
+  line-height: 1.4;
+}
+
+.rates-check-item[data-status="warning"] .rates-check-msg {
+  color: #7c2d12;
+}
+
+.rates-check-item[data-status="ok"] .rates-check-msg {
+  color: #1b4332;
+}
