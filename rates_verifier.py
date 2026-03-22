@@ -37,14 +37,14 @@ _OUR_SS_2026 = {
     "empresa_desempleo_temporal": 6.70,
     "empresa_fogasa": 0.20,
     "empresa_fp": 0.60,
-    "empresa_mei": 0.58,
+    "empresa_mei": 0.75,   # RDL 3/2026 — actualizado 2026-03-22
     "trab_cc": 4.70,
     "trab_desempleo_indefinido": 1.55,
     "trab_desempleo_temporal": 1.60,
     "trab_fp": 0.10,
-    "trab_mei": 0.17,
-    "base_min_mensual": 1323.00,
-    "base_max_mensual": 4720.50,
+    "trab_mei": 0.15,      # RDL 3/2026 — actualizado 2026-03-22
+    "base_min_mensual": 1424.50,   # Orden ISM/31/2026 — actualizado 2026-03-22
+    "base_max_mensual": 5101.20,   # Orden ISM/31/2026 — actualizado 2026-03-22
 }
 
 # Tramos estatales IRPF que tenemos (límite superior, tipo)
@@ -64,7 +64,7 @@ _OUR_IRPF_REDUCCION = {
 }
 
 # SMI que usamos internamente como referencia
-_OUR_SMI_2026_MENSUAL = 1134.0   # último dato confirmado; puede estar desactualizado
+_OUR_SMI_2026_MENSUAL = 1221.0   # RD 126/2026 de 18 febrero — actualizado 2026-03-22
 
 # Datos de convenios para verificar revisión salarial
 _CONVENIOS_A_VERIFICAR = [

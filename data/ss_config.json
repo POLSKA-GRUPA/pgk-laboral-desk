@@ -1,13 +1,14 @@
 {
-  "_fuente": "Orden cotización 2026 (Régimen General) + RDL 2/2023 (MEI)",
+  "_fuente": "Orden ISM/31/2026 (BOE-A-2026-1921) + RDL 3/2026 (BOE-A-2026-2548) — verificado vía Perplexity 2026-03-22",
   "_nota": "Porcentajes sobre base de cotización. AT/EP depende del CNAE.",
+  "_ultima_verificacion": "2026-03-22",
   "empresa": {
     "contingencias_comunes": 23.60,
     "desempleo_indefinido": 5.50,
     "desempleo_temporal": 6.70,
     "fogasa": 0.20,
     "formacion_profesional": 0.60,
-    "mei": 0.58,
+    "mei": 0.75,
     "at_ep_default": 1.50,
     "_at_ep_nota": "1.50% valor medio sector piscinas (CNAE 8129/8130). Ajustar según tarifa real."
   },
@@ -16,31 +17,31 @@
     "desempleo_indefinido": 1.55,
     "desempleo_temporal": 1.60,
     "formacion_profesional": 0.10,
-    "mei": 0.17
+    "mei": 0.15
   },
   "topes": {
-    "base_min_mensual": 1323.00,
-    "base_max_mensual": 4720.50,
-    "_nota": "Base mínima 2026: 1.323€. Base máxima: 4.720,50€."
+    "base_min_mensual": 1424.50,
+    "base_max_mensual": 5101.20,
+    "_nota": "Orden ISM/31/2026 (BOE-A-2026-1921). Base mínima: 1.424,50€ (= SMI 2026 × 14/12). Base máxima: 5.101,20€."
   },
   "recargo_contratos_cortos": {
     "dias_limite": 30,
     "importe_eur": 29.74,
-    "_nota": "Recargo fijo adicional para contratos de duración ≤30 días (DA 7ª ET)."
+    "_nota": "Recargo fijo adicional para contratos de duración ≤30 días (DA 7ª ET). Pendiente actualizar con nueva Orden."
   },
   "grupos_cotizacion": {
-    "_nota": "11 grupos oficiales SS. Base min/max mensual por grupo (2026).",
-    "1": {"nombre": "Ingenieros y Licenciados", "base_min": 1903.50, "base_max": 4720.50},
-    "2": {"nombre": "Ingenieros Técnicos y Diplomados", "base_min": 1578.30, "base_max": 4720.50},
-    "3": {"nombre": "Jefes Administrativos y de Taller", "base_min": 1372.80, "base_max": 4720.50},
-    "4": {"nombre": "Ayudantes no Titulados", "base_min": 1323.00, "base_max": 4720.50},
-    "5": {"nombre": "Oficiales Administrativos", "base_min": 1323.00, "base_max": 4720.50},
-    "6": {"nombre": "Subalternos", "base_min": 1323.00, "base_max": 4720.50},
-    "7": {"nombre": "Auxiliares Administrativos", "base_min": 1323.00, "base_max": 4720.50},
-    "8": {"nombre": "Oficiales 1ª y 2ª", "base_min": 44.10, "base_max": 157.35, "_diario": true},
-    "9": {"nombre": "Oficiales 3ª y Especialistas", "base_min": 44.10, "base_max": 157.35, "_diario": true},
-    "10": {"nombre": "Peones", "base_min": 44.10, "base_max": 157.35, "_diario": true},
-    "11": {"nombre": "Menores de 18 años", "base_min": 44.10, "base_max": 157.35, "_diario": true}
+    "_nota": "11 grupos oficiales SS. Bases mínimas por grupo actualizadas a Orden ISM/31/2026.",
+    "1": {"nombre": "Ingenieros y Licenciados", "base_min": 2064.60, "base_max": 5101.20},
+    "2": {"nombre": "Ingenieros Técnicos y Diplomados", "base_min": 1712.10, "base_max": 5101.20},
+    "3": {"nombre": "Jefes Administrativos y de Taller", "base_min": 1489.80, "base_max": 5101.20},
+    "4": {"nombre": "Ayudantes no Titulados", "base_min": 1424.50, "base_max": 5101.20},
+    "5": {"nombre": "Oficiales Administrativos", "base_min": 1424.50, "base_max": 5101.20},
+    "6": {"nombre": "Subalternos", "base_min": 1424.50, "base_max": 5101.20},
+    "7": {"nombre": "Auxiliares Administrativos", "base_min": 1424.50, "base_max": 5101.20},
+    "8": {"nombre": "Oficiales 1ª y 2ª", "base_min": 47.50, "base_max": 170.04, "_diario": true},
+    "9": {"nombre": "Oficiales 3ª y Especialistas", "base_min": 47.50, "base_max": 170.04, "_diario": true},
+    "10": {"nombre": "Peones", "base_min": 47.50, "base_max": 170.04, "_diario": true},
+    "11": {"nombre": "Menores de 18 años", "base_min": 47.50, "base_max": 170.04, "_diario": true}
   },
   "mapa_categoria_grupo": {
     "_nota": "Mapeo categorías del convenio acuáticas → grupo SS.",

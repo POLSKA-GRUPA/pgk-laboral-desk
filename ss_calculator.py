@@ -1,12 +1,12 @@
 """Cálculo de cotizaciones a la Seguridad Social — tasas 2026.
 
 Fuentes:
-- Orden cotización 2026 (Régimen General)
-- Art. 119 LGSS y Disposición adicional cuarta Ley 42/2006 (AT/EP)
-- RDL 2/2023 art. 127bis (MEI) — 0,75% total (0,58 empresa + 0,17 trabajador)
+- Orden ISM/31/2026 (BOE-A-2026-1921) — bases cotización 2026
+- RDL 3/2026 (BOE-A-2026-2548) — MEI 2026: 0,90% total (0,75% empresa + 0,15% trabajador)
+- Art. 119 LGSS y DA 4ª Ley 42/2006 (AT/EP)
 - DA 7ª ET — recargo contratos ≤30 días
 
-Las tasas son configurables vía data/ss_config.json para futuros ajustes.
+Tasas configurables vía data/ss_config.json — última verificación: 2026-03-22 vía Perplexity.
 """
 
 from __future__ import annotations
@@ -19,9 +19,9 @@ from typing import Any
 
 _DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent / "data" / "ss_config.json"
 
-# Topes de cotización 2026 (Régimen General)
-BASE_MIN_MENSUAL = 1323.00  # Base mínima 2026
-BASE_MAX_MENSUAL = 4720.50
+# Topes de cotización 2026 (Régimen General) — Orden ISM/31/2026 (BOE-A-2026-1921)
+BASE_MIN_MENSUAL = 1424.50  # Base mínima 2026 (= SMI 1.221€ × 14/12)
+BASE_MAX_MENSUAL = 5101.20
 
 # Recargo contratos cortos (DA 7ª ET)
 _SHORT_CONTRACT_DAYS_LIMIT = 30
