@@ -1763,12 +1763,12 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   gap: 10px;
   padding: 10px 20px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: var(--cream, #faf6f0);
+  border: 1px solid var(--sand, #d4c8b0);
+  border-radius: var(--card-radius, 12px);
   margin: 0 0 8px;
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--muted, #6b6358);
   flex-wrap: wrap;
 }
 
@@ -1830,14 +1830,14 @@ h1, h2, h3, h4, h5, h6 {
   text-align: left;
   padding: 6px 10px;
   background: #fff8f5;
-  color: var(--text-muted);
+  color: var(--muted, #6b6358);
   font-weight: 500;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--sand, #d4c8b0);
 }
 
 .rates-discrepancy-table td {
   padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--sand, #d4c8b0);
   vertical-align: middle;
 }
 
@@ -1853,7 +1853,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Individual check items inside the rates detail card */
 .rates-check-item {
   padding: 10px 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--sand, #d4c8b0);
 }
 
 .rates-check-item:last-child {
@@ -1874,13 +1874,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .rates-check-label {
   font-weight: 500;
-  color: var(--text);
+  color: var(--ink, #2b2520);
   font-size: 13px;
 }
 
 .rates-check-msg {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--muted, #6b6358);
   margin-left: 23px;
   line-height: 1.4;
 }

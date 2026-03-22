@@ -522,7 +522,7 @@
             const vence = emp.fecha_fin ? (emp.fecha_fin <= today ? '⚠ Vencido' : emp.fecha_fin) : '—';
             return `<tr>
               <td><strong>${esc(emp.nombre)}</strong></td>
-              <td>${esc(emp.categoria.replace(/\.$/, ''))}</td>
+              <td>${esc((emp.categoria || '').replace(/\.$/, ''))}</td>
               <td>${esc(emp.contrato_tipo)} · ${emp.jornada_horas}h/sem</td>
               <td>${esc(emp.fecha_inicio)}${emp.fecha_fin ? `<br><span style="font-size:11px;color:var(--muted)">${esc(vence)}</span>` : ''}</td>
               <td>${emp.salario_bruto_mensual ? fmt(emp.salario_bruto_mensual) : '<span style="color:var(--muted)">—</span>'}</td>

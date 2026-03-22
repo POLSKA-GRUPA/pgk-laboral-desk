@@ -174,17 +174,20 @@ def api_simulate():
         return jsonify({"error": "Selecciona una categoría profesional"}), 400
 
     eng = _get_engine()
-    result = eng.simulate(
-        category=category,
-        contract_type=str(data.get("contract_type", "indefinido")),
-        weekly_hours=float(data.get("weekly_hours", 40)),
-        seniority_years=int(data.get("seniority_years", 0)),
-        extras_prorated=bool(data.get("extras_prorated", False)),
-        num_children=int(data.get("num_children", 0)),
-        children_under_3=int(data.get("children_under_3", 0)),
-        region=str(data.get("region", "generica")),
-        contract_days=data.get("contract_days"),
-    )
+    try:
+        result = eng.simulate(
+            category=category,
+            contract_type=str(data.get("contract_type", "indefinido")),
+            weekly_hours=float(data.get("weekly_hours", 40)),
+            seniority_years=int(data.get("seniority_years", 0)),
+            extras_prorated=bool(data.get("extras_prorated", False)),
+            num_children=int(data.get("num_children", 0)),
+            children_under_3=int(data.get("children_under_3", 0)),
+            region=str(data.get("region", "generica")),
+            contract_days=data.get("contract_days"),
+        )
+    except (ValueError, TypeError) as exc:
+        return jsonify({"error": f"Datos inválidos: {exc}"}), 400
 
     if "error" in result:
         return jsonify(result), 400
@@ -260,7 +263,9 @@ def api_create_alert():
 @app.route("/api/alerts/<int:alert_id>/dismiss", methods=["POST"])
 @login_required
 def api_dismiss_alert(alert_id: int):
-    dismiss_alert(alert_id)
+    ok = dismiss_alert(alert_id, user_id=session["user_id"])
+    if not ok:
+        return jsonify({"error": "Alerta no encontrada"}), 404
     return jsonify({"ok": True})
 
 
@@ -351,17 +356,20 @@ def api_despido():
             return jsonify({"error": f"Campo requerido: {field}"}), 400
 
     eng = _get_engine()
-    result = eng.calcular_despido(
-        tipo_despido=str(data["tipo_despido"]),
-        fecha_inicio=str(data["fecha_inicio"]),
-        salario_bruto_mensual=float(data["salario_bruto_mensual"]),
-        fecha_despido=data.get("fecha_despido") or None,
-        dias_vacaciones_pendientes=int(data.get("dias_vacaciones_pendientes", 0)),
-        dias_preaviso_empresa=int(data.get("dias_preaviso_empresa", 0)),
-        weekly_hours=float(data.get("weekly_hours", 40)),
-        nombre_trabajador=str(data.get("nombre_trabajador", "")),
-        categoria=str(data.get("categoria", "")),
-    )
+    try:
+        result = eng.calcular_despido(
+            tipo_despido=str(data["tipo_despido"]),
+            fecha_inicio=str(data["fecha_inicio"]),
+            salario_bruto_mensual=float(data["salario_bruto_mensual"]),
+            fecha_despido=data.get("fecha_despido") or None,
+            dias_vacaciones_pendientes=int(data.get("dias_vacaciones_pendientes", 0)),
+            dias_preaviso_empresa=int(data.get("dias_preaviso_empresa", 0)),
+            weekly_hours=float(data.get("weekly_hours", 40)),
+            nombre_trabajador=str(data.get("nombre_trabajador", "")),
+            categoria=str(data.get("categoria", "")),
+        )
+    except (ValueError, TypeError) as exc:
+        return jsonify({"error": f"Datos inválidos: {exc}"}), 400
 
     if "error" in result:
         return jsonify(result), 400
@@ -402,18 +410,21 @@ def api_employees_create():
         if "error" not in sim:
             salario = sim["bruto_mensual_eur"]
 
-    emp_id = add_employee(
-        user_id=session["user_id"],
-        nombre=str(data["nombre"]),
-        categoria=str(data["categoria"]),
-        contrato_tipo=str(data.get("contrato_tipo", "indefinido")),
-        jornada_horas=float(data.get("jornada_horas", 40)),
-        fecha_inicio=str(data["fecha_inicio"]),
-        fecha_fin=data.get("fecha_fin") or None,
-        salario_bruto_mensual=float(salario) if salario else None,
-        num_hijos=int(data.get("num_hijos", 0)),
-        notas=str(data.get("notas", "")),
-    )
+    try:
+        emp_id = add_employee(
+            user_id=session["user_id"],
+            nombre=str(data["nombre"]),
+            categoria=str(data["categoria"]),
+            contrato_tipo=str(data.get("contrato_tipo", "indefinido")),
+            jornada_horas=float(data.get("jornada_horas", 40)),
+            fecha_inicio=str(data["fecha_inicio"]),
+            fecha_fin=data.get("fecha_fin") or None,
+            salario_bruto_mensual=float(salario) if salario else None,
+            num_hijos=int(data.get("num_hijos", 0)),
+            notas=str(data.get("notas", "")),
+        )
+    except (ValueError, TypeError) as exc:
+        return jsonify({"error": f"Datos inválidos: {exc}"}), 400
 
     # Crear alertas automáticas
     emp = get_employee(emp_id)
@@ -524,6 +535,7 @@ def _auto_alerts_for_employee(emp: dict) -> None:
 # ------------------------------------------------------------------
 
 @app.route("/api/convenios")
+@login_required
 def api_convenios_list():
     """Lista convenios disponibles."""
     return jsonify(LaboralEngine.list_available_convenios())

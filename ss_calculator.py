@@ -119,9 +119,10 @@ class SSCalculator:
         base = self._apply_topes(base_mensual_bruta, grupo)
 
         # Seleccionar tasa de desempleo según tipo de contrato
+        # Fijo-discontinuo es legalmente indefinido (Art. 16 ET) → desempleo indefinido
+        # "tiempo-parcial" es jornada, no tipo contrato → no afecta al desempleo
         is_temporal = contract_type in (
             "temporal", "temporal-produccion", "sustitucion",
-            "fijo-discontinuo", "tiempo-parcial",
         )
         emp_desempleo_pct = cfg_emp["desempleo_temporal"] if is_temporal else cfg_emp["desempleo_indefinido"]
         trab_desempleo_pct = cfg_trab["desempleo_temporal"] if is_temporal else cfg_trab["desempleo_indefinido"]
@@ -136,8 +137,8 @@ class SSCalculator:
         emp_fp = base * cfg_emp["formacion_profesional"] / 100
         emp_mei = base * cfg_emp["mei"] / 100
         emp_at = base * at_ep / 100
-        emp_total = emp_cc + emp_des + emp_fog + emp_fp + emp_mei + emp_at
-        emp_pct = (emp_total / base * 100) if base else 0.0
+        emp_subtotal = emp_cc + emp_des + emp_fog + emp_fp + emp_mei + emp_at
+        emp_pct = (emp_subtotal / base * 100) if base else 0.0
 
         # --- Trabajador ---
         trab_cc = base * cfg_trab["contingencias_comunes"] / 100
@@ -147,8 +148,10 @@ class SSCalculator:
         trab_total = trab_cc + trab_des + trab_fp + trab_mei
         trab_pct = (trab_total / base * 100) if base else 0.0
 
-        # --- Recargo contratos cortos ---
+        # --- Recargo contratos cortos (DA 7ª ET) ---
         recargo = self._short_contract_surcharge(contract_days)
+        # El total empresa incluye el recargo si aplica
+        emp_total = emp_subtotal + recargo
 
         return SSResult(
             emp_contingencias_comunes=emp_cc,

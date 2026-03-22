@@ -208,7 +208,7 @@ class LaboralEngine:
         )
 
         # 7. IRPF estimado (con CC.AA.)
-        meses_cotizacion = 12 if extras_prorated else 14
+        meses_cotizacion = 12 if extras_prorated else self._convenio_pagas
         annual_ss_worker = round(ss_result.trab_total * meses_cotizacion, 2)
         irpf_result = self.irpf.estimate(
             annual_gross=bruto_anual,
@@ -225,15 +225,15 @@ class LaboralEngine:
             bruto_mensual - ss_result.trab_total - irpf_result.monthly_retention, 2
         )
 
-        # 9. Coste empresa (incluye recargo contrato corto si aplica)
+        # 9. Coste empresa (emp_total ya incluye el recargo si aplica)
         recargo = ss_result.recargo_contrato_corto
-        coste_empresa_mes = round(bruto_mensual + ss_result.emp_total + recargo, 2)
+        coste_empresa_mes = round(bruto_mensual + ss_result.emp_total, 2)
         if extras_prorated:
             coste_empresa_anual = round(coste_empresa_mes * 12, 2)
         else:
             coste_empresa_anual = round(
                 coste_empresa_mes * 12
-                + (paga_extra + ss_result.emp_total) * 2,
+                + (paga_extra + ss_result.emp_total) * n_extras,
                 2,
             )
 
@@ -342,6 +342,12 @@ class LaboralEngine:
             "max_meses": 12,
             "descripcion": "Despido colectivo con autorización. Mínimo legal: 20 días/año.",
         },
+        "fin_contrato_temporal": {
+            "label": "Fin de contrato temporal (Art. 49.1.c ET)",
+            "dias_por_año": 12,
+            "max_meses": 0,
+            "descripcion": "Extinción por fin de contrato temporal. 12 días/año desde 2015.",
+        },
     }
 
     def calcular_despido(
@@ -381,9 +387,17 @@ class LaboralEngine:
         # Indemnización
         if dias_por_año > 0:
             indemnizacion_raw = salario_diario * dias_por_año * antiguedad_anos
-            tope = salario_bruto_mensual * max_meses
-            indemnizacion = round(min(indemnizacion_raw, tope), 2)
-            tope_aplicado = indemnizacion < indemnizacion_raw
+            # Tope legal: salario_diario × 30 × max_meses (una "mensualidad" = 30 días de salario diario)
+            # Art. 56.1 ET (improcedente: 24 meses) / Art. 53.1 ET (objetivo: 12 meses)
+            # Para fin_contrato_temporal no hay tope (max_meses = 0)
+            if max_meses > 0:
+                tope = salario_diario * 30 * max_meses
+                indemnizacion = round(min(indemnizacion_raw, tope), 2)
+                tope_aplicado = abs(indemnizacion - indemnizacion_raw) > 0.01
+            else:
+                tope = 0.0
+                indemnizacion = round(indemnizacion_raw, 2)
+                tope_aplicado = False
         else:
             indemnizacion = 0.0
             indemnizacion_raw = 0.0
@@ -416,8 +430,10 @@ class LaboralEngine:
         total_eur = round(indemnizacion + total_finiquito, 2)
 
         # Escenarios alternativos (para contexto del director)
-        esc_objetivo = round(min(salario_diario * 20 * antiguedad_anos, salario_bruto_mensual * 12), 2)
-        esc_improcedente = round(min(salario_diario * 33 * antiguedad_anos, salario_bruto_mensual * 24), 2)
+        # Topes legales: salario_diario × 30 × N meses
+        esc_objetivo = round(min(salario_diario * 20 * antiguedad_anos, salario_diario * 30 * 12), 2)
+        esc_improcedente = round(min(salario_diario * 33 * antiguedad_anos, salario_diario * 30 * 24), 2)
+        esc_fin_temporal = round(salario_diario * 12 * antiguedad_anos, 2)
 
         return {
             "nombre_trabajador": nombre_trabajador,
@@ -458,6 +474,7 @@ class LaboralEngine:
             "escenarios": {
                 "objetivo_eur": esc_objetivo,
                 "improcedente_eur": esc_improcedente,
+                "fin_temporal_eur": esc_fin_temporal,
             },
             "consejo": self._build_consejo_despido(
                 tipo_despido, antiguedad_anos, indemnizacion,

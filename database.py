@@ -228,14 +228,21 @@ def get_alerts(
         conn.close()
 
 
-def dismiss_alert(alert_id: int, db_path: Path | None = None) -> None:
-    """Marca una alerta como resuelta."""
+def dismiss_alert(alert_id: int, user_id: int | None = None, db_path: Path | None = None) -> bool:
+    """Marca una alerta como resuelta. Si user_id se pasa, verifica propiedad."""
     conn = _get_db(db_path)
     try:
+        if user_id is not None:
+            row = conn.execute(
+                "SELECT user_id FROM alerts WHERE id = ?", (alert_id,)
+            ).fetchone()
+            if row is None or row["user_id"] != user_id:
+                return False
         conn.execute(
             "UPDATE alerts SET status = 'resolved' WHERE id = ?", (alert_id,)
         )
         conn.commit()
+        return True
     finally:
         conn.close()
 
