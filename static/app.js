@@ -335,8 +335,63 @@
       cDet.hidden = true;
     }
 
+    // Botón descargar pre-nómina desde simulación
+    state._lastSimData = d;
+    let nominaBtn = $('btnDescargarNomina');
+    if (!nominaBtn) {
+      nominaBtn = document.createElement('button');
+      nominaBtn.id = 'btnDescargarNomina';
+      nominaBtn.className = 'btn btn-outline';
+      nominaBtn.style.cssText = 'margin-top:12px;width:100%;font-size:14px';
+      nominaBtn.textContent = '📄 Descargar Pre-nómina PDF';
+      nominaBtn.addEventListener('click', downloadNominaFromSim);
+      $('resultSection').appendChild(nominaBtn);
+    }
+    nominaBtn.hidden = false;
+
     $('desgloseDetails').open = true;
     $('resultSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  async function downloadNominaFromSim() {
+    const d = state._lastSimData;
+    if (!d) return;
+    const now = new Date();
+    const periodo = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    try {
+      const res = await fetch('/api/nomina', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: d.categoria,
+          contract_type: d.contrato,
+          weekly_hours: d.jornada_horas_semana ?? 40,
+          seniority_years: d.antiguedad_anos ?? 0,
+          extras_prorated: d.extras_prorated ?? false,
+          num_children: 0,
+          nombre_trabajador: d.categoria,
+          periodo: periodo,
+          format: 'pdf',
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || 'Error generando nómina');
+        return;
+      }
+      const ct = res.headers.get('content-type') || '';
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = ct.includes('pdf') ? 'pre_nomina.pdf' : 'pre_nomina.html';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch(e) {
+      alert('Error descargando pre-nómina');
+    }
   }
 
   // ------------------------------------------------------------------
@@ -527,6 +582,8 @@
               <td>${esc(emp.fecha_inicio)}${emp.fecha_fin ? `<br><span style="font-size:11px;color:var(--muted)">${esc(vence)}</span>` : ''}</td>
               <td>${emp.salario_bruto_mensual ? fmt(emp.salario_bruto_mensual) : '<span style="color:var(--muted)">—</span>'}</td>
               <td>
+                <button class="btn-link" style="font-size:12px;color:var(--accent,#6b4c2a)" onclick="window._descargarNomina(${emp.id})">📄 Nómina</button>
+                &nbsp;·&nbsp;
                 <button class="btn-link" style="font-size:12px;color:var(--danger)" onclick="window._despidirEmpleado(${emp.id})">Despedir</button>
                 &nbsp;·&nbsp;
                 <button class="btn-link" style="font-size:12px" onclick="window._darDeBajaEmpleado(${emp.id})">Dar de baja</button>
@@ -568,6 +625,12 @@
     if (!confirm('¿Marcar este trabajador como dado de baja?')) return;
     await api(`/api/employees/${empId}`, { method: 'PUT', body: JSON.stringify({ status: 'baja' }) });
     await loadEmployees();
+  };
+
+  window._descargarNomina = function(empId) {
+    const now = new Date();
+    const periodo = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    window.open(`/api/employees/${empId}/nomina?periodo=${periodo}`, '_blank');
   };
 
   function setupPlantillaForm() {

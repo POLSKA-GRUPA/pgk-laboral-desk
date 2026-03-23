@@ -26,6 +26,10 @@ from chat_parser import ChatParser
 from client_manager import ClientManager
 from convenio_verifier import ConvenioVerifier
 from rates_verifier import RatesVerifier
+from nomina_pdf import (
+    DatosEmpresa, build_nomina_from_simulation,
+    generate_nomina_pdf, generate_nomina_html_string,
+)
 
 APP_ROOT = Path(__file__).resolve().parent
 STATIC_DIR = APP_ROOT / "static"
@@ -528,6 +532,145 @@ def _auto_alerts_for_employee(emp: dict) -> None:
                 )
     except (ValueError, KeyError):
         pass
+
+
+# ------------------------------------------------------------------
+# Pre-nómina PDF
+# ------------------------------------------------------------------
+
+def _empresa_from_session() -> DatosEmpresa:
+    return DatosEmpresa(
+        nombre=session.get("empresa_nombre", ""),
+        cif="",
+    )
+
+
+@app.route("/api/employees/<int:emp_id>/nomina")
+@login_required
+def api_employee_nomina(emp_id: int):
+    """Genera pre-nómina PDF para un empleado de la plantilla."""
+    from flask import Response
+
+    emp = get_employee(emp_id)
+    if not emp or emp["user_id"] != session["user_id"]:
+        return jsonify({"error": "Trabajador no encontrado"}), 404
+
+    eng = _get_engine()
+    sim = eng.simulate(
+        category=str(emp["categoria"]),
+        contract_type=str(emp["contrato_tipo"]),
+        weekly_hours=float(emp["jornada_horas"]),
+        seniority_years=0,
+        num_children=int(emp.get("num_hijos", 0)),
+    )
+    if "error" in sim:
+        return jsonify({"error": sim["error"]}), 400
+
+    periodo = request.args.get("periodo")  # YYYY-MM
+    fmt_type = request.args.get("format", "pdf")  # pdf | html
+
+    try:
+        nomina = build_nomina_from_simulation(
+            sim,
+            empresa=_empresa_from_session(),
+            trabajador_extra={
+                "nombre": emp["nombre"],
+                "nif": "",
+                "naf": "",
+                "puesto": emp["categoria"],
+                "antiguedad": f"{emp.get('fecha_inicio', '')}",
+            },
+            periodo_str=periodo,
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    if fmt_type == "html":
+        html = generate_nomina_html_string(nomina)
+        return Response(html, mimetype="text/html")
+
+    try:
+        pdf_bytes = generate_nomina_pdf(nomina)
+    except RuntimeError as exc:
+        # WeasyPrint not installed — fall back to HTML
+        html = generate_nomina_html_string(nomina)
+        return Response(html, mimetype="text/html")
+
+    nombre_safe = emp["nombre"].replace(" ", "_")[:30]
+    filename = f"pre_nomina_{nombre_safe}.pdf"
+    return Response(
+        pdf_bytes,
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.route("/api/nomina", methods=["POST"])
+@login_required
+def api_nomina_from_simulation():
+    """Genera pre-nómina PDF a partir de datos de simulación directa."""
+    from flask import Response
+
+    data = request.get_json(silent=True) or {}
+    category = str(data.get("category", "")).strip()
+    if not category:
+        return jsonify({"error": "Categoría requerida"}), 400
+
+    eng = _get_engine()
+    try:
+        sim = eng.simulate(
+            category=category,
+            contract_type=str(data.get("contract_type", "indefinido")),
+            weekly_hours=float(data.get("weekly_hours", 40)),
+            seniority_years=int(data.get("seniority_years", 0)),
+            extras_prorated=bool(data.get("extras_prorated", False)),
+            num_children=int(data.get("num_children", 0)),
+            children_under_3=int(data.get("children_under_3", 0)),
+            region=str(data.get("region", "generica")),
+            contract_days=data.get("contract_days"),
+        )
+    except (ValueError, TypeError) as exc:
+        return jsonify({"error": f"Datos inválidos: {exc}"}), 400
+
+    if "error" in sim:
+        return jsonify({"error": sim["error"]}), 400
+
+    nombre = str(data.get("nombre_trabajador", "Trabajador"))
+    periodo = data.get("periodo")
+    fmt_type = str(data.get("format", "pdf"))
+
+    try:
+        nomina = build_nomina_from_simulation(
+            sim,
+            empresa=_empresa_from_session(),
+            trabajador_extra={
+                "nombre": nombre,
+                "nif": "",
+                "naf": "",
+                "puesto": category,
+            },
+            periodo_str=periodo,
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    if fmt_type == "html":
+        html = generate_nomina_html_string(nomina)
+        return Response(html, mimetype="text/html")
+
+    try:
+        pdf_bytes = generate_nomina_pdf(nomina)
+    except RuntimeError:
+        html = generate_nomina_html_string(nomina)
+        return Response(html, mimetype="text/html")
+
+    nombre_safe = nombre.replace(" ", "_")[:30]
+    filename = f"pre_nomina_{nombre_safe}.pdf"
+    return Response(
+        pdf_bytes,
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 # ------------------------------------------------------------------
