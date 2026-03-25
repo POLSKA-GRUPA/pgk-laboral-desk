@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import secrets
+import time
 from functools import wraps
 from pathlib import Path
 
@@ -16,29 +17,45 @@ from flask import (
     session,
 )
 
-from database import (
-    authenticate, dismiss_alert, get_alerts, get_consultations,
-    init_db, save_alert, save_consultation,
-    add_employee, get_employees, get_employee, update_employee,
-)
-from engine import LaboralEngine
 from chat_parser import ChatParser
 from client_manager import ClientManager
 from convenio_verifier import ConvenioVerifier
-from rates_verifier import RatesVerifier
-from nomina_pdf import (
-    DatosEmpresa, build_nomina_from_simulation,
-    generate_nomina_pdf, generate_nomina_html_string,
+from database import (
+    add_employee,
+    authenticate,
+    dismiss_alert,
+    get_alerts,
+    get_consultations,
+    get_employee,
+    get_employees,
+    init_db,
+    save_alert,
+    save_consultation,
+    update_employee,
 )
+from engine import LaboralEngine
+from exceptions import AuthenticationError, LaboralBaseError, ValidationError
+from logging_config import get_logger, setup_logging
+from nomina_pdf import (
+    DatosEmpresa,
+    build_nomina_from_simulation,
+    generate_nomina_html_string,
+    generate_nomina_pdf,
+)
+from rates_verifier import RatesVerifier
 
 APP_ROOT = Path(__file__).resolve().parent
 STATIC_DIR = APP_ROOT / "static"
+
+log = setup_logging()
+logger = get_logger("app")
 
 app = Flask(__name__, static_folder=str(STATIC_DIR), static_url_path="/static")
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(32))
 
 # Inicializar DB y motor
 init_db()
+logger.info("Database initialized")
 chat_parser = ChatParser()
 client_mgr = ClientManager()
 client_mgr.init_tables()
@@ -591,7 +608,7 @@ def api_employee_nomina(emp_id: int):
 
     try:
         pdf_bytes = generate_nomina_pdf(nomina)
-    except RuntimeError as exc:
+    except RuntimeError:
         # WeasyPrint not installed — fall back to HTML
         html = generate_nomina_html_string(nomina)
         return Response(html, mimetype="text/html")
@@ -789,8 +806,69 @@ def api_verify_convenio():
 
 @app.route("/api/health")
 def api_health():
-    convenios = LaboralEngine.list_available_convenios()
-    return jsonify({"ok": True, "convenios_disponibles": len(convenios)})
+    """Health check with dependency status."""
+    checks: dict[str, object] = {}
+
+    # Check convenios
+    try:
+        convenios = LaboralEngine.list_available_convenios()
+        checks["convenios"] = {"ok": True, "count": len(convenios)}
+    except Exception as exc:
+        checks["convenios"] = {"ok": False, "error": str(exc)}
+
+    # Check database
+    try:
+        from database import _get_db
+        conn = _get_db()
+        conn.execute("SELECT 1")
+        conn.close()
+        checks["database"] = {"ok": True}
+    except Exception as exc:
+        checks["database"] = {"ok": False, "error": str(exc)}
+
+    all_ok = all(
+        isinstance(v, dict) and v.get("ok", False)
+        for v in checks.values()
+    )
+    return jsonify({"ok": all_ok, "checks": checks, "version": "0.2.0"}), 200 if all_ok else 503
+
+
+# ------------------------------------------------------------------
+# Error handlers
+# ------------------------------------------------------------------
+
+@app.errorhandler(ValidationError)
+def handle_validation_error(exc: ValidationError):
+    logger.warning("Validation error: %s (field=%s)", exc, exc.field)
+    return jsonify({"error": str(exc), "code": exc.code, "field": exc.field}), 400
+
+
+@app.errorhandler(AuthenticationError)
+def handle_auth_error(exc: AuthenticationError):
+    return jsonify({"error": str(exc), "code": exc.code}), 401
+
+
+@app.errorhandler(LaboralBaseError)
+def handle_laboral_error(exc: LaboralBaseError):
+    logger.error("Laboral error: %s [%s]", exc, exc.code)
+    return jsonify({"error": str(exc), "code": exc.code}), 500
+
+
+@app.before_request
+def log_request_start():
+    request._start_time = time.monotonic()  # type: ignore[attr-defined]
+
+
+@app.after_request
+def log_request_end(response):
+    start = getattr(request, "_start_time", None)
+    duration = round((time.monotonic() - start) * 1000, 1) if start else 0
+    if request.path != "/api/health":
+        logger.info(
+            "%s %s %s %.1fms",
+            request.method, request.path, response.status_code, duration,
+        )
+    return response
 
 
 # ------------------------------------------------------------------
@@ -806,5 +884,5 @@ if __name__ == "__main__":
     parser.add_argument("--debug", action="store_true")
     args = parser.parse_args()
 
-    print(f"PGK Laboral Desk → http://{args.host}:{args.port}")
+    logger.info("PGK Laboral Desk starting on http://%s:%s", args.host, args.port)
     app.run(host=args.host, port=args.port, debug=args.debug)
