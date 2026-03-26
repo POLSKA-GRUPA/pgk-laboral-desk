@@ -17,12 +17,21 @@ MAX_SALARY = 100_000.0  # Monthly salary cap (sanity check)
 MAX_SENIORITY_YEARS = 60
 MAX_CHILDREN = 20
 VALID_CONTRACT_TYPES = {
-    "indefinido", "temporal", "fijo-discontinuo",
-    "temporal-produccion", "sustitucion", "tiempo-parcial",
+    "indefinido",
+    "temporal",
+    "fijo-discontinuo",
+    "temporal-produccion",
+    "sustitucion",
+    "tiempo-parcial",
 }
 VALID_DESPIDO_TYPES = {
-    "improcedente", "objetivo", "colectivo", "disciplinario", "voluntario",
-    "fin-contrato-temporal", "desistimiento-periodo-prueba",
+    "improcedente",
+    "objetivo",
+    "colectivo",
+    "disciplinario",
+    "voluntario",
+    "fin-contrato-temporal",
+    "desistimiento-periodo-prueba",
 }
 
 

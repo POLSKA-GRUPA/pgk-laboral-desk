@@ -83,6 +83,7 @@ def _get_engine(convenio_id: str | None = None) -> LaboralEngine:
 # Auth helpers
 # ------------------------------------------------------------------
 
+
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -91,12 +92,14 @@ def login_required(f):
                 return jsonify({"error": "No autenticado"}), 401
             return redirect("/")
         return f(*args, **kwargs)
+
     return decorated
 
 
 # ------------------------------------------------------------------
 # Páginas
 # ------------------------------------------------------------------
+
 
 @app.route("/")
 def index():
@@ -114,6 +117,7 @@ def panel():
 # ------------------------------------------------------------------
 # Auth API
 # ------------------------------------------------------------------
+
 
 @app.route("/api/auth/login", methods=["POST"])
 def api_login():
@@ -133,14 +137,16 @@ def api_login():
     session["convenio_id"] = user["convenio_id"]
     session["role"] = user["role"]
 
-    return jsonify({
-        "ok": True,
-        "user": {
-            "username": user["username"],
-            "empresa_nombre": user["empresa_nombre"],
-            "role": user["role"],
-        },
-    })
+    return jsonify(
+        {
+            "ok": True,
+            "user": {
+                "username": user["username"],
+                "empresa_nombre": user["empresa_nombre"],
+                "role": user["role"],
+            },
+        }
+    )
 
 
 @app.route("/api/auth/logout", methods=["POST"])
@@ -152,17 +158,20 @@ def api_logout():
 @app.route("/api/auth/me")
 @login_required
 def api_me():
-    return jsonify({
-        "username": session["username"],
-        "empresa_nombre": session["empresa_nombre"],
-        "convenio_id": session["convenio_id"],
-        "role": session["role"],
-    })
+    return jsonify(
+        {
+            "username": session["username"],
+            "empresa_nombre": session["empresa_nombre"],
+            "convenio_id": session["convenio_id"],
+            "role": session["role"],
+        }
+    )
 
 
 # ------------------------------------------------------------------
 # Datos para el formulario
 # ------------------------------------------------------------------
+
 
 @app.route("/api/categories")
 @login_required
@@ -185,6 +194,7 @@ def api_regions():
 # ------------------------------------------------------------------
 # Simulación
 # ------------------------------------------------------------------
+
 
 @app.route("/api/simulate", methods=["POST"])
 @login_required
@@ -229,6 +239,7 @@ def api_simulate():
 # Historial
 # ------------------------------------------------------------------
 
+
 @app.route("/api/history")
 @login_required
 def api_history():
@@ -240,19 +251,23 @@ def api_history():
 # Convenio
 # ------------------------------------------------------------------
 
+
 @app.route("/api/convenio")
 @login_required
 def api_convenio():
     eng = _get_engine()
-    return jsonify({
-        "convenio": eng.data["convenio"],
-        "sections": eng.data["sections"],
-    })
+    return jsonify(
+        {
+            "convenio": eng.data["convenio"],
+            "sections": eng.data["sections"],
+        }
+    )
 
 
 # ------------------------------------------------------------------
 # Alertas / Caducidad
 # ------------------------------------------------------------------
+
 
 @app.route("/api/alerts")
 @login_required
@@ -294,6 +309,7 @@ def api_dismiss_alert(alert_id: int):
 # Chat conversacional
 # ------------------------------------------------------------------
 
+
 @app.route("/api/chat", methods=["POST"])
 @login_required
 def api_chat():
@@ -321,7 +337,9 @@ def api_chat():
         sim_result["contract_extras"] = result.get("contract_extras", {})
         sim_result["contract_warnings"] = result.get("contract_warnings", [])
 
-        summary = f"{sim_result['categoria']} · {sim_result['contrato']} · {sim_result['jornada_pct']}%"
+        summary = (
+            f"{sim_result['categoria']} · {sim_result['contrato']} · {sim_result['jornada_pct']}%"
+        )
         save_consultation(
             user_id=session["user_id"],
             query_summary=summary,
@@ -333,11 +351,13 @@ def api_chat():
         return jsonify({"type": "result", "data": sim_result})
 
     if action in ("clarify_category", "need_params"):
-        return jsonify({
-            "type": "question",
-            "message": result["message"],
-            "options": result.get("options", []),
-        })
+        return jsonify(
+            {
+                "type": "question",
+                "message": result["message"],
+                "options": result.get("options", []),
+            }
+        )
 
     if action == "not_found":
         session.pop("chat_context", None)
@@ -357,6 +377,7 @@ def api_chat_reset():
 # Tipos de despido
 # ------------------------------------------------------------------
 
+
 @app.route("/api/tipos-despido")
 @login_required
 def api_tipos_despido():
@@ -366,6 +387,7 @@ def api_tipos_despido():
 # ------------------------------------------------------------------
 # Despido / extinción laboral
 # ------------------------------------------------------------------
+
 
 @app.route("/api/despido", methods=["POST"])
 @login_required
@@ -400,6 +422,7 @@ def api_despido():
 # ------------------------------------------------------------------
 # Plantilla de trabajadores
 # ------------------------------------------------------------------
+
 
 @app.route("/api/employees")
 @login_required
@@ -463,8 +486,16 @@ def api_employees_update(emp_id: int):
         return jsonify({"error": "No encontrado"}), 404
     data = request.get_json(silent=True) or {}
     allowed = {
-        "nombre", "categoria", "contrato_tipo", "jornada_horas",
-        "fecha_inicio", "fecha_fin", "salario_bruto_mensual", "num_hijos", "notas", "status",
+        "nombre",
+        "categoria",
+        "contrato_tipo",
+        "jornada_horas",
+        "fecha_inicio",
+        "fecha_fin",
+        "salario_bruto_mensual",
+        "num_hijos",
+        "notas",
+        "status",
     }
     fields = {k: v for k, v in data.items() if k in allowed}
     update_employee(emp_id, fields)
@@ -513,13 +544,16 @@ def api_employees_despido(emp_id: int):
 def _auto_alerts_for_employee(emp: dict) -> None:
     """Crea alertas automáticas para un nuevo empleado."""
     from datetime import date, timedelta
+
     try:
         inicio = date.fromisoformat(emp["fecha_inicio"])
         contrato = emp.get("contrato_tipo", "indefinido")
 
         # Fin de período de prueba
         prueba_dias = {
-            "indefinido": 90, "temporal": 30, "fijo-discontinuo": 90,
+            "indefinido": 90,
+            "temporal": 30,
+            "fijo-discontinuo": 90,
         }.get(contrato, 30)
         fin_prueba = inicio + timedelta(days=prueba_dias)
         if fin_prueba >= date.today():
@@ -554,6 +588,7 @@ def _auto_alerts_for_employee(emp: dict) -> None:
 # ------------------------------------------------------------------
 # Pre-nómina PDF
 # ------------------------------------------------------------------
+
 
 def _empresa_from_session() -> DatosEmpresa:
     return DatosEmpresa(
@@ -694,6 +729,7 @@ def api_nomina_from_simulation():
 # Clientes (multi-convenio)
 # ------------------------------------------------------------------
 
+
 @app.route("/api/convenios")
 @login_required
 def api_convenios_list():
@@ -804,6 +840,7 @@ def api_verify_convenio():
 # Health
 # ------------------------------------------------------------------
 
+
 @app.route("/api/health")
 def api_health():
     """Health check with dependency status."""
@@ -819,6 +856,7 @@ def api_health():
     # Check database
     try:
         from database import _get_db
+
         conn = _get_db()
         conn.execute("SELECT 1")
         conn.close()
@@ -826,16 +864,14 @@ def api_health():
     except Exception as exc:
         checks["database"] = {"ok": False, "error": str(exc)}
 
-    all_ok = all(
-        isinstance(v, dict) and v.get("ok", False)
-        for v in checks.values()
-    )
+    all_ok = all(isinstance(v, dict) and v.get("ok", False) for v in checks.values())
     return jsonify({"ok": all_ok, "checks": checks, "version": "0.2.0"}), 200 if all_ok else 503
 
 
 # ------------------------------------------------------------------
 # Error handlers
 # ------------------------------------------------------------------
+
 
 @app.errorhandler(ValidationError)
 def handle_validation_error(exc: ValidationError):
@@ -866,7 +902,10 @@ def log_request_end(response):
     if request.path != "/api/health":
         logger.info(
             "%s %s %s %.1fms",
-            request.method, request.path, response.status_code, duration,
+            request.method,
+            request.path,
+            response.status_code,
+            duration,
         )
     return response
 

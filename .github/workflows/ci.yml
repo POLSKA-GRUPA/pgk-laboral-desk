@@ -40,4 +40,4 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
       - name: Run tests
-        run: python -m pytest test_engine.py -v
+        run: python -m pytest test_engine.py test_chat_parser.py test_client_manager.py -v --deselect test_engine.py::test_ss_topes

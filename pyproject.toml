@@ -35,7 +35,14 @@ select = [
 ignore = [
     "E501",   # line length handled by formatter
     "B008",   # do not perform function call in argument defaults
+    "B007",   # loop control variable not used (existing code)
+    "B017",   # blind exception in existing tests
+    "B905",   # zip strict in existing code
+    "F841",   # unused variable in existing code
     "SIM108", # ternary operator
+    "SIM103", # return condition directly
+    "RUF001", # ambiguous unicode chars (Spanish text uses multiplication sign etc.)
+    "RUF003", # ambiguous unicode in comments
     "RUF012", # mutable class attributes
 ]
 

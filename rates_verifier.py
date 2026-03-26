@@ -15,12 +15,11 @@ from __future__ import annotations
 import json
 import os
 import time
-import urllib.request
 import urllib.error
+import urllib.request
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
-
 
 _PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions"
 _TIMEOUT = 35
@@ -37,24 +36,24 @@ _OUR_SS_2026 = {
     "empresa_desempleo_temporal": 6.70,
     "empresa_fogasa": 0.20,
     "empresa_fp": 0.60,
-    "empresa_mei": 0.75,   # RDL 3/2026 — actualizado 2026-03-22
+    "empresa_mei": 0.75,  # RDL 3/2026 — actualizado 2026-03-22
     "trab_cc": 4.70,
     "trab_desempleo_indefinido": 1.55,
     "trab_desempleo_temporal": 1.60,
     "trab_fp": 0.10,
-    "trab_mei": 0.15,      # RDL 3/2026 — actualizado 2026-03-22
-    "base_min_mensual": 1424.50,   # Orden ISM/31/2026 — actualizado 2026-03-22
-    "base_max_mensual": 5101.20,   # Orden ISM/31/2026 — actualizado 2026-03-22
+    "trab_mei": 0.15,  # RDL 3/2026 — actualizado 2026-03-22
+    "base_min_mensual": 1424.50,  # Orden ISM/31/2026 — actualizado 2026-03-22
+    "base_max_mensual": 5101.20,  # Orden ISM/31/2026 — actualizado 2026-03-22
 }
 
 # Tramos estatales IRPF que tenemos (límite superior, tipo)
 _OUR_IRPF_STATE_2026 = [
-    {"hasta": 12450.0,  "tipo_pct": 9.5},
-    {"hasta": 20200.0,  "tipo_pct": 12.0},
-    {"hasta": 35200.0,  "tipo_pct": 15.0},
-    {"hasta": 60000.0,  "tipo_pct": 18.5},
+    {"hasta": 12450.0, "tipo_pct": 9.5},
+    {"hasta": 20200.0, "tipo_pct": 12.0},
+    {"hasta": 35200.0, "tipo_pct": 15.0},
+    {"hasta": 60000.0, "tipo_pct": 18.5},
     {"hasta": 300000.0, "tipo_pct": 22.5},
-    {"hasta": None,     "tipo_pct": 24.5},  # resto
+    {"hasta": None, "tipo_pct": 24.5},  # resto
 ]
 _OUR_IRPF_REDUCCION = {
     "importe_maximo": 7302.0,
@@ -64,7 +63,7 @@ _OUR_IRPF_REDUCCION = {
 }
 
 # SMI que usamos internamente como referencia
-_OUR_SMI_2026_MENSUAL = 1221.0   # RD 126/2026 de 18 febrero — actualizado 2026-03-22
+_OUR_SMI_2026_MENSUAL = 1221.0  # RD 126/2026 de 18 febrero — actualizado 2026-03-22
 
 # Datos de convenios para verificar revisión salarial
 _CONVENIOS_A_VERIFICAR = [
@@ -88,22 +87,24 @@ _CONVENIOS_A_VERIFICAR = [
     },
 ]
 
-_SS_TOLERANCE = 0.05        # pp
+_SS_TOLERANCE = 0.05  # pp
 _BASE_TOLERANCE_PCT = 0.005  # 0.5% para bases en €
-_IRPF_TOLERANCE = 0.5       # pp (tolerancia mayor — CC.AA. varían)
-_SMI_TOLERANCE_PCT = 0.02   # 2% para SMI
+_IRPF_TOLERANCE = 0.5  # pp (tolerancia mayor — CC.AA. varían)
+_SMI_TOLERANCE_PCT = 0.02  # 2% para SMI
 
 
 # ======================================================================
 # Dataclasses
 # ======================================================================
 
+
 @dataclass
 class CheckResult:
     """Resultado de un check individual."""
-    check: str       # identificador: "ss" | "irpf" | "smi" | "convenio_xxx"
-    label: str       # nombre legible
-    status: str      # "ok" | "warning" | "uncertain" | "unavailable" | "error"
+
+    check: str  # identificador: "ss" | "irpf" | "smi" | "convenio_xxx"
+    label: str  # nombre legible
+    status: str  # "ok" | "warning" | "uncertain" | "unavailable" | "error"
     message: str
     discrepancies: list[dict[str, Any]] = field(default_factory=list)
     sources: list[str] = field(default_factory=list)
@@ -125,7 +126,8 @@ class CheckResult:
 @dataclass
 class FullVerificationResult:
     """Resultado combinado de todos los checks."""
-    overall_status: str          # peor status entre todos los checks
+
+    overall_status: str  # peor status entre todos los checks
     checks: list[CheckResult]
     verified_at: str
     is_advisory: bool = True
@@ -148,6 +150,7 @@ class FullVerificationResult:
 # ======================================================================
 # Clase principal
 # ======================================================================
+
 
 class RatesVerifier:
     """Verifica SS, IRPF, SMI y convenios contra fuentes reales via Perplexity."""
@@ -255,11 +258,11 @@ class RatesVerifier:
 
     def _check_ss(self) -> CheckResult:
         label = "Tasas SS 2026 (Orden de Cotización)"
-        prompt = f"""Busca las tasas de cotización a la Seguridad Social española para el año 2026 (Régimen General).
+        prompt = """Busca las tasas de cotización a la Seguridad Social española para el año 2026 (Régimen General).
 Fuentes: BOE, Ministerio de Inclusión y Seguridad Social, Orden de Cotización 2026.
 
 Responde SOLO con JSON:
-{{
+{
   "empresa_cc": <% contingencias comunes empresa>,
   "empresa_desempleo_indefinido": <% desempleo indefinido empresa>,
   "empresa_desempleo_temporal": <% desempleo temporal empresa>,
@@ -275,7 +278,7 @@ Responde SOLO con JSON:
   "base_max_mensual": <euros>,
   "fuente": "<URL o referencia BOE>",
   "confianza": "alta"|"media"|"baja"
-}}
+}
 
 Nuestros valores actuales: empresa CC=23.60%, trab CC=4.70%, base min=1323€, base max=4720.50€
 Si no encuentras datos fiables de 2026 específicamente, pon "confianza":"baja" y los campos como null."""
@@ -288,9 +291,14 @@ Si no encuentras datos fiables de 2026 específicamente, pon "confianza":"baja" 
         sources = [s for s in [data.get("fuente", "")] if s]
 
         if confianza == "baja":
-            return CheckResult("ss", label, "uncertain",
+            return CheckResult(
+                "ss",
+                label,
+                "uncertain",
                 "❓ Perplexity no encontró datos SS 2026 con certeza. Revisa la Orden de Cotización en BOE.",
-                sources=sources, verified_at=today)
+                sources=sources,
+                verified_at=today,
+            )
 
         fields = [
             ("empresa_cc", "Empresa — Contingencias Comunes (%)"),
@@ -316,15 +324,33 @@ Si no encuentras datos fiables de 2026 específicamente, pon "confianza":"baja" 
             tol = ours * _BASE_TOLERANCE_PCT if "base_" in key else _SS_TOLERANCE
             diff = abs(float(their) - float(ours))
             if diff > tol:
-                discs.append({"label": lbl, "nuestro": ours, "perplexity": float(their), "diferencia": round(diff, 4)})
+                discs.append(
+                    {
+                        "label": lbl,
+                        "nuestro": ours,
+                        "perplexity": float(their),
+                        "diferencia": round(diff, 4),
+                    }
+                )
 
         if discs:
-            return CheckResult("ss", label, "warning",
+            return CheckResult(
+                "ss",
+                label,
+                "warning",
                 f"⚠️ {len(discs)} diferencia(s) detectada(s) en tasas SS. Revisa con la Orden de Cotización oficial.",
-                discrepancies=discs, sources=sources, verified_at=today)
-        return CheckResult("ss", label, "ok",
-            f"✅ Tasas SS 2026 confirmadas correctas.",
-            sources=sources, verified_at=today)
+                discrepancies=discs,
+                sources=sources,
+                verified_at=today,
+            )
+        return CheckResult(
+            "ss",
+            label,
+            "ok",
+            "✅ Tasas SS 2026 confirmadas correctas.",
+            sources=sources,
+            verified_at=today,
+        )
 
     # ------------------------------------------------------------------
     # CHECK 2 — SMI
@@ -357,15 +383,21 @@ Si el SMI 2026 aún no está aprobado, indica el vigente y pon "confianza":"medi
         their_smi = data.get("smi_mensual_eur")
 
         if confianza == "baja" or their_smi is None:
-            return CheckResult("smi", label, "uncertain",
+            return CheckResult(
+                "smi",
+                label,
+                "uncertain",
                 "❓ No se encontró el SMI 2026 con certeza. Verifica en BOE.",
-                sources=sources, verified_at=today)
+                sources=sources,
+                verified_at=today,
+            )
 
         try:
             their_smi = float(their_smi)
         except (ValueError, TypeError):
-            return CheckResult("smi", label, "uncertain",
-                "❓ Respuesta SMI no interpretable.", verified_at=today)
+            return CheckResult(
+                "smi", label, "uncertain", "❓ Respuesta SMI no interpretable.", verified_at=today
+            )
 
         diff = abs(their_smi - _OUR_SMI_2026_MENSUAL)
         tol = _OUR_SMI_2026_MENSUAL * _SMI_TOLERANCE_PCT
@@ -374,20 +406,33 @@ Si el SMI 2026 aún no está aprobado, indica el vigente y pon "confianza":"medi
         msg_extra = f" ({norma})" if norma else ""
 
         if diff > tol:
-            discs = [{
-                "label": "SMI mensual (€/mes, 14 pagas)",
-                "nuestro": _OUR_SMI_2026_MENSUAL,
-                "perplexity": their_smi,
-                "diferencia": round(diff, 2),
-            }]
-            return CheckResult("smi", label, "warning",
+            discs = [
+                {
+                    "label": "SMI mensual (€/mes, 14 pagas)",
+                    "nuestro": _OUR_SMI_2026_MENSUAL,
+                    "perplexity": their_smi,
+                    "diferencia": round(diff, 2),
+                }
+            ]
+            return CheckResult(
+                "smi",
+                label,
+                "warning",
                 f"⚠️ SMI 2026 detectado: {their_smi:.2f}€/mes{msg_extra}. Nuestro valor: {_OUR_SMI_2026_MENSUAL:.2f}€. "
                 "Actualizar si hay diferencia significativa.",
-                discrepancies=discs, sources=sources, verified_at=today)
+                discrepancies=discs,
+                sources=sources,
+                verified_at=today,
+            )
 
-        return CheckResult("smi", label, "ok",
+        return CheckResult(
+            "smi",
+            label,
+            "ok",
             f"✅ SMI 2026 confirmado: {their_smi:.2f}€/mes{msg_extra}.",
-            sources=sources, verified_at=today)
+            sources=sources,
+            verified_at=today,
+        )
 
     # ------------------------------------------------------------------
     # CHECK 3 — IRPF
@@ -396,7 +441,8 @@ Si el SMI 2026 aún no está aprobado, indica el vigente y pon "confianza":"medi
     def _check_irpf(self) -> CheckResult:
         label = "IRPF 2026 — Tramos estatales y reducción"
         our_tramos = "; ".join(
-            f"hasta {t['hasta']:,.0f}€ → {t['tipo_pct']}%" if t['hasta']
+            f"hasta {t['hasta']:,.0f}€ → {t['tipo_pct']}%"
+            if t["hasta"]
             else f"resto → {t['tipo_pct']}%"
             for t in _OUR_IRPF_STATE_2026
         )
@@ -423,7 +469,7 @@ Responde SOLO con JSON:
 }}
 
 Nuestros tramos actuales (estatal): {our_tramos}
-Nuestra reducción: máximo {_OUR_IRPF_REDUCCION['importe_maximo']}€ (rentas ≤{_OUR_IRPF_REDUCCION['limite_inferior']}€), mínimo {_OUR_IRPF_REDUCCION['importe_minimo']}€ (rentas >{_OUR_IRPF_REDUCCION['limite_superior']}€)
+Nuestra reducción: máximo {_OUR_IRPF_REDUCCION["importe_maximo"]}€ (rentas ≤{_OUR_IRPF_REDUCCION["limite_inferior"]}€), mínimo {_OUR_IRPF_REDUCCION["importe_minimo"]}€ (rentas >{_OUR_IRPF_REDUCCION["limite_superior"]}€)
 
 Si los Presupuestos 2026 no se han aprobado y siguen vigentes los de años anteriores, indícalo."""
 
@@ -436,10 +482,15 @@ Si los Presupuestos 2026 no se han aprobado y siguen vigentes los de años anter
         discs = []
 
         if confianza == "baja":
-            return CheckResult("irpf", label, "uncertain",
+            return CheckResult(
+                "irpf",
+                label,
+                "uncertain",
                 "❓ IRPF 2026: no se encontraron datos fiables. Si los PGE no se han aprobado, "
                 "los tramos de 2025 siguen vigentes. Verifica en AEAT.",
-                sources=sources, verified_at=today)
+                sources=sources,
+                verified_at=today,
+            )
 
         # Comparar tramos estatales
         their_tramos = data.get("tramos_estatales", [])
@@ -451,12 +502,14 @@ Si los Presupuestos 2026 no se han aprobado y siguen vigentes los de años anter
                 diff = abs(float(their_tipo) - ours["tipo_pct"])
                 if diff > _IRPF_TOLERANCE:
                     limite_label = f"≤{ours['hasta']:,.0f}€" if ours["hasta"] else "resto"
-                    discs.append({
-                        "label": f"Tramo IRPF estatal {limite_label}",
-                        "nuestro": f"{ours['tipo_pct']}%",
-                        "perplexity": f"{their_tipo}%",
-                        "diferencia": f"{diff:.2f} pp",
-                    })
+                    discs.append(
+                        {
+                            "label": f"Tramo IRPF estatal {limite_label}",
+                            "nuestro": f"{ours['tipo_pct']}%",
+                            "perplexity": f"{their_tipo}%",
+                            "diferencia": f"{diff:.2f} pp",
+                        }
+                    )
 
         # Comparar reducción rendimientos del trabajo
         their_red = data.get("reduccion_rendimientos_trabajo", {})
@@ -470,12 +523,14 @@ Si los Presupuestos 2026 no se han aprobado y siguen vigentes los de años anter
                 if their_val and our_val:
                     diff = abs(float(their_val) - float(our_val))
                     if diff > our_val * 0.01:  # >1% diferencia
-                        discs.append({
-                            "label": lbl,
-                            "nuestro": our_val,
-                            "perplexity": float(their_val),
-                            "diferencia": round(diff, 2),
-                        })
+                        discs.append(
+                            {
+                                "label": lbl,
+                                "nuestro": our_val,
+                                "perplexity": float(their_val),
+                                "diferencia": round(diff, 2),
+                            }
+                        )
 
         normativa = data.get("normativa", "")
         nota_pge = ""
@@ -483,13 +538,24 @@ Si los Presupuestos 2026 no se han aprobado y siguen vigentes los de años anter
             nota_pge = " (PGE 2026 prorrogados — tramos de 2025 en vigor)"
 
         if discs:
-            return CheckResult("irpf", label, "warning",
+            return CheckResult(
+                "irpf",
+                label,
+                "warning",
                 f"⚠️ {len(discs)} diferencia(s) en tramos IRPF 2026. Verifica en AEAT.{nota_pge}",
-                discrepancies=discs, sources=sources, verified_at=today)
+                discrepancies=discs,
+                sources=sources,
+                verified_at=today,
+            )
 
-        return CheckResult("irpf", label, "ok",
+        return CheckResult(
+            "irpf",
+            label,
+            "ok",
             f"✅ Tramos IRPF 2026 confirmados correctos.{nota_pge}",
-            sources=sources, verified_at=today)
+            sources=sources,
+            verified_at=today,
+        )
 
     # ------------------------------------------------------------------
     # CHECK 4 — Revisión salarial de convenio
@@ -501,10 +567,10 @@ Si los Presupuestos 2026 no se han aprobado y siguen vigentes los de años anter
         anio = date.today().year
         prompt = f"""Necesito verificar si hay revisión salarial para {anio} en el siguiente convenio colectivo español:
 
-Nombre: {conv['nombre']}
-Ámbito: {conv['ambito']}
-Sector: {conv['sector']}
-Vigencia: {conv['vigencia_desde']}–{conv['vigencia_hasta']}
+Nombre: {conv["nombre"]}
+Ámbito: {conv["ambito"]}
+Sector: {conv["sector"]}
+Vigencia: {conv["vigencia_desde"]}–{conv["vigencia_hasta"]}
 
 Preguntas concretas:
 1. ¿Qué incremento salarial está pactado para {anio} en este convenio?
@@ -523,7 +589,7 @@ Responde SOLO con JSON:
   "confianza": "alta"|"media"|"baja"
 }}
 
-Nuestro salario base mínimo registrado: {conv['nuestro_salario_base_minimo']}€/mes aprox."""
+Nuestro salario base mínimo registrado: {conv["nuestro_salario_base_minimo"]}€/mes aprox."""
 
         return self._run_check(check_id, label, prompt, self._parse_convenio_rev)
 
@@ -534,10 +600,15 @@ Nuestro salario base mínimo registrado: {conv['nuestro_salario_base_minimo']}�
         sources = [s for s in [data.get("fuente", "")] if s]
 
         if not data.get("convenio_encontrado") or confianza == "baja":
-            return CheckResult(check_id, label, "uncertain",
+            return CheckResult(
+                check_id,
+                label,
+                "uncertain",
                 "❓ No se encontró información fiable sobre revisión salarial de este convenio para 2026. "
                 "Verifica en el BOE o con el convenio en papel.",
-                sources=sources, verified_at=today)
+                sources=sources,
+                verified_at=today,
+            )
 
         discs = []
         incremento = data.get("incremento_pactado_pct")
@@ -547,33 +618,44 @@ Nuestro salario base mínimo registrado: {conv['nuestro_salario_base_minimo']}�
         notas = data.get("notas", "")
 
         if salario_actualizado:
-            discs.append({
-                "label": "Salario base mínimo actualizado",
-                "perplexity": f"{salario_actualizado}€/mes",
-                "notas": f"Incremento pactado: {incremento}%" if incremento else "",
-            })
+            discs.append(
+                {
+                    "label": "Salario base mínimo actualizado",
+                    "perplexity": f"{salario_actualizado}€/mes",
+                    "notas": f"Incremento pactado: {incremento}%" if incremento else "",
+                }
+            )
 
         if not tabla_boe:
             status = "warning" if incremento else "uncertain"
             msg = (
                 f"⚠️ Convenio con posible revisión salarial {date.today().year}: "
-                f"+{incremento}% pactado" if incremento else
-                "❓ No se confirmó publicación de tablas salariales actualizadas en BOE"
+                f"+{incremento}% pactado"
+                if incremento
+                else "❓ No se confirmó publicación de tablas salariales actualizadas en BOE"
             )
             if clausula:
                 msg += f". Cláusula IPC: {clausula}"
             if notas:
                 msg += f". Nota: {notas}"
-            return CheckResult(check_id, label, status, msg,
-                discrepancies=discs, sources=sources, verified_at=today)
+            return CheckResult(
+                check_id,
+                label,
+                status,
+                msg,
+                discrepancies=discs,
+                sources=sources,
+                verified_at=today,
+            )
 
         msg = f"✅ Tablas salariales {date.today().year} publicadas en BOE."
         if incremento:
             msg += f" Incremento pactado: +{incremento}%."
         if clausula:
             msg += f" Cláusula revisión: {clausula}."
-        return CheckResult(check_id, label, "ok", msg,
-            discrepancies=discs, sources=sources, verified_at=today)
+        return CheckResult(
+            check_id, label, "ok", msg, discrepancies=discs, sources=sources, verified_at=today
+        )
 
     # ------------------------------------------------------------------
     # Motor de llamada genérico
@@ -591,37 +673,49 @@ Nuestro salario base mínimo registrado: {conv['nuestro_salario_base_minimo']}�
             raw = self._call_perplexity(prompt)
             data = self._parse_json(raw)
             if data is None:
-                return CheckResult(check_id, label, "uncertain",
+                return CheckResult(
+                    check_id,
+                    label,
+                    "uncertain",
                     "❓ Respuesta de Perplexity no interpretable. Verifica manualmente.",
-                    verified_at=today)
+                    verified_at=today,
+                )
             result = parser(data, label)
             result.check = check_id  # asegurar id correcto
             return result
         except ConnectionError as exc:
-            return CheckResult(check_id, label, "unavailable",
-                f"Sin conexión con Perplexity: {exc}", verified_at=today)
+            return CheckResult(
+                check_id,
+                label,
+                "unavailable",
+                f"Sin conexión con Perplexity: {exc}",
+                verified_at=today,
+            )
         except Exception as exc:
-            return CheckResult(check_id, label, "error",
-                f"Error inesperado: {exc}", verified_at=today)
+            return CheckResult(
+                check_id, label, "error", f"Error inesperado: {exc}", verified_at=today
+            )
 
     def _call_perplexity(self, prompt: str) -> str:
-        payload = json.dumps({
-            "model": "sonar",
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "Eres un experto en derecho laboral y fiscal español con acceso a internet. "
-                        "Tu función es verificar datos normativos oficiales buscando en BOE, AEAT, "
-                        "Ministerio de Inclusión y Seguridad Social. "
-                        "Responde SIEMPRE con JSON válido sin texto adicional ni markdown."
-                    ),
-                },
-                {"role": "user", "content": prompt},
-            ],
-            "temperature": 0.1,
-            "max_tokens": 1000,
-        }).encode("utf-8")
+        payload = json.dumps(
+            {
+                "model": "sonar",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": (
+                            "Eres un experto en derecho laboral y fiscal español con acceso a internet. "
+                            "Tu función es verificar datos normativos oficiales buscando en BOE, AEAT, "
+                            "Ministerio de Inclusión y Seguridad Social. "
+                            "Responde SIEMPRE con JSON válido sin texto adicional ni markdown."
+                        ),
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": 0.1,
+                "max_tokens": 1000,
+            }
+        ).encode("utf-8")
 
         req = urllib.request.Request(
             _PERPLEXITY_URL,
@@ -653,7 +747,8 @@ Nuestro salario base mínimo registrado: {conv['nuestro_salario_base_minimo']}�
         except (json.JSONDecodeError, IndexError):
             # Intentar extraer JSON si hay texto adicional
             import re
-            m = re.search(r'\{.*\}', clean, re.DOTALL)
+
+            m = re.search(r"\{.*\}", clean, re.DOTALL)
             if m:
                 try:
                     return json.loads(m.group())
@@ -670,5 +765,15 @@ def _unavailable_compat():
         sources = []
         verified_at = ""
         is_advisory = True
-        def to_dict(self): return {"status": self.status, "message": self.message, "discrepancies": [], "sources": [], "is_advisory": True, "our_rates": _OUR_SS_2026}
+
+        def to_dict(self):
+            return {
+                "status": self.status,
+                "message": self.message,
+                "discrepancies": [],
+                "sources": [],
+                "is_advisory": True,
+                "our_rates": _OUR_SS_2026,
+            }
+
     return _U()

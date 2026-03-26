@@ -9,7 +9,6 @@ from typing import Any
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
-
 _DB_PATH = Path(__file__).resolve().parent / "db" / "pgk_laboral.db"
 
 
@@ -88,9 +87,7 @@ def init_db(db_path: Path | None = None) -> None:
         """)
 
         # Sembrar usuario MPC si no existe (cliente acuáticas)
-        existing = conn.execute(
-            "SELECT id FROM users WHERE username = ?", ("mpc",)
-        ).fetchone()
+        existing = conn.execute("SELECT id FROM users WHERE username = ?", ("mpc",)).fetchone()
         if not existing:
             conn.execute(
                 """INSERT INTO users (username, password_hash, empresa_nombre,
@@ -134,13 +131,13 @@ def init_db(db_path: Path | None = None) -> None:
         conn.close()
 
 
-def authenticate(username: str, password: str, db_path: Path | None = None) -> dict[str, Any] | None:
+def authenticate(
+    username: str, password: str, db_path: Path | None = None
+) -> dict[str, Any] | None:
     """Autentica un usuario.  Devuelve dict con datos o None."""
     conn = _get_db(db_path)
     try:
-        row = conn.execute(
-            "SELECT * FROM users WHERE username = ?", (username,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
         if row and check_password_hash(row["password_hash"], password):
             return {
                 "id": row["id"],
@@ -185,6 +182,7 @@ def save_consultation(
 # Alertas / Caducidad
 # ------------------------------------------------------------------
 
+
 def save_alert(
     user_id: int,
     alert_type: str,
@@ -211,7 +209,9 @@ def save_alert(
 
 
 def get_alerts(
-    user_id: int, status: str = "pending", db_path: Path | None = None,
+    user_id: int,
+    status: str = "pending",
+    db_path: Path | None = None,
 ) -> list[dict[str, Any]]:
     """Devuelve las alertas de un usuario."""
     conn = _get_db(db_path)
@@ -233,14 +233,10 @@ def dismiss_alert(alert_id: int, user_id: int | None = None, db_path: Path | Non
     conn = _get_db(db_path)
     try:
         if user_id is not None:
-            row = conn.execute(
-                "SELECT user_id FROM alerts WHERE id = ?", (alert_id,)
-            ).fetchone()
+            row = conn.execute("SELECT user_id FROM alerts WHERE id = ?", (alert_id,)).fetchone()
             if row is None or row["user_id"] != user_id:
                 return False
-        conn.execute(
-            "UPDATE alerts SET status = 'resolved' WHERE id = ?", (alert_id,)
-        )
+        conn.execute("UPDATE alerts SET status = 'resolved' WHERE id = ?", (alert_id,))
         conn.commit()
         return True
     finally:
@@ -254,6 +250,7 @@ def dismiss_alert(alert_id: int, user_id: int | None = None, db_path: Path | Non
 # ------------------------------------------------------------------
 # Plantilla de trabajadores
 # ------------------------------------------------------------------
+
 
 def add_employee(
     user_id: int,
@@ -275,8 +272,18 @@ def add_employee(
                jornada_horas, fecha_inicio, fecha_fin, salario_bruto_mensual,
                num_hijos, notas)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (user_id, nombre, categoria, contrato_tipo, jornada_horas,
-             fecha_inicio, fecha_fin, salario_bruto_mensual, num_hijos, notas),
+            (
+                user_id,
+                nombre,
+                categoria,
+                contrato_tipo,
+                jornada_horas,
+                fecha_inicio,
+                fecha_fin,
+                salario_bruto_mensual,
+                num_hijos,
+                notas,
+            ),
         )
         conn.commit()
         return cursor.lastrowid  # type: ignore[return-value]
@@ -285,7 +292,9 @@ def add_employee(
 
 
 def get_employees(
-    user_id: int, status: str = "activo", db_path: Path | None = None,
+    user_id: int,
+    status: str = "activo",
+    db_path: Path | None = None,
 ) -> list[dict[str, Any]]:
     conn = _get_db(db_path)
     try:
@@ -305,21 +314,28 @@ def get_employees(
 def get_employee(employee_id: int, db_path: Path | None = None) -> dict[str, Any] | None:
     conn = _get_db(db_path)
     try:
-        row = conn.execute(
-            "SELECT * FROM employees WHERE id = ?", (employee_id,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM employees WHERE id = ?", (employee_id,)).fetchone()
         return dict(row) if row else None
     finally:
         conn.close()
 
 
 def update_employee(
-    employee_id: int, fields: dict[str, Any], db_path: Path | None = None,
+    employee_id: int,
+    fields: dict[str, Any],
+    db_path: Path | None = None,
 ) -> None:
     allowed = {
-        "nombre", "categoria", "contrato_tipo", "jornada_horas",
-        "fecha_inicio", "fecha_fin", "salario_bruto_mensual",
-        "num_hijos", "notas", "status",
+        "nombre",
+        "categoria",
+        "contrato_tipo",
+        "jornada_horas",
+        "fecha_inicio",
+        "fecha_fin",
+        "salario_bruto_mensual",
+        "num_hijos",
+        "notas",
+        "status",
     }
     updates = {k: v for k, v in fields.items() if k in allowed}
     if not updates:
@@ -340,8 +356,11 @@ def update_employee(
 # Consultas
 # ------------------------------------------------------------------
 
+
 def get_consultations(
-    user_id: int, limit: int = 20, db_path: Path | None = None,
+    user_id: int,
+    limit: int = 20,
+    db_path: Path | None = None,
 ) -> list[dict[str, Any]]:
     """Devuelve las últimas consultas de un usuario."""
     conn = _get_db(db_path)
@@ -356,12 +375,14 @@ def get_consultations(
         for row in rows:
             result_data = json.loads(row["result_data"]) if row["result_data"] else {}
             coste = result_data.get("coste_total_empresa_mes_eur", "—")
-            results.append({
-                "id": row["id"],
-                "query_summary": row["query_summary"],
-                "coste_empresa": coste,
-                "created_at": row["created_at"],
-            })
+            results.append(
+                {
+                    "id": row["id"],
+                    "query_summary": row["query_summary"],
+                    "coste_empresa": coste,
+                    "created_at": row["created_at"],
+                }
+            )
         return results
     finally:
         conn.close()

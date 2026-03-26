@@ -14,6 +14,7 @@ def make_parser():
 
 # --- Match exacto ---
 
+
 def test_match_limpiador():
     p = make_parser()
     r = p.parse("Necesito alguien para limpiar la piscina a jornada completa indefinido")
@@ -44,6 +45,7 @@ def test_match_comercial():
 
 
 # --- Familias ambiguas ---
+
 
 def test_socorrista_ambiguo():
     p = make_parser()
@@ -82,6 +84,7 @@ def test_administrativo_jefe_resuelto():
 
 # --- Parámetros faltantes ---
 
+
 def test_falta_jornada_y_contrato():
     p = make_parser()
     r = p.parse("Necesito un almacenero")
@@ -98,6 +101,7 @@ def test_falta_solo_contrato():
 
 
 # --- Flujo multi-turno ---
+
 
 def test_multiturn_socorrista():
     p = make_parser()
@@ -128,6 +132,7 @@ def test_multiturn_params():
 
 # --- Extractores ---
 
+
 def test_extract_hours_media_jornada():
     p = make_parser()
     r = p.parse("Un limpiador a media jornada indefinido")
@@ -157,6 +162,7 @@ def test_extract_extras_prorated():
 
 
 # --- Caso no encontrado ---
+
 
 def test_not_found():
     p = make_parser()

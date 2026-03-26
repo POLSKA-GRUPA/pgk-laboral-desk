@@ -20,9 +20,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from irpf_estimator import SUPPORTED_REGIONS, IRPFEstimator
 from ss_calculator import SSCalculator
-from irpf_estimator import IRPFEstimator, SUPPORTED_REGIONS
-
 
 FULL_TIME_WEEKLY_HOURS = 40.0
 
@@ -76,31 +75,30 @@ class LaboralEngine:
             if annual is None:  # Grupo 6 Nivel 2 = SMI
                 continue
             # Detectar campo mensual: monthly_14 o monthly_15
-            monthly = (
-                raw.get("monthly_14_payments_eur")
-                or raw.get("monthly_15_payments_eur")
-            )
+            monthly = raw.get("monthly_14_payments_eur") or raw.get("monthly_15_payments_eur")
             if monthly is None and annual:
                 monthly = round(annual / self._convenio_pagas, 2)
-            rows.append(SalaryRow(
-                section=raw.get("section", ""),
-                category=raw["category"],
-                annual_eur=annual,
-                monthly_base_eur=monthly,
-                num_pagas=self._convenio_pagas,
-                grupo_ss=raw.get("grupo_ss", ""),
-                hourly_ordinary_or_flexible_eur=raw.get("hourly_ordinary_or_flexible_eur", 0.0),
-            ))
+            rows.append(
+                SalaryRow(
+                    section=raw.get("section", ""),
+                    category=raw["category"],
+                    annual_eur=annual,
+                    monthly_base_eur=monthly,
+                    num_pagas=self._convenio_pagas,
+                    grupo_ss=raw.get("grupo_ss", ""),
+                    hourly_ordinary_or_flexible_eur=raw.get("hourly_ordinary_or_flexible_eur", 0.0),
+                )
+            )
         return rows
 
     @classmethod
-    def from_json_file(cls, path: str | Path | None = None) -> "LaboralEngine":
+    def from_json_file(cls, path: str | Path | None = None) -> LaboralEngine:
         p = Path(path) if path else DEFAULT_DATA_FILE
         data = json.loads(p.read_text(encoding="utf-8"))
         return cls(data)
 
     @classmethod
-    def from_convenio_id(cls, convenio_id: str) -> "LaboralEngine":
+    def from_convenio_id(cls, convenio_id: str) -> LaboralEngine:
         """Carga un convenio por su ID (nombre del JSON sin extensión)."""
         p = APP_ROOT / "data" / f"{convenio_id}.json"
         if not p.exists():
@@ -115,12 +113,14 @@ class LaboralEngine:
             try:
                 d = json.loads(f.read_text(encoding="utf-8"))
                 c = d.get("convenio", {})
-                convenios.append({
-                    "id": f.stem,
-                    "nombre": c.get("nombre", f.stem),
-                    "ambito": c.get("ambito", "estatal"),
-                    "vigencia": f"{c.get('vigencia_desde_ano', '?')}–{c.get('vigencia_hasta_ano', '?')}",
-                })
+                convenios.append(
+                    {
+                        "id": f.stem,
+                        "nombre": c.get("nombre", f.stem),
+                        "ambito": c.get("ambito", "estatal"),
+                        "vigencia": f"{c.get('vigencia_desde_ano', '?')}–{c.get('vigencia_hasta_ano', '?')}",
+                    }
+                )
             except (json.JSONDecodeError, KeyError):
                 continue
         return convenios
@@ -132,8 +132,7 @@ class LaboralEngine:
     def get_categories(self) -> list[dict[str, str]]:
         """Lista de categorías para el select del formulario."""
         return [
-            {"value": row.category, "label": row.category.rstrip(".")}
-            for row in self.salary_rows
+            {"value": row.category, "label": row.category.rstrip(".")} for row in self.salary_rows
         ]
 
     def get_contract_types(self) -> list[dict[str, str]]:
@@ -184,9 +183,7 @@ class LaboralEngine:
         n_extras = self._convenio_pagas - 12  # 2 o 3 pagas extras
         prorrata_extras = round(base_mensual * n_extras / 12.0, 2) if extras_prorated else 0.0
 
-        bruto_mensual = round(
-            base_mensual + antiguedad + plus_transporte + prorrata_extras, 2
-        )
+        bruto_mensual = round(base_mensual + antiguedad + plus_transporte + prorrata_extras, 2)
 
         # 5. Bruto anual
         num_pagas = 12 if extras_prorated else self._convenio_pagas
@@ -232,26 +229,37 @@ class LaboralEngine:
             coste_empresa_anual = round(coste_empresa_mes * 12, 2)
         else:
             coste_empresa_anual = round(
-                coste_empresa_mes * 12
-                + (paga_extra + ss_result.emp_total) * n_extras,
+                coste_empresa_mes * 12 + (paga_extra + ss_result.emp_total) * n_extras,
                 2,
             )
 
         # 10. Devengos detallados
         devengos = [
-            {"concepto": "Salario base convenio", "eur": base_mensual, "fuente": "Art. 30 y Anexo I"},
+            {
+                "concepto": "Salario base convenio",
+                "eur": base_mensual,
+                "fuente": "Art. 30 y Anexo I",
+            },
         ]
         if antiguedad > 0:
-            devengos.append({
-                "concepto": f"Antigüedad ({trienios} trienios × 3%)",
-                "eur": antiguedad,
-                "fuente": "Art. 32",
-            })
-        devengos.append({"concepto": "Plus transporte", "eur": plus_transporte, "fuente": "Art. 33 y Anexo I"})
+            devengos.append(
+                {
+                    "concepto": f"Antigüedad ({trienios} trienios × 3%)",
+                    "eur": antiguedad,
+                    "fuente": "Art. 32",
+                }
+            )
+        devengos.append(
+            {"concepto": "Plus transporte", "eur": plus_transporte, "fuente": "Art. 33 y Anexo I"}
+        )
         if extras_prorated:
-            devengos.append({"concepto": "Prorrata pagas extra", "eur": prorrata_extras, "fuente": "Art. 31"})
+            devengos.append(
+                {"concepto": "Prorrata pagas extra", "eur": prorrata_extras, "fuente": "Art. 31"}
+            )
 
-        at_ep_used = at_ep_pct if at_ep_pct is not None else self.ss.config["empresa"]["at_ep_default"]
+        at_ep_used = (
+            at_ep_pct if at_ep_pct is not None else self.ss.config["empresa"]["at_ep_default"]
+        )
 
         return {
             # Resumen
@@ -263,7 +271,6 @@ class LaboralEngine:
             "antiguedad_anos": seniority_years,
             "trienios": trienios,
             "pagas": "12 (prorrateadas)" if extras_prorated else str(self._convenio_pagas),
-
             # Cifras clave
             "coste_total_empresa_mes_eur": coste_empresa_mes,
             "coste_total_empresa_anual_eur": coste_empresa_anual,
@@ -276,21 +283,17 @@ class LaboralEngine:
             "neto_mensual_eur": neto_mensual,
             "grupo_cotizacion_ss": ss_result.grupo_cotizacion,
             "region_irpf": irpf_result.region,
-
             # Desglose
             "devengos": devengos,
             "ss_detalle": ss_result.to_dict(),
             "irpf_detalle": irpf_result.to_dict(),
-
             # Convenio
             "convenio": self.data["convenio"],
             "fuentes": self._build_fuentes(),
-
             # Notas
             "notas": self._build_notas(
                 at_ep_used, irpf_result.region, ss_result.grupo_cotizacion, recargo
             ),
-
             # Condiciones relevantes
             "condiciones_convenio": self._select_conditions(contract_type),
         }
@@ -426,13 +429,19 @@ class LaboralEngine:
             preaviso_pendiente_dias = 0
             preaviso_eur = 0.0
 
-        total_finiquito = round(salario_dias_pendientes + pp_pagas + vacaciones_eur + preaviso_eur, 2)
+        total_finiquito = round(
+            salario_dias_pendientes + pp_pagas + vacaciones_eur + preaviso_eur, 2
+        )
         total_eur = round(indemnizacion + total_finiquito, 2)
 
         # Escenarios alternativos (para contexto del director)
         # Topes legales: salario_diario × 30 × N meses
-        esc_objetivo = round(min(salario_diario * 20 * antiguedad_anos, salario_diario * 30 * 12), 2)
-        esc_improcedente = round(min(salario_diario * 33 * antiguedad_anos, salario_diario * 30 * 24), 2)
+        esc_objetivo = round(
+            min(salario_diario * 20 * antiguedad_anos, salario_diario * 30 * 12), 2
+        )
+        esc_improcedente = round(
+            min(salario_diario * 33 * antiguedad_anos, salario_diario * 30 * 24), 2
+        )
         esc_fin_temporal = round(salario_diario * 12 * antiguedad_anos, 2)
 
         return {
@@ -452,7 +461,8 @@ class LaboralEngine:
             "indemnizacion_eur": indemnizacion,
             "indemnizacion_calculo": (
                 f"{dias_por_año} días/año × {round(antiguedad_anos, 2)} años × {round(salario_diario, 2)}€/día"
-                if dias_por_año > 0 else "No corresponde indemnización"
+                if dias_por_año > 0
+                else "No corresponde indemnización"
             ),
             "indemnizacion_raw_eur": round(indemnizacion_raw, 2),
             "tope_maximo_eur": round(tope, 2),
@@ -477,8 +487,13 @@ class LaboralEngine:
                 "fin_temporal_eur": esc_fin_temporal,
             },
             "consejo": self._build_consejo_despido(
-                tipo_despido, antiguedad_anos, indemnizacion,
-                salario_bruto_mensual, salario_diario, esc_improcedente, esc_objetivo,
+                tipo_despido,
+                antiguedad_anos,
+                indemnizacion,
+                salario_bruto_mensual,
+                salario_diario,
+                esc_improcedente,
+                esc_objetivo,
             ),
             "fuentes": [
                 "Arts. 49-56 ET (Estatuto de los Trabajadores)",
@@ -526,7 +541,9 @@ class LaboralEngine:
                 "o ser declarado por el juez si el trabajador impugna."
             )
             if anos < 1:
-                consejos.append("Con menos de 1 año, la indemnización es proporcional a los meses trabajados.")
+                consejos.append(
+                    "Con menos de 1 año, la indemnización es proporcional a los meses trabajados."
+                )
 
         elif tipo == "objetivo":
             consejos.append(
@@ -575,9 +592,7 @@ class LaboralEngine:
             )
 
         elif tipo == "voluntario":
-            consejos.append(
-                f"La baja voluntaria no genera coste de indemnización para la empresa."
-            )
+            consejos.append("La baja voluntaria no genera coste de indemnización para la empresa.")
             consejos.append(
                 f"El trabajador debe respetar el preaviso de {preaviso} días (convenio aplicable). "
                 f"Si no lo hace, puedes descontar esos días de la liquidación: {round(salario_diario * preaviso, 2):,.2f}€."
@@ -607,7 +622,10 @@ class LaboralEngine:
 
     @staticmethod
     def _build_notas(
-        at_ep_pct: float, region: str, grupo: str, recargo: float,
+        at_ep_pct: float,
+        region: str,
+        grupo: str,
+        recargo: float,
     ) -> list[str]:
         notas = []
         if region and region != "generica":

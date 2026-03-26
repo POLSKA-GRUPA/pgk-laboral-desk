@@ -7,8 +7,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from engine import LaboralEngine
-from ss_calculator import SSCalculator
 from irpf_estimator import IRPFEstimator
+from ss_calculator import SSCalculator
 
 
 def test_ss_calculator_indefinido():
@@ -137,6 +137,7 @@ def test_engine_result_structure():
 # Tests 2026: IRPF regional, recargo contratos cortos, grupo SS
 # ======================================================================
 
+
 def test_irpf_regional_madrid_lower_than_cataluna():
     """Madrid tiene tipos más bajos que Cataluña."""
     irpf = IRPFEstimator()
@@ -215,6 +216,7 @@ def test_engine_regions_list():
 # Tests multi-convenio: oficinas y despachos Alicante
 # ======================================================================
 
+
 def test_engine_oficinas_loads():
     engine = LaboralEngine.from_convenio_id("convenio_oficinas_despachos_alicante_2024_2026")
     cats = engine.get_categories()
@@ -268,5 +270,6 @@ def test_engine_list_available_convenios():
 
 def test_engine_from_convenio_id_not_found():
     import pytest
+
     with pytest.raises(FileNotFoundError):
         LaboralEngine.from_convenio_id("convenio_inexistente")

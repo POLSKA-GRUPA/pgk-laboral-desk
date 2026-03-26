@@ -16,7 +16,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
 _DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent / "data" / "ss_config.json"
 
 # Topes de cotización 2026 (Régimen General) — Orden ISM/31/2026 (BOE-A-2026-1921)
@@ -31,6 +30,7 @@ _SHORT_CONTRACT_SURCHARGE = 29.74
 @dataclass(frozen=True)
 class SSResult:
     """Resultado desglosado de cotización SS."""
+
     # Empresa
     emp_contingencias_comunes: float
     emp_desempleo: float
@@ -122,10 +122,16 @@ class SSCalculator:
         # Fijo-discontinuo es legalmente indefinido (Art. 16 ET) → desempleo indefinido
         # "tiempo-parcial" es jornada, no tipo contrato → no afecta al desempleo
         is_temporal = contract_type in (
-            "temporal", "temporal-produccion", "sustitucion",
+            "temporal",
+            "temporal-produccion",
+            "sustitucion",
         )
-        emp_desempleo_pct = cfg_emp["desempleo_temporal"] if is_temporal else cfg_emp["desempleo_indefinido"]
-        trab_desempleo_pct = cfg_trab["desempleo_temporal"] if is_temporal else cfg_trab["desempleo_indefinido"]
+        emp_desempleo_pct = (
+            cfg_emp["desempleo_temporal"] if is_temporal else cfg_emp["desempleo_indefinido"]
+        )
+        trab_desempleo_pct = (
+            cfg_trab["desempleo_temporal"] if is_temporal else cfg_trab["desempleo_indefinido"]
+        )
 
         # AT/EP
         at_ep = at_ep_pct if at_ep_pct is not None else cfg_emp["at_ep_default"]

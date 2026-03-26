@@ -19,12 +19,11 @@ Fuente: https://boe.es/diario_boe/xml.php?id=<ID>
 from __future__ import annotations
 
 import re
-import urllib.request
 import urllib.error
+import urllib.request
 from dataclasses import dataclass, field
 from typing import Any
 from xml.etree import ElementTree as ET
-
 
 _BOE_XML_URL = "https://boe.es/diario_boe/xml.php?id={boe_id}"
 _BOE_PDF_BASE = "https://www.boe.es"
@@ -114,13 +113,9 @@ class BOEImporter:
             with urllib.request.urlopen(req, timeout=self.timeout) as resp:
                 return resp.read().decode("utf-8")
         except urllib.error.HTTPError as exc:
-            raise ConnectionError(
-                f"Error HTTP {exc.code} al descargar {url}"
-            ) from exc
+            raise ConnectionError(f"Error HTTP {exc.code} al descargar {url}") from exc
         except urllib.error.URLError as exc:
-            raise ConnectionError(
-                f"No se pudo conectar al BOE: {exc.reason}"
-            ) from exc
+            raise ConnectionError(f"No se pudo conectar al BOE: {exc.reason}") from exc
 
     # ------------------------------------------------------------------
     # Parsing de metadatos
@@ -166,18 +161,12 @@ class BOEImporter:
             materias_el = analisis.find("materias")
             if materias_el is not None:
                 metadata["materias"] = [
-                    m.text.strip()
-                    for m in materias_el.findall("materia")
-                    if m.text
+                    m.text.strip() for m in materias_el.findall("materia") if m.text
                 ]
             # Notas (vigencia, etc.)
             notas_el = analisis.find("notas")
             if notas_el is not None:
-                metadata["notas"] = [
-                    n.text.strip()
-                    for n in notas_el.findall("nota")
-                    if n.text
-                ]
+                metadata["notas"] = [n.text.strip() for n in notas_el.findall("nota") if n.text]
 
         return metadata
 

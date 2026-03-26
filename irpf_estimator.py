@@ -12,7 +12,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-
 # ======================================================================
 # Escalas IRPF 2026
 # ======================================================================
@@ -90,6 +89,7 @@ _MIN_RETENTION_GENERAL = 0.0
 # Resultado
 # ======================================================================
 
+
 @dataclass(frozen=True)
 class IRPFResult:
     annual_gross: float
@@ -126,8 +126,8 @@ class IRPFResult:
 # Estimador
 # ======================================================================
 
-class IRPFEstimator:
 
+class IRPFEstimator:
     def estimate(
         self,
         annual_gross: float,
