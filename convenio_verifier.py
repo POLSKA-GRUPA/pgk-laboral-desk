@@ -17,11 +17,10 @@ from __future__ import annotations
 
 import json
 import os
-import urllib.request
 import urllib.error
+import urllib.request
 from dataclasses import dataclass, field
 from typing import Any
-
 
 _PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions"
 _TIMEOUT = 30
@@ -30,6 +29,7 @@ _TIMEOUT = 30
 @dataclass
 class VerificationResult:
     """Resultado de la verificación de un convenio."""
+
     status: str  # "verified" | "outdated" | "uncertain" | "unavailable"
     message: str
     sources: list[str] = field(default_factory=list)
@@ -102,7 +102,11 @@ class ConvenioVerifier:
         codigo_convenio: str,
         vigencia_hasta: int | None,
     ) -> str:
-        ambito = f"de la provincia de {provincia}" if provincia.lower() != "estatal" else "de ámbito estatal"
+        ambito = (
+            f"de la provincia de {provincia}"
+            if provincia.lower() != "estatal"
+            else "de ámbito estatal"
+        )
         parts = [
             f"¿Cuál es el último convenio colectivo vigente de {sector} {ambito} en España?",
             "Responde SOLO con estos datos en formato JSON:",
@@ -113,7 +117,9 @@ class ConvenioVerifier:
             parts.append(f"El código de convenio que tenemos registrado es: {codigo_convenio}.")
         if vigencia_hasta:
             parts.append(f"Nuestra vigencia registrada finaliza en {vigencia_hasta}.")
-        parts.append("Si no encuentras datos fiables, responde con un JSON con 'status': 'uncertain'.")
+        parts.append(
+            "Si no encuentras datos fiables, responde con un JSON con 'status': 'uncertain'."
+        )
         return "\n".join(parts)
 
     # ------------------------------------------------------------------
@@ -121,21 +127,23 @@ class ConvenioVerifier:
     # ------------------------------------------------------------------
 
     def _call_perplexity(self, prompt: str) -> str:
-        payload = json.dumps({
-            "model": "sonar",
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "Eres un experto en derecho laboral español. "
-                        "Responde SOLO con JSON válido, sin texto adicional."
-                    ),
-                },
-                {"role": "user", "content": prompt},
-            ],
-            "temperature": 0.1,
-            "max_tokens": 500,
-        }).encode("utf-8")
+        payload = json.dumps(
+            {
+                "model": "sonar",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": (
+                            "Eres un experto en derecho laboral español. "
+                            "Responde SOLO con JSON válido, sin texto adicional."
+                        ),
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": 0.1,
+                "max_tokens": 500,
+            }
+        ).encode("utf-8")
 
         req = urllib.request.Request(
             _PERPLEXITY_URL,

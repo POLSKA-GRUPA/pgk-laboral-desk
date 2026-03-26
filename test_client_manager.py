@@ -1,21 +1,19 @@
 """Tests para client_manager y convenio_verifier."""
 
 import sys
-import tempfile
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from client_manager import ClientManager
-from convenio_verifier import ConvenioVerifier, VerificationResult
-
+from convenio_verifier import ConvenioVerifier
 
 # ======================================================================
 # ClientManager
 # ======================================================================
+
 
 @pytest.fixture
 def cm(tmp_path):
@@ -71,7 +69,9 @@ def test_list_clients(cm):
 def test_duplicate_cif_raises(cm):
     cm.register_client(empresa="First", cif="B33333333", convenio_id="convenio_acuaticas_2025_2027")
     with pytest.raises(Exception):  # sqlite3.IntegrityError
-        cm.register_client(empresa="Second", cif="B33333333", convenio_id="convenio_acuaticas_2025_2027")
+        cm.register_client(
+            empresa="Second", cif="B33333333", convenio_id="convenio_acuaticas_2025_2027"
+        )
 
 
 def test_invalid_cif_raises(cm):
@@ -99,25 +99,27 @@ def test_update_convenio(cm):
 # CIF validation
 # ======================================================================
 
+
 def test_valid_cif_formats():
     v = ClientManager.validate_cif
-    assert v("B12345678")   # CIF empresa
-    assert v("A00000000")   # CIF asociación
-    assert v("12345678Z")   # NIF persona
-    assert v("X1234567L")   # NIE
+    assert v("B12345678")  # CIF empresa
+    assert v("A00000000")  # CIF asociación
+    assert v("12345678Z")  # NIF persona
+    assert v("X1234567L")  # NIE
 
 
 def test_invalid_cif_formats():
     v = ClientManager.validate_cif
     assert not v("INVALID")
     assert not v("123")
-    assert not v("B1234")       # too short
+    assert not v("B1234")  # too short
     assert not v("B123456789")  # too long
 
 
 # ======================================================================
 # ConvenioVerifier — offline
 # ======================================================================
+
 
 def test_verifier_unavailable_without_key():
     v = ConvenioVerifier(api_key="")
@@ -160,6 +162,7 @@ def test_verifier_parse_markdown_wrapped():
 # ======================================================================
 # ConvenioVerifier — integración real (requiere API key)
 # ======================================================================
+
 
 @pytest.mark.integration
 def test_verifier_real_oficinas():

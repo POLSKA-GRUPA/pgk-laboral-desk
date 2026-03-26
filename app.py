@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import secrets
+import time
 from functools import wraps
 from pathlib import Path
 
@@ -16,29 +17,50 @@ from flask import (
     session,
 )
 
-from database import (
-    authenticate, dismiss_alert, get_alerts, get_consultations,
-    init_db, save_alert, save_consultation,
-    add_employee, get_employees, get_employee, update_employee,
-)
-from engine import LaboralEngine
 from chat_parser import ChatParser
 from client_manager import ClientManager
 from convenio_verifier import ConvenioVerifier
-from rates_verifier import RatesVerifier
+from database import (
+    add_employee,
+    authenticate,
+    dismiss_alert,
+    get_alerts,
+    get_consultations,
+    get_employee,
+    get_employees,
+    init_db,
+    save_alert,
+    save_consultation,
+    update_employee,
+)
+from engine import LaboralEngine
+from exceptions import AuthenticationError, LaboralBaseError, ValidationError
+from logging_config import get_logger, setup_logging
 from nomina_pdf import (
-    DatosEmpresa, build_nomina_from_simulation,
-    generate_nomina_pdf, generate_nomina_html_string,
+    DatosEmpresa,
+    build_nomina_from_simulation,
+    generate_nomina_html_string,
+    generate_nomina_pdf,
+)
+from rates_verifier import RatesVerifier
+from validation import (
+    validate_despido_params,
+    validate_employee_data,
+    validate_simulation_params,
 )
 
 APP_ROOT = Path(__file__).resolve().parent
 STATIC_DIR = APP_ROOT / "static"
+
+log = setup_logging()
+logger = get_logger("app")
 
 app = Flask(__name__, static_folder=str(STATIC_DIR), static_url_path="/static")
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(32))
 
 # Inicializar DB y motor
 init_db()
+logger.info("Database initialized")
 chat_parser = ChatParser()
 client_mgr = ClientManager()
 client_mgr.init_tables()
@@ -66,6 +88,7 @@ def _get_engine(convenio_id: str | None = None) -> LaboralEngine:
 # Auth helpers
 # ------------------------------------------------------------------
 
+
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -74,12 +97,14 @@ def login_required(f):
                 return jsonify({"error": "No autenticado"}), 401
             return redirect("/")
         return f(*args, **kwargs)
+
     return decorated
 
 
 # ------------------------------------------------------------------
 # Páginas
 # ------------------------------------------------------------------
+
 
 @app.route("/")
 def index():
@@ -98,6 +123,7 @@ def panel():
 # Auth API
 # ------------------------------------------------------------------
 
+
 @app.route("/api/auth/login", methods=["POST"])
 def api_login():
     data = request.get_json(silent=True) or {}
@@ -113,17 +139,22 @@ def api_login():
     session["user_id"] = user["id"]
     session["username"] = user["username"]
     session["empresa_nombre"] = user["empresa_nombre"]
+    session["empresa_cif"] = user.get("empresa_cif", "")
+    session["empresa_domicilio"] = user.get("empresa_domicilio", "")
+    session["empresa_ccc"] = user.get("empresa_ccc", "")
     session["convenio_id"] = user["convenio_id"]
     session["role"] = user["role"]
 
-    return jsonify({
-        "ok": True,
-        "user": {
-            "username": user["username"],
-            "empresa_nombre": user["empresa_nombre"],
-            "role": user["role"],
-        },
-    })
+    return jsonify(
+        {
+            "ok": True,
+            "user": {
+                "username": user["username"],
+                "empresa_nombre": user["empresa_nombre"],
+                "role": user["role"],
+            },
+        }
+    )
 
 
 @app.route("/api/auth/logout", methods=["POST"])
@@ -135,17 +166,20 @@ def api_logout():
 @app.route("/api/auth/me")
 @login_required
 def api_me():
-    return jsonify({
-        "username": session["username"],
-        "empresa_nombre": session["empresa_nombre"],
-        "convenio_id": session["convenio_id"],
-        "role": session["role"],
-    })
+    return jsonify(
+        {
+            "username": session["username"],
+            "empresa_nombre": session["empresa_nombre"],
+            "convenio_id": session["convenio_id"],
+            "role": session["role"],
+        }
+    )
 
 
 # ------------------------------------------------------------------
 # Datos para el formulario
 # ------------------------------------------------------------------
+
 
 @app.route("/api/categories")
 @login_required
@@ -169,26 +203,47 @@ def api_regions():
 # Simulación
 # ------------------------------------------------------------------
 
+
 @app.route("/api/simulate", methods=["POST"])
 @login_required
 def api_simulate():
     data = request.get_json(silent=True) or {}
     category = str(data.get("category", "")).strip()
-    if not category:
-        return jsonify({"error": "Selecciona una categoría profesional"}), 400
+    contract_type = str(data.get("contract_type", "indefinido"))
+    try:
+        weekly_hours = float(data.get("weekly_hours", 40))
+        seniority_years = int(data.get("seniority_years", 0))
+        num_children = int(data.get("num_children", 0))
+        children_under_3 = int(data.get("children_under_3", 0))
+        contract_days = data.get("contract_days")
+        if contract_days is not None:
+            contract_days = int(contract_days)
+    except (ValueError, TypeError) as exc:
+        return jsonify({"error": f"Parámetro numérico inválido: {exc}"}), 400
+
+    # Validation layer
+    validate_simulation_params(
+        category=category,
+        contract_type=contract_type,
+        weekly_hours=weekly_hours,
+        seniority_years=seniority_years,
+        num_children=num_children,
+        children_under_3=children_under_3,
+        contract_days=contract_days,
+    )
 
     eng = _get_engine()
     try:
         result = eng.simulate(
             category=category,
-            contract_type=str(data.get("contract_type", "indefinido")),
-            weekly_hours=float(data.get("weekly_hours", 40)),
-            seniority_years=int(data.get("seniority_years", 0)),
+            contract_type=contract_type,
+            weekly_hours=weekly_hours,
+            seniority_years=seniority_years,
             extras_prorated=bool(data.get("extras_prorated", False)),
-            num_children=int(data.get("num_children", 0)),
-            children_under_3=int(data.get("children_under_3", 0)),
+            num_children=num_children,
+            children_under_3=children_under_3,
             region=str(data.get("region", "generica")),
-            contract_days=data.get("contract_days"),
+            contract_days=contract_days,
         )
     except (ValueError, TypeError) as exc:
         return jsonify({"error": f"Datos inválidos: {exc}"}), 400
@@ -212,6 +267,7 @@ def api_simulate():
 # Historial
 # ------------------------------------------------------------------
 
+
 @app.route("/api/history")
 @login_required
 def api_history():
@@ -223,19 +279,23 @@ def api_history():
 # Convenio
 # ------------------------------------------------------------------
 
+
 @app.route("/api/convenio")
 @login_required
 def api_convenio():
     eng = _get_engine()
-    return jsonify({
-        "convenio": eng.data["convenio"],
-        "sections": eng.data["sections"],
-    })
+    return jsonify(
+        {
+            "convenio": eng.data["convenio"],
+            "sections": eng.data["sections"],
+        }
+    )
 
 
 # ------------------------------------------------------------------
 # Alertas / Caducidad
 # ------------------------------------------------------------------
+
 
 @app.route("/api/alerts")
 @login_required
@@ -277,6 +337,7 @@ def api_dismiss_alert(alert_id: int):
 # Chat conversacional
 # ------------------------------------------------------------------
 
+
 @app.route("/api/chat", methods=["POST"])
 @login_required
 def api_chat():
@@ -304,7 +365,9 @@ def api_chat():
         sim_result["contract_extras"] = result.get("contract_extras", {})
         sim_result["contract_warnings"] = result.get("contract_warnings", [])
 
-        summary = f"{sim_result['categoria']} · {sim_result['contrato']} · {sim_result['jornada_pct']}%"
+        summary = (
+            f"{sim_result['categoria']} · {sim_result['contrato']} · {sim_result['jornada_pct']}%"
+        )
         save_consultation(
             user_id=session["user_id"],
             query_summary=summary,
@@ -316,11 +379,13 @@ def api_chat():
         return jsonify({"type": "result", "data": sim_result})
 
     if action in ("clarify_category", "need_params"):
-        return jsonify({
-            "type": "question",
-            "message": result["message"],
-            "options": result.get("options", []),
-        })
+        return jsonify(
+            {
+                "type": "question",
+                "message": result["message"],
+                "options": result.get("options", []),
+            }
+        )
 
     if action == "not_found":
         session.pop("chat_context", None)
@@ -340,6 +405,7 @@ def api_chat_reset():
 # Tipos de despido
 # ------------------------------------------------------------------
 
+
 @app.route("/api/tipos-despido")
 @login_required
 def api_tipos_despido():
@@ -350,21 +416,31 @@ def api_tipos_despido():
 # Despido / extinción laboral
 # ------------------------------------------------------------------
 
+
 @app.route("/api/despido", methods=["POST"])
 @login_required
 def api_despido():
     data = request.get_json(silent=True) or {}
-    required = ["tipo_despido", "fecha_inicio", "salario_bruto_mensual"]
-    for field in required:
-        if not data.get(field):
-            return jsonify({"error": f"Campo requerido: {field}"}), 400
+    tipo_despido = str(data.get("tipo_despido", "")).strip()
+    fecha_inicio = str(data.get("fecha_inicio", "")).strip()
+    try:
+        salario_bruto_mensual = float(data.get("salario_bruto_mensual", 0))
+    except (ValueError, TypeError):
+        return jsonify({"error": "salario_bruto_mensual debe ser un número"}), 400
+
+    # Validation layer
+    validate_despido_params(
+        tipo_despido=tipo_despido,
+        fecha_inicio=fecha_inicio,
+        salario_bruto_mensual=salario_bruto_mensual,
+    )
 
     eng = _get_engine()
     try:
         result = eng.calcular_despido(
-            tipo_despido=str(data["tipo_despido"]),
-            fecha_inicio=str(data["fecha_inicio"]),
-            salario_bruto_mensual=float(data["salario_bruto_mensual"]),
+            tipo_despido=tipo_despido,
+            fecha_inicio=fecha_inicio,
+            salario_bruto_mensual=salario_bruto_mensual,
             fecha_despido=data.get("fecha_despido") or None,
             dias_vacaciones_pendientes=int(data.get("dias_vacaciones_pendientes", 0)),
             dias_preaviso_empresa=int(data.get("dias_preaviso_empresa", 0)),
@@ -384,6 +460,7 @@ def api_despido():
 # Plantilla de trabajadores
 # ------------------------------------------------------------------
 
+
 @app.route("/api/employees")
 @login_required
 def api_employees_list():
@@ -396,17 +473,23 @@ def api_employees_list():
 @login_required
 def api_employees_create():
     data = request.get_json(silent=True) or {}
-    required = ["nombre", "categoria", "fecha_inicio"]
-    for field in required:
-        if not data.get(field):
-            return jsonify({"error": f"Campo requerido: {field}"}), 400
+    nombre = str(data.get("nombre", "")).strip()
+    categoria = str(data.get("categoria", "")).strip()
+    fecha_inicio = str(data.get("fecha_inicio", "")).strip()
+
+    # Validation layer
+    validate_employee_data(
+        nombre=nombre,
+        categoria=categoria,
+        fecha_inicio=fecha_inicio,
+    )
 
     # Calcular salario desde el motor si no se especifica
     salario = data.get("salario_bruto_mensual")
     if not salario:
         eng = _get_engine()
         sim = eng.simulate(
-            category=str(data["categoria"]),
+            category=categoria,
             contract_type=str(data.get("contrato_tipo", "indefinido")),
             weekly_hours=float(data.get("jornada_horas", 40)),
             seniority_years=0,
@@ -417,15 +500,21 @@ def api_employees_create():
     try:
         emp_id = add_employee(
             user_id=session["user_id"],
-            nombre=str(data["nombre"]),
-            categoria=str(data["categoria"]),
+            nombre=nombre,
+            categoria=categoria,
             contrato_tipo=str(data.get("contrato_tipo", "indefinido")),
             jornada_horas=float(data.get("jornada_horas", 40)),
-            fecha_inicio=str(data["fecha_inicio"]),
+            fecha_inicio=fecha_inicio,
             fecha_fin=data.get("fecha_fin") or None,
             salario_bruto_mensual=float(salario) if salario else None,
             num_hijos=int(data.get("num_hijos", 0)),
             notas=str(data.get("notas", "")),
+            nif=str(data.get("nif", "")),
+            naf=str(data.get("naf", "")),
+            domicilio=str(data.get("domicilio", "")),
+            email=str(data.get("email", "")),
+            telefono=str(data.get("telefono", "")),
+            region=str(data.get("region", "generica")),
         )
     except (ValueError, TypeError) as exc:
         return jsonify({"error": f"Datos inválidos: {exc}"}), 400
@@ -446,8 +535,22 @@ def api_employees_update(emp_id: int):
         return jsonify({"error": "No encontrado"}), 404
     data = request.get_json(silent=True) or {}
     allowed = {
-        "nombre", "categoria", "contrato_tipo", "jornada_horas",
-        "fecha_inicio", "fecha_fin", "salario_bruto_mensual", "num_hijos", "notas", "status",
+        "nombre",
+        "categoria",
+        "contrato_tipo",
+        "jornada_horas",
+        "fecha_inicio",
+        "fecha_fin",
+        "salario_bruto_mensual",
+        "num_hijos",
+        "notas",
+        "status",
+        "nif",
+        "naf",
+        "domicilio",
+        "email",
+        "telefono",
+        "region",
     }
     fields = {k: v for k, v in data.items() if k in allowed}
     update_employee(emp_id, fields)
@@ -496,13 +599,16 @@ def api_employees_despido(emp_id: int):
 def _auto_alerts_for_employee(emp: dict) -> None:
     """Crea alertas automáticas para un nuevo empleado."""
     from datetime import date, timedelta
+
     try:
         inicio = date.fromisoformat(emp["fecha_inicio"])
         contrato = emp.get("contrato_tipo", "indefinido")
 
         # Fin de período de prueba
         prueba_dias = {
-            "indefinido": 90, "temporal": 30, "fijo-discontinuo": 90,
+            "indefinido": 90,
+            "temporal": 30,
+            "fijo-discontinuo": 90,
         }.get(contrato, 30)
         fin_prueba = inicio + timedelta(days=prueba_dias)
         if fin_prueba >= date.today():
@@ -538,11 +644,26 @@ def _auto_alerts_for_employee(emp: dict) -> None:
 # Pre-nómina PDF
 # ------------------------------------------------------------------
 
+
 def _empresa_from_session() -> DatosEmpresa:
     return DatosEmpresa(
         nombre=session.get("empresa_nombre", ""),
-        cif="",
+        cif=session.get("empresa_cif", ""),
+        domicilio=session.get("empresa_domicilio", ""),
+        ccc=session.get("empresa_ccc", ""),
     )
+
+
+def _calc_seniority_years(fecha_inicio: str) -> int:
+    """Calcula años de antigüedad desde fecha_inicio hasta hoy."""
+    from datetime import date
+
+    try:
+        inicio = date.fromisoformat(fecha_inicio)
+        hoy = date.today()
+        return max(0, (hoy - inicio).days // 365)
+    except (ValueError, TypeError):
+        return 0
 
 
 @app.route("/api/employees/<int:emp_id>/nomina")
@@ -555,13 +676,17 @@ def api_employee_nomina(emp_id: int):
     if not emp or emp["user_id"] != session["user_id"]:
         return jsonify({"error": "Trabajador no encontrado"}), 404
 
+    seniority = _calc_seniority_years(emp.get("fecha_inicio", ""))
+    region = emp.get("region", "generica") or "generica"
+
     eng = _get_engine()
     sim = eng.simulate(
         category=str(emp["categoria"]),
         contract_type=str(emp["contrato_tipo"]),
         weekly_hours=float(emp["jornada_horas"]),
-        seniority_years=0,
+        seniority_years=seniority,
         num_children=int(emp.get("num_hijos", 0)),
+        region=region,
     )
     if "error" in sim:
         return jsonify({"error": sim["error"]}), 400
@@ -575,10 +700,11 @@ def api_employee_nomina(emp_id: int):
             empresa=_empresa_from_session(),
             trabajador_extra={
                 "nombre": emp["nombre"],
-                "nif": "",
-                "naf": "",
+                "nif": emp.get("nif", ""),
+                "naf": emp.get("naf", ""),
                 "puesto": emp["categoria"],
-                "antiguedad": f"{emp.get('fecha_inicio', '')}",
+                "antiguedad": emp.get("fecha_inicio", ""),
+                "domicilio": emp.get("domicilio", ""),
             },
             periodo_str=periodo,
         )
@@ -591,7 +717,7 @@ def api_employee_nomina(emp_id: int):
 
     try:
         pdf_bytes = generate_nomina_pdf(nomina)
-    except RuntimeError as exc:
+    except RuntimeError:
         # WeasyPrint not installed — fall back to HTML
         html = generate_nomina_html_string(nomina)
         return Response(html, mimetype="text/html")
@@ -674,8 +800,89 @@ def api_nomina_from_simulation():
 
 
 # ------------------------------------------------------------------
+# Bulk nómina (all active employees)
+# ------------------------------------------------------------------
+
+
+@app.route("/api/employees/nominas-bulk")
+@login_required
+def api_bulk_nominas():
+    """Genera pre-nóminas para todos los empleados activos del usuario."""
+    employees = get_employees(user_id=session["user_id"], status="activo")
+    if not employees:
+        return jsonify({"error": "No hay empleados activos"}), 404
+
+    periodo = request.args.get("periodo")  # YYYY-MM
+    fmt_type = request.args.get("format", "json")  # json | html
+    eng = _get_engine()
+    empresa = _empresa_from_session()
+    results = []
+
+    for emp in employees:
+        seniority = _calc_seniority_years(emp.get("fecha_inicio", ""))
+        region = emp.get("region", "generica") or "generica"
+        sim = eng.simulate(
+            category=str(emp["categoria"]),
+            contract_type=str(emp["contrato_tipo"]),
+            weekly_hours=float(emp["jornada_horas"]),
+            seniority_years=seniority,
+            num_children=int(emp.get("num_hijos", 0)),
+            region=region,
+        )
+        if "error" in sim:
+            results.append(
+                {"employee_id": emp["id"], "nombre": emp["nombre"], "error": sim["error"]}
+            )
+            continue
+
+        try:
+            nomina = build_nomina_from_simulation(
+                sim,
+                empresa=empresa,
+                trabajador_extra={
+                    "nombre": emp["nombre"],
+                    "nif": emp.get("nif", ""),
+                    "naf": emp.get("naf", ""),
+                    "puesto": emp["categoria"],
+                    "antiguedad": emp.get("fecha_inicio", ""),
+                },
+                periodo_str=periodo,
+            )
+            results.append(
+                {
+                    "employee_id": emp["id"],
+                    "nombre": emp["nombre"],
+                    "bruto_mensual": sim.get("bruto_mensual_eur", 0),
+                    "neto_mensual": sim.get("neto_mensual_eur", 0),
+                    "ss_trabajador": sim.get("ss_trabajador_mes_eur", 0),
+                    "irpf": sim.get("irpf_mensual_eur", 0),
+                    "coste_empresa": sim.get("coste_total_empresa_mes_eur", 0),
+                    "ok": True,
+                }
+            )
+        except (ValueError, KeyError) as exc:
+            results.append({"employee_id": emp["id"], "nombre": emp["nombre"], "error": str(exc)})
+
+    # Summary totals
+    ok_results = [r for r in results if r.get("ok")]
+    summary = {
+        "total_employees": len(employees),
+        "generated": len(ok_results),
+        "errors": len(results) - len(ok_results),
+        "total_bruto": round(sum(r.get("bruto_mensual", 0) for r in ok_results), 2),
+        "total_neto": round(sum(r.get("neto_mensual", 0) for r in ok_results), 2),
+        "total_ss_trabajador": round(sum(r.get("ss_trabajador", 0) for r in ok_results), 2),
+        "total_irpf": round(sum(r.get("irpf", 0) for r in ok_results), 2),
+        "total_coste_empresa": round(sum(r.get("coste_empresa", 0) for r in ok_results), 2),
+    }
+
+    return jsonify({"summary": summary, "nominas": results})
+
+
+# ------------------------------------------------------------------
 # Clientes (multi-convenio)
 # ------------------------------------------------------------------
+
 
 @app.route("/api/convenios")
 @login_required
@@ -787,10 +994,76 @@ def api_verify_convenio():
 # Health
 # ------------------------------------------------------------------
 
+
 @app.route("/api/health")
 def api_health():
-    convenios = LaboralEngine.list_available_convenios()
-    return jsonify({"ok": True, "convenios_disponibles": len(convenios)})
+    """Health check with dependency status."""
+    checks: dict[str, object] = {}
+
+    # Check convenios
+    try:
+        convenios = LaboralEngine.list_available_convenios()
+        checks["convenios"] = {"ok": True, "count": len(convenios)}
+    except Exception as exc:
+        checks["convenios"] = {"ok": False, "error": str(exc)}
+
+    # Check database
+    try:
+        from database import _get_db
+
+        conn = _get_db()
+        try:
+            conn.execute("SELECT 1")
+        finally:
+            conn.close()
+        checks["database"] = {"ok": True}
+    except Exception as exc:
+        checks["database"] = {"ok": False, "error": str(exc)}
+
+    all_ok = all(isinstance(v, dict) and v.get("ok", False) for v in checks.values())
+    return jsonify({"ok": all_ok, "checks": checks, "version": "0.2.0"}), 200 if all_ok else 503
+
+
+# ------------------------------------------------------------------
+# Error handlers
+# ------------------------------------------------------------------
+
+
+@app.errorhandler(ValidationError)
+def handle_validation_error(exc: ValidationError):
+    logger.warning("Validation error: %s (field=%s)", exc, exc.field)
+    return jsonify({"error": str(exc), "code": exc.code, "field": exc.field}), 400
+
+
+@app.errorhandler(AuthenticationError)
+def handle_auth_error(exc: AuthenticationError):
+    return jsonify({"error": str(exc), "code": exc.code}), 401
+
+
+@app.errorhandler(LaboralBaseError)
+def handle_laboral_error(exc: LaboralBaseError):
+    logger.error("Laboral error: %s [%s]", exc, exc.code)
+    return jsonify({"error": str(exc), "code": exc.code}), 500
+
+
+@app.before_request
+def log_request_start():
+    request._start_time = time.monotonic()  # type: ignore[attr-defined]
+
+
+@app.after_request
+def log_request_end(response):
+    start = getattr(request, "_start_time", None)
+    duration = round((time.monotonic() - start) * 1000, 1) if start else 0
+    if request.path != "/api/health":
+        logger.info(
+            "%s %s %s %.1fms",
+            request.method,
+            request.path,
+            response.status_code,
+            duration,
+        )
+    return response
 
 
 # ------------------------------------------------------------------
@@ -806,5 +1079,5 @@ if __name__ == "__main__":
     parser.add_argument("--debug", action="store_true")
     args = parser.parse_args()
 
-    print(f"PGK Laboral Desk → http://{args.host}:{args.port}")
+    logger.info("PGK Laboral Desk starting on http://%s:%s", args.host, args.port)
     app.run(host=args.host, port=args.port, debug=args.debug)

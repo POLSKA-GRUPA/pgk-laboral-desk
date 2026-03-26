@@ -12,7 +12,6 @@ de nóminas oficial (Sage, A3, NominaPlus, etc.).
 
 from __future__ import annotations
 
-import io
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Any
@@ -20,6 +19,7 @@ from typing import Any
 # WeasyPrint para PDF; fallback a HTML si no está instalado
 try:
     from weasyprint import HTML as WeasyprintHTML
+
     _HAS_WEASYPRINT = True
 except ImportError:
     _HAS_WEASYPRINT = False
@@ -55,6 +55,7 @@ class PeriodoLiquidacion:
 @dataclass
 class ConceptoNomina:
     """Un concepto (devengo o deducción) de la nómina."""
+
     concepto: str
     importe: float
     porcentaje: float | None = None  # solo para deducciones
@@ -67,6 +68,7 @@ class ConceptoNomina:
 @dataclass
 class ResultadoNomina:
     """Datos completos para generar la pre-nómina PDF."""
+
     empresa: DatosEmpresa
     trabajador: DatosTrabajador
     periodo: PeriodoLiquidacion
@@ -121,6 +123,7 @@ def build_nomina_from_simulation(
         year, month = today.year, today.month
 
     import calendar
+
     _, last_day = calendar.monthrange(year, month)
     periodo = PeriodoLiquidacion(
         desde=f"01/{month:02d}/{year}",
@@ -147,12 +150,14 @@ def build_nomina_from_simulation(
         importe = d.get("eur", 0.0)
         # Plus transporte es percepción no salarial (exento parcial SS)
         es_salarial = "transporte" not in concepto.lower()
-        devengos.append(ConceptoNomina(
-            concepto=concepto,
-            importe=importe,
-            es_devengo=True,
-            es_salarial=es_salarial,
-        ))
+        devengos.append(
+            ConceptoNomina(
+                concepto=concepto,
+                importe=importe,
+                es_devengo=True,
+                es_salarial=es_salarial,
+            )
+        )
 
     total_devengado = sim.get("bruto_mensual_eur", 0.0)
 
@@ -176,19 +181,27 @@ def build_nomina_from_simulation(
         if importe > 0:
             if pct is None and base_cot > 0:
                 pct = round(importe / base_cot * 100, 2)
-            deducciones.append(ConceptoNomina(
-                concepto=label, importe=importe, porcentaje=pct,
-                es_devengo=False,
-            ))
+            deducciones.append(
+                ConceptoNomina(
+                    concepto=label,
+                    importe=importe,
+                    porcentaje=pct,
+                    es_devengo=False,
+                )
+            )
 
     # IRPF
     irpf_pct = sim.get("irpf_retencion_pct", 0)
     irpf_eur = sim.get("irpf_mensual_eur", 0)
     if irpf_eur > 0:
-        deducciones.append(ConceptoNomina(
-            concepto="I.R.P.F.", importe=irpf_eur, porcentaje=irpf_pct,
-            es_devengo=False,
-        ))
+        deducciones.append(
+            ConceptoNomina(
+                concepto="I.R.P.F.",
+                importe=irpf_eur,
+                porcentaje=irpf_pct,
+                es_devengo=False,
+            )
+        )
 
     total_deducciones = round(sum(d.importe for d in deducciones), 2)
     liquido = round(total_devengado - total_deducciones, 2)
@@ -208,10 +221,14 @@ def build_nomina_from_simulation(
         if importe > 0:
             if pct is None and base_cot > 0:
                 pct = round(importe / base_cot * 100, 2)
-            aportacion.append(ConceptoNomina(
-                concepto=label, importe=importe, porcentaje=pct,
-                es_devengo=False,
-            ))
+            aportacion.append(
+                ConceptoNomina(
+                    concepto=label,
+                    importe=importe,
+                    porcentaje=pct,
+                    es_devengo=False,
+                )
+            )
 
     total_emp = round(sum(a.importe for a in aportacion), 2)
     coste_total = round(total_devengado + total_emp, 2)
@@ -464,19 +481,19 @@ def render_nomina_html(r: ResultadoNomina) -> str:
 <div class="id-grid">
   <div class="id-box">
     <h3>Empresa</h3>
-    <div class="id-row"><span class="id-label">Nombre:</span><span class="id-value">{r.empresa.nombre or '—'}</span></div>
-    <div class="id-row"><span class="id-label">CIF:</span><span class="id-value">{r.empresa.cif or '—'}</span></div>
-    <div class="id-row"><span class="id-label">Domicilio:</span><span class="id-value">{r.empresa.domicilio or '—'}</span></div>
-    <div class="id-row"><span class="id-label">CCC:</span><span class="id-value">{r.empresa.ccc or '—'}</span></div>
+    <div class="id-row"><span class="id-label">Nombre:</span><span class="id-value">{r.empresa.nombre or "—"}</span></div>
+    <div class="id-row"><span class="id-label">CIF:</span><span class="id-value">{r.empresa.cif or "—"}</span></div>
+    <div class="id-row"><span class="id-label">Domicilio:</span><span class="id-value">{r.empresa.domicilio or "—"}</span></div>
+    <div class="id-row"><span class="id-label">CCC:</span><span class="id-value">{r.empresa.ccc or "—"}</span></div>
   </div>
   <div class="id-box">
     <h3>Trabajador</h3>
-    <div class="id-row"><span class="id-label">Nombre:</span><span class="id-value">{r.trabajador.nombre or '—'}</span></div>
-    <div class="id-row"><span class="id-label">NIF:</span><span class="id-value">{r.trabajador.nif or '—'}</span></div>
-    <div class="id-row"><span class="id-label">Nº Afil. SS:</span><span class="id-value">{r.trabajador.naf or '—'}</span></div>
-    <div class="id-row"><span class="id-label">Categoría:</span><span class="id-value">{r.trabajador.categoria or '—'}</span></div>
-    <div class="id-row"><span class="id-label">Grupo Cot.:</span><span class="id-value">{r.trabajador.grupo_cotizacion or '—'}</span></div>
-    <div class="id-row"><span class="id-label">Antigüedad:</span><span class="id-value">{r.trabajador.antiguedad or '—'}</span></div>
+    <div class="id-row"><span class="id-label">Nombre:</span><span class="id-value">{r.trabajador.nombre or "—"}</span></div>
+    <div class="id-row"><span class="id-label">NIF:</span><span class="id-value">{r.trabajador.nif or "—"}</span></div>
+    <div class="id-row"><span class="id-label">Nº Afil. SS:</span><span class="id-value">{r.trabajador.naf or "—"}</span></div>
+    <div class="id-row"><span class="id-label">Categoría:</span><span class="id-value">{r.trabajador.categoria or "—"}</span></div>
+    <div class="id-row"><span class="id-label">Grupo Cot.:</span><span class="id-value">{r.trabajador.grupo_cotizacion or "—"}</span></div>
+    <div class="id-row"><span class="id-label">Antigüedad:</span><span class="id-value">{r.trabajador.antiguedad or "—"}</span></div>
   </div>
 </div>
 
@@ -494,7 +511,7 @@ def render_nomina_html(r: ResultadoNomina) -> str:
   <tbody>
     <tr><td colspan="2" class="section-label">A. Percepciones salariales</td></tr>
     {devengos_sal_rows}
-    {'<tr><td colspan="2" class="section-label">B. Percepciones no salariales</td></tr>' + devengos_nosal_rows if devengos_no_salariales else ''}
+    {'<tr><td colspan="2" class="section-label">B. Percepciones no salariales</td></tr>' + devengos_nosal_rows if devengos_no_salariales else ""}
     <tr class="total-row"><td class="concepto">TOTAL DEVENGADO</td><td class="importe">{fmt(r.total_devengado)}</td></tr>
   </tbody>
 </table>
@@ -566,10 +583,7 @@ def render_nomina_html(r: ResultadoNomina) -> str:
 def generate_nomina_pdf(r: ResultadoNomina) -> bytes:
     """Genera el PDF de la pre-nómina. Requiere WeasyPrint."""
     if not _HAS_WEASYPRINT:
-        raise RuntimeError(
-            "WeasyPrint no está instalado. "
-            "Ejecuta: pip install weasyprint"
-        )
+        raise RuntimeError("WeasyPrint no está instalado. Ejecuta: pip install weasyprint")
     html = render_nomina_html(r)
     return WeasyprintHTML(string=html).write_pdf()
 

@@ -10,6 +10,21 @@
   const fmt = n => n == null ? '—' : Number(n).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '\u00a0€';
   const fmtShort = n => n == null ? '—' : Number(n).toLocaleString('es-ES', {minimumFractionDigits: 0, maximumFractionDigits: 0}) + '\u00a0€';
 
+  // Toast notification system
+  function showToast(message, type = 'error') {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'toast-container';
+      document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = `toast toast--${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4500);
+  }
+
   function md(text) {
     return String(text ?? '')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -85,15 +100,17 @@
   // Datos base
   // ------------------------------------------------------------------
   async function loadCategoriesAndTypes() {
-    const [cats, types, tiposDespido] = await Promise.all([
+    const [cats, types, tiposDespido, regions] = await Promise.all([
       api('/api/categories'),
       api('/api/contract-types'),
       api('/api/tipos-despido'),
+      api('/api/regions'),
     ]);
 
     state.categories = cats || [];
     state.contractTypes = types || [];
     state.tiposDespido = tiposDespido || [];
+    state.regions = regions || [];
 
     // Formulario contratar
     const catSel = $('category');
@@ -130,6 +147,15 @@
         `<option value="${esc(t.value)}">${esc(t.label)}</option>`
       ).join('');
     }
+
+    // Region selectors (simulation form + employee form)
+    const regionOptions = (state.regions || []).map(r =>
+      `<option value="${esc(r.value)}">${esc(r.label)}</option>`
+    ).join('');
+    const simRegion = $('simRegion');
+    if (simRegion) simRegion.innerHTML = regionOptions;
+    const empRegion = $('empRegion');
+    if (empRegion) empRegion.innerHTML = regionOptions;
   }
 
   // ------------------------------------------------------------------
@@ -267,9 +293,14 @@
         seniority_years: Number($('seniorityYears').value),
         extras_prorated: extrasVal === '12',
         num_children: Number($('numChildren').value),
+        children_under_3: Number($('childrenUnder3')?.value || 0),
+        region: $('simRegion')?.value || 'generica',
       };
+      const btn = e.target.querySelector('button[type="submit"]');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Calculando…'; }
       const res = await api('/api/simulate', { method: 'POST', body: JSON.stringify(data) });
-      if (res?.error) { alert(res.error); return; }
+      if (btn) { btn.disabled = false; btn.textContent = 'Calcular coste'; }
+      if (res?.error) { showToast(res.error, 'error'); return; }
       if (res) renderResult(res);
     });
   }
@@ -390,7 +421,7 @@
       a.remove();
       URL.revokeObjectURL(url);
     } catch(e) {
-      alert('Error descargando pre-nómina');
+      showToast('Error descargando pre-nómina', 'error');
     }
   }
 
@@ -430,7 +461,7 @@
       } else {
         res = await api('/api/despido', { method: 'POST', body: JSON.stringify(data) });
       }
-      if (res?.error) { alert(res.error); return; }
+      if (res?.error) { showToast(res.error, 'error'); return; }
       if (res) renderDespidoResult(res);
     });
   }
@@ -661,9 +692,16 @@
         salario_bruto_mensual: Number($('empSalario').value) || null,
         num_hijos: Number($('empHijos').value || 0),
         notas: $('empNotas').value,
+        nif: $('empNif')?.value || '',
+        naf: $('empNaf')?.value || '',
+        domicilio: $('empDomicilio')?.value || '',
+        email: $('empEmail')?.value || '',
+        telefono: $('empTelefono')?.value || '',
+        region: $('empRegion')?.value || 'generica',
       };
       const res = await api('/api/employees', { method: 'POST', body: JSON.stringify(data) });
-      if (res?.error) { alert(res.error); return; }
+      if (res?.error) { showToast(res.error, 'error'); return; }
+      showToast('Trabajador guardado correctamente', 'success');
       form.reset();
       form.hidden = true;
       toggleBtn.textContent = '+ Añadir trabajador';

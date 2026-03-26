@@ -18,20 +18,73 @@ import unicodedata
 from pathlib import Path
 from typing import Any
 
-
 _DETAIL_PATH = Path(__file__).resolve().parent / "data" / "categorias_detalle.json"
 
 # Stop words españolas comunes (para ignorar en matching de keywords)
 _STOP_WORDS = {
-    "de", "del", "la", "el", "los", "las", "un", "una", "unos", "unas",
-    "en", "al", "a", "y", "o", "por", "para", "con", "que", "es",
-    "su", "se", "lo", "como", "mas", "pero", "sus", "le", "ya",
-    "mi", "si", "sin", "sobre", "este", "entre", "cuando", "muy",
-    "nos", "ni", "otro", "ese", "eso", "ante", "ellos", "e",
-    "esto", "me", "hasta", "hay", "donde", "quien", "desde",
-    "todo", "nos", "durante", "todos", "uno", "les", "ni",
-    "contra", "otros", "ese", "eso", "ante",
-    "necesito", "quiero", "contratar", "alguien",
+    "de",
+    "del",
+    "la",
+    "el",
+    "los",
+    "las",
+    "un",
+    "una",
+    "unos",
+    "unas",
+    "en",
+    "al",
+    "a",
+    "y",
+    "o",
+    "por",
+    "para",
+    "con",
+    "que",
+    "es",
+    "su",
+    "se",
+    "lo",
+    "como",
+    "mas",
+    "pero",
+    "sus",
+    "le",
+    "ya",
+    "mi",
+    "si",
+    "sin",
+    "sobre",
+    "este",
+    "entre",
+    "cuando",
+    "muy",
+    "nos",
+    "ni",
+    "otro",
+    "ese",
+    "eso",
+    "ante",
+    "ellos",
+    "e",
+    "esto",
+    "me",
+    "hasta",
+    "hay",
+    "donde",
+    "quien",
+    "desde",
+    "todo",
+    "durante",
+    "todos",
+    "uno",
+    "les",
+    "contra",
+    "otros",
+    "necesito",
+    "quiero",
+    "contratar",
+    "alguien",
 }
 
 
@@ -41,7 +94,16 @@ _CONTRACT_EXTRA_FIELDS: dict[str, list[dict[str, str]]] = {
         {
             "key": "cx_periodo_actividad",
             "question": "¿Cuál es el periodo de actividad? (ej: mayo-septiembre, temporada de verano)",
-            "extract_hints": ["mayo", "junio", "julio", "agosto", "septiembre", "verano", "temporada", "meses"],
+            "extract_hints": [
+                "mayo",
+                "junio",
+                "julio",
+                "agosto",
+                "septiembre",
+                "verano",
+                "temporada",
+                "meses",
+            ],
         },
     ],
     "temporal": [
@@ -138,12 +200,14 @@ class ChatParser:
             for cat_name in fam_data["opciones"]:
                 cat_info = self._get_cat_info(cat_name)
                 if cat_info:
-                    options.append({
-                        "category": cat_name,
-                        "label": cat_info["nombre_corto"],
-                        "salary": self._get_salary_hint(cat_name),
-                        "description": cat_info.get("diferencia_clave", ""),
-                    })
+                    options.append(
+                        {
+                            "category": cat_name,
+                            "label": cat_info["nombre_corto"],
+                            "salary": self._get_salary_hint(cat_name),
+                            "description": cat_info.get("diferencia_clave", ""),
+                        }
+                    )
 
             return {
                 "action": "clarify_category",
@@ -160,13 +224,15 @@ class ChatParser:
             options = []
             for m in category_result["matches"][:4]:
                 cat_info = self._get_cat_info(m["category"])
-                options.append({
-                    "category": m["category"],
-                    "label": cat_info["nombre_corto"] if cat_info else m["category"],
-                    "salary": self._get_salary_hint(m["category"]),
-                    "description": cat_info["descripcion"][:80] + "..." if cat_info else "",
-                    "score": m["score"],
-                })
+                options.append(
+                    {
+                        "category": m["category"],
+                        "label": cat_info["nombre_corto"] if cat_info else m["category"],
+                        "salary": self._get_salary_hint(m["category"]),
+                        "description": cat_info["descripcion"][:80] + "..." if cat_info else "",
+                        "score": m["score"],
+                    }
+                )
 
             return {
                 "action": "clarify_category",
@@ -249,7 +315,9 @@ class ChatParser:
         close_matches = [s for s in scored if s["score"] >= top["score"] * 0.6]
         return {"status": "ambiguous", "matches": close_matches[:4]}
 
-    def _try_resolve_family(self, norm_text: str, family: str, family_data: dict) -> dict[str, Any] | None:
+    def _try_resolve_family(
+        self, norm_text: str, family: str, family_data: dict
+    ) -> dict[str, Any] | None:
         """Intenta resolver una familia ambigua con pistas en el texto."""
 
         if family == "socorrista":
@@ -271,7 +339,12 @@ class ChatParser:
                 return self._exact("Auxiliar Administrativo.")
 
         if family == "conductor":
-            if "camion" in norm_text or "pesado" in norm_text or "especial" in norm_text or "adr" in norm_text:
+            if (
+                "camion" in norm_text
+                or "pesado" in norm_text
+                or "especial" in norm_text
+                or "adr" in norm_text
+            ):
                 return self._exact("Conductor especialista.")
             if "furgoneta" in norm_text or "ligero" in norm_text:
                 return self._exact("Conductor.")
@@ -280,7 +353,9 @@ class ChatParser:
             if "electri" in norm_text:
                 return self._exact("Instalador de montajes eléctricos.")
             if "fontan" in norm_text or "depura" in norm_text or "tuberi" in norm_text:
-                return self._exact("Instalador de montajes de circuitos de depuración y fontanería.")
+                return self._exact(
+                    "Instalador de montajes de circuitos de depuración y fontanería."
+                )
 
         if family == "auxiliar":
             if "admin" in norm_text or "oficina" in norm_text:
@@ -294,10 +369,17 @@ class ChatParser:
             if "electri" in norm_text:
                 return self._exact("Instalador de montajes eléctricos.")
             if "fontan" in norm_text or "tuberi" in norm_text:
-                return self._exact("Instalador de montajes de circuitos de depuración y fontanería.")
+                return self._exact(
+                    "Instalador de montajes de circuitos de depuración y fontanería."
+                )
             if "encargado" in norm_text or "jefe" in norm_text or "supervisor" in norm_text:
                 return self._exact("Encargado.")
-            if "piscina" in norm_text or "agua" in norm_text or "quimic" in norm_text or "cloro" in norm_text:
+            if (
+                "piscina" in norm_text
+                or "agua" in norm_text
+                or "quimic" in norm_text
+                or "cloro" in norm_text
+            ):
                 return self._exact("Técnico de Mantenimiento en Instalaciones de Piscinas.")
 
         return None
@@ -367,7 +449,11 @@ class ChatParser:
         params["category"] = ctx["category"]
 
         # Jornada (usar raw para capturar %)
-        if "jornada" not in params or params["jornada"] is None or self._is_parcial_sentinel(params.get("jornada")):
+        if (
+            "jornada" not in params
+            or params["jornada"] is None
+            or self._is_parcial_sentinel(params.get("jornada"))
+        ):
             hours = self._extract_hours(raw)
             if hours is None:
                 hours = self._extract_hours(norm)
@@ -423,7 +509,8 @@ class ChatParser:
 
             return {
                 "action": "need_params",
-                "message": f"Categoría: **{cat_label}** ({self._get_salary_hint(params['category'])}).\n" + "\n".join(f"• {q}" for q in questions),
+                "message": f"Categoría: **{cat_label}** ({self._get_salary_hint(params['category'])}).\n"
+                + "\n".join(f"• {q}" for q in questions),
                 "missing": missing,
                 "context": ctx,
             }
@@ -450,7 +537,8 @@ class ChatParser:
                 ct_label = params.get("contract_type", "")
                 return {
                     "action": "need_params",
-                    "message": f"Para un contrato **{ct_label}**, necesito saber:\n" + "\n".join(questions),
+                    "message": f"Para un contrato **{ct_label}**, necesito saber:\n"
+                    + "\n".join(questions),
                     "missing": [f["key"] for f in extra_missing],
                     "context": ctx,
                 }
@@ -537,7 +625,13 @@ class ChatParser:
             return 20.0
 
         # Jornada completa → 40h
-        _completa_hints = ["jornada completa", "tiempo completo", "40 horas", "jornada entera", "jornada total"]
+        _completa_hints = [
+            "jornada completa",
+            "tiempo completo",
+            "40 horas",
+            "jornada entera",
+            "jornada total",
+        ]
         if any(h in text for h in _completa_hints):
             return 40.0
         if "completa" in text and ("jornada" in text or "horas" in text):
@@ -545,12 +639,20 @@ class ChatParser:
 
         # Jornada parcial sin número → centinela -1 (caller preguntará las horas)
         _parcial_hints = [
-            "jornada parcial", "tiempo parcial", "a tiempo parcial",
-            "media jornada", "jornada reducida", "reducida",
+            "jornada parcial",
+            "tiempo parcial",
+            "a tiempo parcial",
+            "media jornada",
+            "jornada reducida",
+            "reducida",
         ]
-        if any(h in text for h in _parcial_hints) or (
-            "parcial" in text and "jornada" not in text  # "parcial" a secas
-        ) or text.strip() in ("parcial", "tiempo parcial", "jornada parcial"):
+        if (
+            any(h in text for h in _parcial_hints)
+            or (
+                "parcial" in text and "jornada" not in text  # "parcial" a secas
+            )
+            or text.strip() in ("parcial", "tiempo parcial", "jornada parcial")
+        ):
             return -1.0  # señal: el usuario dijo parcial pero falta el número de horas
 
         return None
@@ -587,7 +689,12 @@ class ChatParser:
             m = re.search(p, text)
             if m:
                 return int(m.group(1))
-        if "sin antiguedad" in text or "sin antigüedad" in text or "nuevo" in text or "nueva" in text:
+        if (
+            "sin antiguedad" in text
+            or "sin antigüedad" in text
+            or "nuevo" in text
+            or "nueva" in text
+        ):
             return 0
         return None
 
@@ -608,8 +715,20 @@ class ChatParser:
         """Intenta extraer un campo extra del contrato desde el texto."""
         if key == "cx_periodo_actividad":
             # Buscar patrones de meses o temporada
-            meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
-                     "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+            meses = [
+                "enero",
+                "febrero",
+                "marzo",
+                "abril",
+                "mayo",
+                "junio",
+                "julio",
+                "agosto",
+                "septiembre",
+                "octubre",
+                "noviembre",
+                "diciembre",
+            ]
             found = [m for m in meses if m in raw]
             if len(found) >= 2:
                 return f"{found[0].title()}-{found[-1].title()}"
@@ -636,17 +755,27 @@ class ChatParser:
         warnings = []
         ct = params.get("contract_type", "")
         if ct == "fijo-discontinuo":
-            warnings.append("Art. 26: Solo procede para trabajos estacionales, de temporada o de prestación intermitente.")
-            warnings.append("Art. 32: La antigüedad computa toda la relación laboral, no solo el tiempo trabajado.")
+            warnings.append(
+                "Art. 26: Solo procede para trabajos estacionales, de temporada o de prestación intermitente."
+            )
+            warnings.append(
+                "Art. 32: La antigüedad computa toda la relación laboral, no solo el tiempo trabajado."
+            )
             if not params.get("cx_periodo_actividad"):
-                warnings.append("⚠ No se ha definido el periodo de actividad. Requerido para formalizar el contrato.")
+                warnings.append(
+                    "⚠ No se ha definido el periodo de actividad. Requerido para formalizar el contrato."
+                )
         elif ct in ("temporal", "temporal-produccion"):
-            warnings.append("Art. 26: Duración máxima 6 meses. Debe expresar la causa con precisión en el contrato.")
+            warnings.append(
+                "Art. 26: Duración máxima 6 meses. Debe expresar la causa con precisión en el contrato."
+            )
             dur = params.get("cx_duracion_meses")
             if dur and int(dur) > 6:
                 warnings.append(f"⚠ {dur} meses excede el máximo de 6 meses del convenio.")
         elif ct == "sustitucion":
-            warnings.append("Debe identificar al trabajador sustituido y la causa de la ausencia en el contrato.")
+            warnings.append(
+                "Debe identificar al trabajador sustituido y la causa de la ausencia en el contrato."
+            )
         elif ct == "indefinido":
             warnings.append("Art. 26: El contrato se presume indefinido por defecto.")
         # Periodo de prueba

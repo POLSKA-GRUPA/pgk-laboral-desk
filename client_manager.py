@@ -26,28 +26,85 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
 _DB_PATH = Path(__file__).resolve().parent / "db" / "pgk_laboral.db"
 _DATA_DIR = Path(__file__).resolve().parent / "data"
 
 # Provincias españolas (código INE)
 PROVINCIAS_ES = [
-    "Álava", "Albacete", "Alicante", "Almería", "Ávila", "Badajoz",
-    "Baleares", "Barcelona", "Burgos", "Cáceres", "Cádiz", "Castellón",
-    "Ciudad Real", "Córdoba", "Coruña (A)", "Cuenca", "Girona", "Granada",
-    "Guadalajara", "Guipúzcoa", "Huelva", "Huesca", "Jaén", "León",
-    "Lleida", "La Rioja", "Lugo", "Madrid", "Málaga", "Murcia", "Navarra",
-    "Ourense", "Asturias", "Palencia", "Las Palmas", "Pontevedra",
-    "Salamanca", "Santa Cruz de Tenerife", "Cantabria", "Segovia", "Sevilla",
-    "Soria", "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid",
-    "Vizcaya", "Zamora", "Zaragoza", "Ceuta", "Melilla",
+    "Álava",
+    "Albacete",
+    "Alicante",
+    "Almería",
+    "Ávila",
+    "Badajoz",
+    "Baleares",
+    "Barcelona",
+    "Burgos",
+    "Cáceres",
+    "Cádiz",
+    "Castellón",
+    "Ciudad Real",
+    "Córdoba",
+    "Coruña (A)",
+    "Cuenca",
+    "Girona",
+    "Granada",
+    "Guadalajara",
+    "Guipúzcoa",
+    "Huelva",
+    "Huesca",
+    "Jaén",
+    "León",
+    "Lleida",
+    "La Rioja",
+    "Lugo",
+    "Madrid",
+    "Málaga",
+    "Murcia",
+    "Navarra",
+    "Ourense",
+    "Asturias",
+    "Palencia",
+    "Las Palmas",
+    "Pontevedra",
+    "Salamanca",
+    "Santa Cruz de Tenerife",
+    "Cantabria",
+    "Segovia",
+    "Sevilla",
+    "Soria",
+    "Tarragona",
+    "Teruel",
+    "Toledo",
+    "Valencia",
+    "Valladolid",
+    "Vizcaya",
+    "Zamora",
+    "Zaragoza",
+    "Ceuta",
+    "Melilla",
 ]
 
 CCAA_ES = [
-    "Andalucía", "Aragón", "Asturias", "Baleares", "Canarias",
-    "Cantabria", "Castilla-La Mancha", "Castilla y León", "Cataluña",
-    "Ceuta", "Comunitat Valenciana", "Extremadura", "Galicia",
-    "La Rioja", "Madrid", "Melilla", "Murcia", "Navarra", "País Vasco",
+    "Andalucía",
+    "Aragón",
+    "Asturias",
+    "Baleares",
+    "Canarias",
+    "Cantabria",
+    "Castilla-La Mancha",
+    "Castilla y León",
+    "Cataluña",
+    "Ceuta",
+    "Comunitat Valenciana",
+    "Extremadura",
+    "Galicia",
+    "La Rioja",
+    "Madrid",
+    "Melilla",
+    "Murcia",
+    "Navarra",
+    "País Vasco",
 ]
 
 
@@ -144,14 +201,10 @@ class ClientManager:
 
         # Verificar convenio existe
         convenios = self.list_convenios()
-        convenio_match = next(
-            (c for c in convenios if c["id"] == convenio_id), None
-        )
+        convenio_match = next((c for c in convenios if c["id"] == convenio_id), None)
         if not convenio_match:
             ids = [c["id"] for c in convenios]
-            raise ValueError(
-                f"Convenio no encontrado: {convenio_id}. Disponibles: {ids}"
-            )
+            raise ValueError(f"Convenio no encontrado: {convenio_id}. Disponibles: {ids}")
 
         conn = self._get_db()
         try:
@@ -178,9 +231,7 @@ class ClientManager:
     def get_client(self, client_id: int) -> Client | None:
         conn = self._get_db()
         try:
-            row = conn.execute(
-                "SELECT * FROM clients WHERE id = ?", (client_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM clients WHERE id = ?", (client_id,)).fetchone()
             if row:
                 return Client(**dict(row))
             return None
@@ -202,9 +253,7 @@ class ClientManager:
     def list_clients(self) -> list[dict[str, Any]]:
         conn = self._get_db()
         try:
-            rows = conn.execute(
-                "SELECT * FROM clients ORDER BY empresa"
-            ).fetchall()
+            rows = conn.execute("SELECT * FROM clients ORDER BY empresa").fetchall()
             return [dict(row) for row in rows]
         finally:
             conn.close()
@@ -239,14 +288,16 @@ class ClientManager:
             try:
                 data = json.loads(f.read_text(encoding="utf-8"))
                 conv = data.get("convenio", {})
-                convenios.append({
-                    "id": f.stem,
-                    "nombre": conv.get("nombre", f.stem),
-                    "codigo": conv.get("codigo", ""),
-                    "ambito": conv.get("ambito", "estatal"),
-                    "vigencia_desde": conv.get("vigencia_desde_ano"),
-                    "vigencia_hasta": conv.get("vigencia_hasta_ano"),
-                })
+                convenios.append(
+                    {
+                        "id": f.stem,
+                        "nombre": conv.get("nombre", f.stem),
+                        "codigo": conv.get("codigo", ""),
+                        "ambito": conv.get("ambito", "estatal"),
+                        "vigencia_desde": conv.get("vigencia_desde_ano"),
+                        "vigencia_hasta": conv.get("vigencia_hasta_ano"),
+                    }
+                )
             except (json.JSONDecodeError, KeyError):
                 continue
         return convenios

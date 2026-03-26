@@ -8,8 +8,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from boe_importer import BOEImporter, BOEDocument
-
+from boe_importer import BOEDocument, BOEImporter
 
 # ======================================================================
 # XML de prueba (fragmento mínimo)
@@ -63,6 +62,7 @@ _SAMPLE_XML = """\
 # ======================================================================
 # Tests offline (sin red)
 # ======================================================================
+
 
 def _mock_fetch(boe_id: str) -> BOEDocument:
     """Crea un BOEDocument parseando el XML de prueba sin red."""
@@ -145,6 +145,7 @@ def test_to_dict():
 # Validación de entradas
 # ======================================================================
 
+
 def test_invalid_boe_id_raises():
     imp = BOEImporter()
     with pytest.raises(ValueError, match="no válido"):
@@ -165,6 +166,7 @@ def test_whitespace_stripped():
 # ======================================================================
 # Test de integración real (requiere red)
 # ======================================================================
+
 
 @pytest.mark.integration
 def test_fetch_real_boe_acuaticas():
