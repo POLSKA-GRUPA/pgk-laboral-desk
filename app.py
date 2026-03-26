@@ -851,9 +851,9 @@ def api_bulk_nominas():
                 "nombre": emp["nombre"],
                 "bruto_mensual": sim.get("bruto_mensual_eur", 0),
                 "neto_mensual": sim.get("neto_mensual_eur", 0),
-                "ss_trabajador": sim.get("ss_trabajador_mensual_eur", 0),
+                "ss_trabajador": sim.get("ss_trabajador_mes_eur", 0),
                 "irpf": sim.get("irpf_mensual_eur", 0),
-                "coste_empresa": sim.get("coste_empresa_mensual_eur", 0),
+                "coste_empresa": sim.get("coste_total_empresa_mes_eur", 0),
                 "ok": True,
             })
         except (ValueError, KeyError) as exc:
