@@ -93,9 +93,9 @@ def validate_simulation_params(
 
 def validate_salary(salary: float, field_name: str = "salario_bruto_mensual") -> None:
     """Validate a salary value."""
-    if salary < MIN_SALARY:
+    if salary <= MIN_SALARY:
         raise ValidationError(
-            f"Salario no puede ser negativo: {salary}",
+            f"Salario requerido y debe ser mayor que cero (recibido: {salary})",
             field=field_name,
         )
     if salary > MAX_SALARY:

@@ -210,13 +210,16 @@ def api_simulate():
     data = request.get_json(silent=True) or {}
     category = str(data.get("category", "")).strip()
     contract_type = str(data.get("contract_type", "indefinido"))
-    weekly_hours = float(data.get("weekly_hours", 40))
-    seniority_years = int(data.get("seniority_years", 0))
-    num_children = int(data.get("num_children", 0))
-    children_under_3 = int(data.get("children_under_3", 0))
-    contract_days = data.get("contract_days")
-    if contract_days is not None:
-        contract_days = int(contract_days)
+    try:
+        weekly_hours = float(data.get("weekly_hours", 40))
+        seniority_years = int(data.get("seniority_years", 0))
+        num_children = int(data.get("num_children", 0))
+        children_under_3 = int(data.get("children_under_3", 0))
+        contract_days = data.get("contract_days")
+        if contract_days is not None:
+            contract_days = int(contract_days)
+    except (ValueError, TypeError) as exc:
+        return jsonify({"error": f"Parámetro numérico inválido: {exc}"}), 400
 
     # Validation layer
     validate_simulation_params(
@@ -420,7 +423,10 @@ def api_despido():
     data = request.get_json(silent=True) or {}
     tipo_despido = str(data.get("tipo_despido", "")).strip()
     fecha_inicio = str(data.get("fecha_inicio", "")).strip()
-    salario_bruto_mensual = float(data.get("salario_bruto_mensual", 0))
+    try:
+        salario_bruto_mensual = float(data.get("salario_bruto_mensual", 0))
+    except (ValueError, TypeError):
+        return jsonify({"error": "salario_bruto_mensual debe ser un número"}), 400
 
     # Validation layer
     validate_despido_params(
