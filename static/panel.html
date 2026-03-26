@@ -111,6 +111,16 @@
                   <input id="numChildren" type="number" value="0" min="0" max="10" step="1">
                 </div>
               </div>
+              <div class="form-row">
+                <div class="field">
+                  <label for="childrenUnder3">Hijos menores de 3 a&ntilde;os</label>
+                  <input id="childrenUnder3" type="number" value="0" min="0" max="10" step="1">
+                </div>
+                <div class="field">
+                  <label for="simRegion">Comunidad aut&oacute;noma (IRPF)</label>
+                  <select id="simRegion"></select>
+                </div>
+              </div>
               <button type="submit" class="btn-primary btn-full">Calcular coste</button>
             </form>
           </section>
@@ -356,6 +366,36 @@
           <div class="field">
             <label>Hijos a cargo</label>
             <input id="empHijos" type="number" value="0" min="0" max="10" step="1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>NIF / DNI</label>
+            <input id="empNif" type="text" placeholder="12345678A">
+          </div>
+          <div class="field">
+            <label>N&ordm; Afiliaci&oacute;n SS (NAF)</label>
+            <input id="empNaf" type="text" placeholder="08/12345678/90">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Email</label>
+            <input id="empEmail" type="email" placeholder="trabajador@email.com">
+          </div>
+          <div class="field">
+            <label>Tel&eacute;fono</label>
+            <input id="empTelefono" type="tel" placeholder="+34 600 000 000">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Domicilio</label>
+            <input id="empDomicilio" type="text" placeholder="Calle, n&ordm;, CP, Ciudad">
+          </div>
+          <div class="field">
+            <label>Comunidad aut&oacute;noma (IRPF)</label>
+            <select id="empRegion"></select>
           </div>
         </div>
         <div class="field">

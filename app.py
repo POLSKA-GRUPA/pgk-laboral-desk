@@ -43,6 +43,11 @@ from nomina_pdf import (
     generate_nomina_pdf,
 )
 from rates_verifier import RatesVerifier
+from validation import (
+    validate_despido_params,
+    validate_employee_data,
+    validate_simulation_params,
+)
 
 APP_ROOT = Path(__file__).resolve().parent
 STATIC_DIR = APP_ROOT / "static"
@@ -134,6 +139,9 @@ def api_login():
     session["user_id"] = user["id"]
     session["username"] = user["username"]
     session["empresa_nombre"] = user["empresa_nombre"]
+    session["empresa_cif"] = user.get("empresa_cif", "")
+    session["empresa_domicilio"] = user.get("empresa_domicilio", "")
+    session["empresa_ccc"] = user.get("empresa_ccc", "")
     session["convenio_id"] = user["convenio_id"]
     session["role"] = user["role"]
 
@@ -201,21 +209,38 @@ def api_regions():
 def api_simulate():
     data = request.get_json(silent=True) or {}
     category = str(data.get("category", "")).strip()
-    if not category:
-        return jsonify({"error": "Selecciona una categoría profesional"}), 400
+    contract_type = str(data.get("contract_type", "indefinido"))
+    weekly_hours = float(data.get("weekly_hours", 40))
+    seniority_years = int(data.get("seniority_years", 0))
+    num_children = int(data.get("num_children", 0))
+    children_under_3 = int(data.get("children_under_3", 0))
+    contract_days = data.get("contract_days")
+    if contract_days is not None:
+        contract_days = int(contract_days)
+
+    # Validation layer
+    validate_simulation_params(
+        category=category,
+        contract_type=contract_type,
+        weekly_hours=weekly_hours,
+        seniority_years=seniority_years,
+        num_children=num_children,
+        children_under_3=children_under_3,
+        contract_days=contract_days,
+    )
 
     eng = _get_engine()
     try:
         result = eng.simulate(
             category=category,
-            contract_type=str(data.get("contract_type", "indefinido")),
-            weekly_hours=float(data.get("weekly_hours", 40)),
-            seniority_years=int(data.get("seniority_years", 0)),
+            contract_type=contract_type,
+            weekly_hours=weekly_hours,
+            seniority_years=seniority_years,
             extras_prorated=bool(data.get("extras_prorated", False)),
-            num_children=int(data.get("num_children", 0)),
-            children_under_3=int(data.get("children_under_3", 0)),
+            num_children=num_children,
+            children_under_3=children_under_3,
             region=str(data.get("region", "generica")),
-            contract_days=data.get("contract_days"),
+            contract_days=contract_days,
         )
     except (ValueError, TypeError) as exc:
         return jsonify({"error": f"Datos inválidos: {exc}"}), 400
@@ -393,17 +418,23 @@ def api_tipos_despido():
 @login_required
 def api_despido():
     data = request.get_json(silent=True) or {}
-    required = ["tipo_despido", "fecha_inicio", "salario_bruto_mensual"]
-    for field in required:
-        if not data.get(field):
-            return jsonify({"error": f"Campo requerido: {field}"}), 400
+    tipo_despido = str(data.get("tipo_despido", "")).strip()
+    fecha_inicio = str(data.get("fecha_inicio", "")).strip()
+    salario_bruto_mensual = float(data.get("salario_bruto_mensual", 0))
+
+    # Validation layer
+    validate_despido_params(
+        tipo_despido=tipo_despido,
+        fecha_inicio=fecha_inicio,
+        salario_bruto_mensual=salario_bruto_mensual,
+    )
 
     eng = _get_engine()
     try:
         result = eng.calcular_despido(
-            tipo_despido=str(data["tipo_despido"]),
-            fecha_inicio=str(data["fecha_inicio"]),
-            salario_bruto_mensual=float(data["salario_bruto_mensual"]),
+            tipo_despido=tipo_despido,
+            fecha_inicio=fecha_inicio,
+            salario_bruto_mensual=salario_bruto_mensual,
             fecha_despido=data.get("fecha_despido") or None,
             dias_vacaciones_pendientes=int(data.get("dias_vacaciones_pendientes", 0)),
             dias_preaviso_empresa=int(data.get("dias_preaviso_empresa", 0)),
@@ -436,10 +467,16 @@ def api_employees_list():
 @login_required
 def api_employees_create():
     data = request.get_json(silent=True) or {}
-    required = ["nombre", "categoria", "fecha_inicio"]
-    for field in required:
-        if not data.get(field):
-            return jsonify({"error": f"Campo requerido: {field}"}), 400
+    nombre = str(data.get("nombre", "")).strip()
+    categoria = str(data.get("categoria", "")).strip()
+    fecha_inicio = str(data.get("fecha_inicio", "")).strip()
+
+    # Validation layer
+    validate_employee_data(
+        nombre=nombre,
+        categoria=categoria,
+        fecha_inicio=fecha_inicio,
+    )
 
     # Calcular salario desde el motor si no se especifica
     salario = data.get("salario_bruto_mensual")
@@ -457,15 +494,21 @@ def api_employees_create():
     try:
         emp_id = add_employee(
             user_id=session["user_id"],
-            nombre=str(data["nombre"]),
-            categoria=str(data["categoria"]),
+            nombre=nombre,
+            categoria=categoria,
             contrato_tipo=str(data.get("contrato_tipo", "indefinido")),
             jornada_horas=float(data.get("jornada_horas", 40)),
-            fecha_inicio=str(data["fecha_inicio"]),
+            fecha_inicio=fecha_inicio,
             fecha_fin=data.get("fecha_fin") or None,
             salario_bruto_mensual=float(salario) if salario else None,
             num_hijos=int(data.get("num_hijos", 0)),
             notas=str(data.get("notas", "")),
+            nif=str(data.get("nif", "")),
+            naf=str(data.get("naf", "")),
+            domicilio=str(data.get("domicilio", "")),
+            email=str(data.get("email", "")),
+            telefono=str(data.get("telefono", "")),
+            region=str(data.get("region", "generica")),
         )
     except (ValueError, TypeError) as exc:
         return jsonify({"error": f"Datos inválidos: {exc}"}), 400
@@ -496,6 +539,12 @@ def api_employees_update(emp_id: int):
         "num_hijos",
         "notas",
         "status",
+        "nif",
+        "naf",
+        "domicilio",
+        "email",
+        "telefono",
+        "region",
     }
     fields = {k: v for k, v in data.items() if k in allowed}
     update_employee(emp_id, fields)
@@ -593,8 +642,22 @@ def _auto_alerts_for_employee(emp: dict) -> None:
 def _empresa_from_session() -> DatosEmpresa:
     return DatosEmpresa(
         nombre=session.get("empresa_nombre", ""),
-        cif="",
+        cif=session.get("empresa_cif", ""),
+        domicilio=session.get("empresa_domicilio", ""),
+        ccc=session.get("empresa_ccc", ""),
     )
+
+
+def _calc_seniority_years(fecha_inicio: str) -> int:
+    """Calcula años de antigüedad desde fecha_inicio hasta hoy."""
+    from datetime import date
+
+    try:
+        inicio = date.fromisoformat(fecha_inicio)
+        hoy = date.today()
+        return max(0, (hoy - inicio).days // 365)
+    except (ValueError, TypeError):
+        return 0
 
 
 @app.route("/api/employees/<int:emp_id>/nomina")
@@ -607,13 +670,17 @@ def api_employee_nomina(emp_id: int):
     if not emp or emp["user_id"] != session["user_id"]:
         return jsonify({"error": "Trabajador no encontrado"}), 404
 
+    seniority = _calc_seniority_years(emp.get("fecha_inicio", ""))
+    region = emp.get("region", "generica") or "generica"
+
     eng = _get_engine()
     sim = eng.simulate(
         category=str(emp["categoria"]),
         contract_type=str(emp["contrato_tipo"]),
         weekly_hours=float(emp["jornada_horas"]),
-        seniority_years=0,
+        seniority_years=seniority,
         num_children=int(emp.get("num_hijos", 0)),
+        region=region,
     )
     if "error" in sim:
         return jsonify({"error": sim["error"]}), 400
@@ -627,10 +694,11 @@ def api_employee_nomina(emp_id: int):
             empresa=_empresa_from_session(),
             trabajador_extra={
                 "nombre": emp["nombre"],
-                "nif": "",
-                "naf": "",
+                "nif": emp.get("nif", ""),
+                "naf": emp.get("naf", ""),
                 "puesto": emp["categoria"],
-                "antiguedad": f"{emp.get('fecha_inicio', '')}",
+                "antiguedad": emp.get("fecha_inicio", ""),
+                "domicilio": emp.get("domicilio", ""),
             },
             periodo_str=periodo,
         )
@@ -723,6 +791,82 @@ def api_nomina_from_simulation():
         mimetype="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+# ------------------------------------------------------------------
+# Bulk nómina (all active employees)
+# ------------------------------------------------------------------
+
+
+@app.route("/api/employees/nominas-bulk")
+@login_required
+def api_bulk_nominas():
+    """Genera pre-nóminas para todos los empleados activos del usuario."""
+    employees = get_employees(user_id=session["user_id"], status="activo")
+    if not employees:
+        return jsonify({"error": "No hay empleados activos"}), 404
+
+    periodo = request.args.get("periodo")  # YYYY-MM
+    fmt_type = request.args.get("format", "json")  # json | html
+    eng = _get_engine()
+    empresa = _empresa_from_session()
+    results = []
+
+    for emp in employees:
+        seniority = _calc_seniority_years(emp.get("fecha_inicio", ""))
+        region = emp.get("region", "generica") or "generica"
+        sim = eng.simulate(
+            category=str(emp["categoria"]),
+            contract_type=str(emp["contrato_tipo"]),
+            weekly_hours=float(emp["jornada_horas"]),
+            seniority_years=seniority,
+            num_children=int(emp.get("num_hijos", 0)),
+            region=region,
+        )
+        if "error" in sim:
+            results.append({"employee_id": emp["id"], "nombre": emp["nombre"], "error": sim["error"]})
+            continue
+
+        try:
+            nomina = build_nomina_from_simulation(
+                sim,
+                empresa=empresa,
+                trabajador_extra={
+                    "nombre": emp["nombre"],
+                    "nif": emp.get("nif", ""),
+                    "naf": emp.get("naf", ""),
+                    "puesto": emp["categoria"],
+                    "antiguedad": emp.get("fecha_inicio", ""),
+                },
+                periodo_str=periodo,
+            )
+            results.append({
+                "employee_id": emp["id"],
+                "nombre": emp["nombre"],
+                "bruto_mensual": sim.get("bruto_mensual_eur", 0),
+                "neto_mensual": sim.get("neto_mensual_eur", 0),
+                "ss_trabajador": sim.get("ss_trabajador_mensual_eur", 0),
+                "irpf": sim.get("irpf_mensual_eur", 0),
+                "coste_empresa": sim.get("coste_empresa_mensual_eur", 0),
+                "ok": True,
+            })
+        except (ValueError, KeyError) as exc:
+            results.append({"employee_id": emp["id"], "nombre": emp["nombre"], "error": str(exc)})
+
+    # Summary totals
+    ok_results = [r for r in results if r.get("ok")]
+    summary = {
+        "total_employees": len(employees),
+        "generated": len(ok_results),
+        "errors": len(results) - len(ok_results),
+        "total_bruto": round(sum(r.get("bruto_mensual", 0) for r in ok_results), 2),
+        "total_neto": round(sum(r.get("neto_mensual", 0) for r in ok_results), 2),
+        "total_ss_trabajador": round(sum(r.get("ss_trabajador", 0) for r in ok_results), 2),
+        "total_irpf": round(sum(r.get("irpf", 0) for r in ok_results), 2),
+        "total_coste_empresa": round(sum(r.get("coste_empresa", 0) for r in ok_results), 2),
+    }
+
+    return jsonify({"summary": summary, "nominas": results})
 
 
 # ------------------------------------------------------------------

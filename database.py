@@ -22,6 +22,27 @@ def _get_db(db_path: Path | None = None) -> sqlite3.Connection:
     return conn
 
 
+def _migrate_schema(conn: sqlite3.Connection) -> None:
+    """Aplica migraciones de esquema de forma segura (ALTER TABLE)."""
+    migrations = [
+        # Users: empresa fields
+        ("users", "empresa_domicilio", "TEXT NOT NULL DEFAULT ''"),
+        ("users", "empresa_ccc", "TEXT NOT NULL DEFAULT ''"),
+        # Employees: identification fields
+        ("employees", "nif", "TEXT NOT NULL DEFAULT ''"),
+        ("employees", "naf", "TEXT NOT NULL DEFAULT ''"),
+        ("employees", "domicilio", "TEXT NOT NULL DEFAULT ''"),
+        ("employees", "email", "TEXT NOT NULL DEFAULT ''"),
+        ("employees", "telefono", "TEXT NOT NULL DEFAULT ''"),
+        ("employees", "region", "TEXT NOT NULL DEFAULT 'generica'"),
+    ]
+    import contextlib
+
+    for table, column, col_type in migrations:
+        with contextlib.suppress(sqlite3.OperationalError):
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")
+
+
 def init_db(db_path: Path | None = None) -> None:
     """Crea las tablas si no existen y siembra usuario por defecto."""
     conn = _get_db(db_path)
@@ -35,6 +56,8 @@ def init_db(db_path: Path | None = None) -> None:
                 empresa_cif TEXT NOT NULL DEFAULT '',
                 convenio_id TEXT NOT NULL DEFAULT '',
                 role TEXT NOT NULL DEFAULT 'client',
+                empresa_domicilio TEXT NOT NULL DEFAULT '',
+                empresa_ccc TEXT NOT NULL DEFAULT '',
                 created_at TEXT NOT NULL DEFAULT (datetime('now'))
             );
 
@@ -79,6 +102,12 @@ def init_db(db_path: Path | None = None) -> None:
                 num_hijos INTEGER NOT NULL DEFAULT 0,
                 notas TEXT NOT NULL DEFAULT '',
                 status TEXT NOT NULL DEFAULT 'activo',
+                nif TEXT NOT NULL DEFAULT '',
+                naf TEXT NOT NULL DEFAULT '',
+                domicilio TEXT NOT NULL DEFAULT '',
+                email TEXT NOT NULL DEFAULT '',
+                telefono TEXT NOT NULL DEFAULT '',
+                region TEXT NOT NULL DEFAULT 'generica',
                 created_at TEXT NOT NULL DEFAULT (datetime('now'))
             );
 
@@ -126,6 +155,9 @@ def init_db(db_path: Path | None = None) -> None:
                 "UPDATE users SET convenio_id = ? WHERE username = ?",
                 ("convenio_oficinas_despachos_alicante_2024_2026", "pgk"),
             )
+        # Apply schema migrations for existing databases
+        _migrate_schema(conn)
+
         conn.commit()
     finally:
         conn.close()
@@ -146,6 +178,8 @@ def authenticate(
                 "empresa_cif": row["empresa_cif"],
                 "convenio_id": row["convenio_id"],
                 "role": row["role"],
+                "empresa_domicilio": row.get("empresa_domicilio", ""),
+                "empresa_ccc": row.get("empresa_ccc", ""),
             }
         return None
     finally:
@@ -263,6 +297,12 @@ def add_employee(
     salario_bruto_mensual: float | None = None,
     num_hijos: int = 0,
     notas: str = "",
+    nif: str = "",
+    naf: str = "",
+    domicilio: str = "",
+    email: str = "",
+    telefono: str = "",
+    region: str = "generica",
     db_path: Path | None = None,
 ) -> int:
     conn = _get_db(db_path)
@@ -270,8 +310,8 @@ def add_employee(
         cursor = conn.execute(
             """INSERT INTO employees (user_id, nombre, categoria, contrato_tipo,
                jornada_horas, fecha_inicio, fecha_fin, salario_bruto_mensual,
-               num_hijos, notas)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               num_hijos, notas, nif, naf, domicilio, email, telefono, region)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 user_id,
                 nombre,
@@ -283,6 +323,12 @@ def add_employee(
                 salario_bruto_mensual,
                 num_hijos,
                 notas,
+                nif,
+                naf,
+                domicilio,
+                email,
+                telefono,
+                region,
             ),
         )
         conn.commit()
@@ -301,7 +347,8 @@ def get_employees(
         rows = conn.execute(
             """SELECT id, nombre, categoria, contrato_tipo, jornada_horas,
                fecha_inicio, fecha_fin, salario_bruto_mensual, num_hijos,
-               notas, status, created_at
+               notas, status, nif, naf, domicilio, email, telefono, region,
+               created_at
                FROM employees WHERE user_id = ? AND status = ?
                ORDER BY nombre ASC""",
             (user_id, status),
@@ -336,6 +383,12 @@ def update_employee(
         "num_hijos",
         "notas",
         "status",
+        "nif",
+        "naf",
+        "domicilio",
+        "email",
+        "telefono",
+        "region",
     }
     updates = {k: v for k, v in fields.items() if k in allowed}
     if not updates:
