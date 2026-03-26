@@ -803,6 +803,25 @@ class ChatParser:
     # ------------------------------------------------------------------
 
     @staticmethod
+    def _parse_spanish_number(raw: str) -> float:
+        """Parse a number that may use Spanish/European formatting.
+
+        Spanish format: period = thousands separator, comma = decimal.
+        - "1.200" → 1200.0
+        - "2.500,50" → 2500.50
+        - "1200" → 1200.0
+        - "1,5" → 1.5
+        """
+        # If it contains both period and comma, period is thousands sep
+        if "." in raw and "," in raw:
+            return float(raw.replace(".", "").replace(",", "."))
+        # Period followed by exactly 3 digits → thousands separator
+        if re.match(r"^\d{1,3}(\.\d{3})+$", raw):
+            return float(raw.replace(".", ""))
+        # Otherwise comma is decimal separator
+        return float(raw.replace(",", "."))
+
+    @staticmethod
     def _extract_budget(text: str) -> float | None:
         """Extrae el presupuesto máximo de una frase.
 
@@ -811,21 +830,22 @@ class ChatParser:
         - "presupuesto 1200", "presupuesto de 1200"
         - "pagar 1200", "pagarle 1200", "gastar 1200"
         - "1200 euros máximo", "1200€ max"
-        - "hasta 1200", "no más de 1200", "tope 1200"
-        - "por 1200", "con 1200"
+        - "hasta 1200€", "no más de 1200", "tope 1200"
+        - "por 1200€", "con 1200€"
         """
-        # Patrón 1: "máximo/max/maximo N", "presupuesto (de) N", "pagar(le) N", "gastar N"
+        # Number pattern: supports "1200", "1.200", "1.200,50", "1200,50"
+        _n = r"(\d{1,3}(?:\.\d{3})*(?:,\d+)?|\d+(?:,\d+)?)"
         patterns = [
-            r"(?:maximo|maximo|max|presupuesto|pagar|pagarle|gastar|gastarm?e|tope|limite)\s+(?:de\s+)?(?:hasta\s+)?(\d+(?:[.,]\d+)?)",
-            r"(\d+(?:[.,]\d+)?)\s*(?:€|euros?|eur)\s*(?:maximo|max|como\s+mucho|de\s+tope)",
-            r"hasta\s+(\d+(?:[.,]\d+)?)\s*(?:€|euros?|eur)?",
-            r"no\s+mas\s+de\s+(\d+(?:[.,]\d+)?)",
-            r"(?:por|con)\s+(\d+(?:[.,]\d+)?)\s*(?:€|euros?|eur)",
+            rf"(?:maximo|max|presupuesto|pagar|pagarle|gastar|gastarm?e|tope|limite)\s+(?:de\s+)?(?:hasta\s+)?{_n}",
+            rf"{_n}\s*(?:€|euros?|eur)\s*(?:maximo|max|como\s+mucho|de\s+tope)",
+            rf"hasta\s+{_n}\s*(?:€|euros?|eur)",
+            rf"no\s+mas\s+de\s+{_n}",
+            rf"(?:por|con)\s+{_n}\s*(?:€|euros?|eur)",
         ]
         for p in patterns:
             m = re.search(p, text)
             if m:
-                val = float(m.group(1).replace(",", "."))
+                val = ChatParser._parse_spanish_number(m.group(1))
                 if 100 <= val <= 50000:  # rango razonable para coste mensual
                     return val
         return None
