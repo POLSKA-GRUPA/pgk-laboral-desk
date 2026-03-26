@@ -355,7 +355,7 @@
       grupo_cotizacion: 'Grupo cotización',
     };
     const fmtVal = (k, v) => {
-      if (k === 'pct_total') return (v * 100).toFixed(2) + ' %';
+      if (k === 'pct_total') return v.toFixed(2) + ' %';
       if (k === 'grupo_cotizacion') return esc(String(v));
       if (typeof v === 'number') return fmt(v);
       return esc(String(v));
