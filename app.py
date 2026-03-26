@@ -489,7 +489,7 @@ def api_employees_create():
     if not salario:
         eng = _get_engine()
         sim = eng.simulate(
-            category=str(data["categoria"]),
+            category=categoria,
             contract_type=str(data.get("contrato_tipo", "indefinido")),
             weekly_hours=float(data.get("jornada_horas", 40)),
             seniority_years=0,
@@ -830,7 +830,9 @@ def api_bulk_nominas():
             region=region,
         )
         if "error" in sim:
-            results.append({"employee_id": emp["id"], "nombre": emp["nombre"], "error": sim["error"]})
+            results.append(
+                {"employee_id": emp["id"], "nombre": emp["nombre"], "error": sim["error"]}
+            )
             continue
 
         try:
@@ -846,16 +848,18 @@ def api_bulk_nominas():
                 },
                 periodo_str=periodo,
             )
-            results.append({
-                "employee_id": emp["id"],
-                "nombre": emp["nombre"],
-                "bruto_mensual": sim.get("bruto_mensual_eur", 0),
-                "neto_mensual": sim.get("neto_mensual_eur", 0),
-                "ss_trabajador": sim.get("ss_trabajador_mes_eur", 0),
-                "irpf": sim.get("irpf_mensual_eur", 0),
-                "coste_empresa": sim.get("coste_total_empresa_mes_eur", 0),
-                "ok": True,
-            })
+            results.append(
+                {
+                    "employee_id": emp["id"],
+                    "nombre": emp["nombre"],
+                    "bruto_mensual": sim.get("bruto_mensual_eur", 0),
+                    "neto_mensual": sim.get("neto_mensual_eur", 0),
+                    "ss_trabajador": sim.get("ss_trabajador_mes_eur", 0),
+                    "irpf": sim.get("irpf_mensual_eur", 0),
+                    "coste_empresa": sim.get("coste_total_empresa_mes_eur", 0),
+                    "ok": True,
+                }
+            )
         except (ValueError, KeyError) as exc:
             results.append({"employee_id": emp["id"], "nombre": emp["nombre"], "error": str(exc)})
 
@@ -1008,8 +1012,10 @@ def api_health():
         from database import _get_db
 
         conn = _get_db()
-        conn.execute("SELECT 1")
-        conn.close()
+        try:
+            conn.execute("SELECT 1")
+        finally:
+            conn.close()
         checks["database"] = {"ok": True}
     except Exception as exc:
         checks["database"] = {"ok": False, "error": str(exc)}
