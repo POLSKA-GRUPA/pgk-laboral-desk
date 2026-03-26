@@ -142,6 +142,17 @@ def _normalize(text: str) -> str:
     return re.sub(r"\s+", " ", v).strip()
 
 
+def _strip_accents(text: str) -> str:
+    """Strip accents but preserve periods, commas, currency symbols (€).
+
+    Unlike _normalize, this keeps punctuation intact so that Spanish-formatted
+    numbers like "1.200,50" and currency symbols like "€" are preserved.
+    """
+    v = unicodedata.normalize("NFKD", text)
+    v = "".join(c for c in v if unicodedata.category(c) != "Mn")
+    return v.lower()
+
+
 class ChatParser:
     """Parser de consultas laborales en lenguaje natural."""
 
@@ -182,7 +193,11 @@ class ChatParser:
             return self._handle_budget_category_selection(norm, message, ctx)
 
         # Detectar consulta inversa (presupuesto) antes del flujo normal
-        budget = self._extract_budget(ctx.get("_raw", message.lower()))
+        # Try accent-stripped text first (preserves periods/commas/€)
+        semi_norm = _strip_accents(message)
+        budget = self._extract_budget(semi_norm)
+        if budget is None:
+            budget = self._extract_budget(ctx.get("_raw", message.lower()))
         if budget is None:
             budget = self._extract_budget(norm)
         if budget is not None:
@@ -825,22 +840,24 @@ class ChatParser:
     def _extract_budget(text: str) -> float | None:
         """Extrae el presupuesto máximo de una frase.
 
-        Patrones reconocidos:
-        - "máximo 1200", "max 1200", "maximo 1200 euros"
-        - "presupuesto 1200", "presupuesto de 1200"
-        - "pagar 1200", "pagarle 1200", "gastar 1200"
+        Patrones reconocidos (requieren indicador de moneda salvo 'presupuesto/coste'):
+        - "máximo 1200€", "max 1200 euros", "tope 1200€"
+        - "presupuesto 1200", "presupuesto de 1200" (inherently monetary)
+        - "pagar 1200€", "pagarle 1200 euros", "gastar 1200€"
         - "1200 euros máximo", "1200€ max"
-        - "hasta 1200€", "no más de 1200", "tope 1200"
-        - "por 1200€", "con 1200€"
+        - "hasta 1200€", "no más de 1200€"
+        - "por 1200€", "con 1200€", "coste 1500"
         """
         # Number pattern: supports "1200", "1.200", "1.200,50", "1200,50"
         _n = r"(\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?)"
         patterns = [
-            rf"(?:maximo|max|presupuesto|pagar|pagarle|gastar|gastarm?e|tope|limite)\s+(?:de\s+)?(?:hasta\s+)?{_n}",
+            rf"(?:maximo|max|pagar|pagarle|gastar|gastarm?e|tope|limite)\s+(?:de\s+)?(?:hasta\s+)?{_n}\s*(?:€|euros?|eur)",
             rf"{_n}\s*(?:€|euros?|eur)\s*(?:maximo|max|como\s+mucho|de\s+tope)",
             rf"hasta\s+{_n}\s*(?:€|euros?|eur)",
-            rf"no\s+mas\s+de\s+{_n}",
+            rf"no\s+mas\s+de\s+{_n}\s*(?:€|euros?|eur)",
             rf"(?:por|con)\s+{_n}\s*(?:€|euros?|eur)",
+            # Inherently monetary keywords don't need currency suffix
+            rf"(?:presupuesto|coste|costar)\s+(?:de\s+)?(?:hasta\s+)?{_n}",
         ]
         for p in patterns:
             m = re.search(p, text)
