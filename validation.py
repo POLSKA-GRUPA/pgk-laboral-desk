@@ -27,11 +27,12 @@ VALID_CONTRACT_TYPES = {
 VALID_DESPIDO_TYPES = {
     "improcedente",
     "objetivo",
-    "colectivo",
     "disciplinario",
+    "disciplinario_procedente",
+    "mutuo_acuerdo",
     "voluntario",
-    "fin-contrato-temporal",
-    "desistimiento-periodo-prueba",
+    "ere",
+    "fin_contrato_temporal",
 }
 
 
