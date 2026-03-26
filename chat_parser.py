@@ -178,6 +178,16 @@ class ChatParser:
             return self._handle_category_selection(norm, message, ctx)
         if ctx.get("waiting_for") == "missing_params":
             return self._handle_param_response(norm, message, ctx)
+        if ctx.get("waiting_for") == "budget_category_selection":
+            return self._handle_budget_category_selection(norm, message, ctx)
+
+        # Detectar consulta inversa (presupuesto) antes del flujo normal
+        budget = self._extract_budget(ctx.get("_raw", message.lower()))
+        if budget is None:
+            budget = self._extract_budget(norm)
+        if budget is not None:
+            ctx["budget"] = budget
+            return self._handle_budget_query(norm, ctx)
 
         # Primera interacción: buscar categoría
         category_result = self._match_category(norm)
@@ -787,6 +797,163 @@ class ChatParser:
         else:
             warnings.append("Periodo de prueba: hasta 30 días (Arts. 20-21).")
         return warnings
+
+    # ------------------------------------------------------------------
+    # Consulta inversa (presupuesto)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _extract_budget(text: str) -> float | None:
+        """Extrae el presupuesto máximo de una frase.
+
+        Patrones reconocidos:
+        - "máximo 1200", "max 1200", "maximo 1200 euros"
+        - "presupuesto 1200", "presupuesto de 1200"
+        - "pagar 1200", "pagarle 1200", "gastar 1200"
+        - "1200 euros máximo", "1200€ max"
+        - "hasta 1200", "no más de 1200", "tope 1200"
+        - "por 1200", "con 1200"
+        """
+        # Patrón 1: "máximo/max/maximo N", "presupuesto (de) N", "pagar(le) N", "gastar N"
+        patterns = [
+            r"(?:maximo|maximo|max|presupuesto|pagar|pagarle|gastar|gastarm?e|tope|limite)\s+(?:de\s+)?(?:hasta\s+)?(\d+(?:[.,]\d+)?)",
+            r"(\d+(?:[.,]\d+)?)\s*(?:€|euros?|eur)\s*(?:maximo|max|como\s+mucho|de\s+tope)",
+            r"hasta\s+(\d+(?:[.,]\d+)?)\s*(?:€|euros?|eur)?",
+            r"no\s+mas\s+de\s+(\d+(?:[.,]\d+)?)",
+            r"(?:por|con)\s+(\d+(?:[.,]\d+)?)\s*(?:€|euros?|eur)",
+        ]
+        for p in patterns:
+            m = re.search(p, text)
+            if m:
+                val = float(m.group(1).replace(",", "."))
+                if 100 <= val <= 50000:  # rango razonable para coste mensual
+                    return val
+        return None
+
+    def _handle_budget_query(self, norm: str, ctx: dict) -> dict[str, Any]:
+        """Procesa una consulta de presupuesto: detecta categoría y devuelve opciones."""
+        budget = ctx["budget"]
+        category_result = self._match_category(norm)
+
+        if category_result["status"] == "exact":
+            return {
+                "action": "budget_search",
+                "params": {
+                    "category": category_result["category"],
+                    "max_monthly_cost": budget,
+                },
+                "context": ctx,
+            }
+
+        if category_result["status"] == "family":
+            family = category_result["family"]
+            fam_data = self.familias[family]
+            ctx["waiting_for"] = "budget_category_selection"
+            ctx["candidates"] = fam_data["opciones"]
+            options = []
+            for cat_name in fam_data["opciones"]:
+                cat_info = self._get_cat_info(cat_name)
+                if cat_info:
+                    options.append(
+                        {
+                            "category": cat_name,
+                            "label": cat_info["nombre_corto"],
+                            "salary": self._get_salary_hint(cat_name),
+                            "description": cat_info.get("diferencia_clave", ""),
+                        }
+                    )
+            return {
+                "action": "clarify_category",
+                "message": f"Presupuesto: **{budget:.0f} €/mes**. {fam_data['mensaje']}.\n{fam_data['pregunta']}",
+                "options": options,
+                "context": ctx,
+            }
+
+        if category_result["status"] == "ambiguous":
+            ctx["waiting_for"] = "budget_category_selection"
+            ctx["candidates"] = [m["category"] for m in category_result["matches"]]
+            options = []
+            for m in category_result["matches"][:4]:
+                cat_info = self._get_cat_info(m["category"])
+                options.append(
+                    {
+                        "category": m["category"],
+                        "label": cat_info["nombre_corto"] if cat_info else m["category"],
+                        "salary": self._get_salary_hint(m["category"]),
+                    }
+                )
+            return {
+                "action": "clarify_category",
+                "message": f"Presupuesto: **{budget:.0f} €/mes**. ¿Qué categoría necesitas?",
+                "options": options,
+                "context": ctx,
+            }
+
+        return {
+            "action": "not_found",
+            "message": "No he podido identificar la categoría profesional. Intenta describir el puesto.",
+            "options": [],
+            "context": ctx,
+        }
+
+    def _handle_budget_category_selection(
+        self, norm: str, original: str, ctx: dict
+    ) -> dict[str, Any]:
+        """El usuario selecciona categoría para una consulta de presupuesto."""
+        candidates = ctx.get("candidates", [])
+
+        # Intentar match directo por número ("1", "2", etc.)
+        try:
+            idx = int(norm.strip()) - 1
+            if 0 <= idx < len(candidates):
+                return {
+                    "action": "budget_search",
+                    "params": {
+                        "category": candidates[idx],
+                        "max_monthly_cost": ctx["budget"],
+                    },
+                    "context": ctx,
+                }
+        except ValueError:
+            pass
+
+        # Intentar match por keywords
+        for cat_name in candidates:
+            cat_norm = _normalize(cat_name)
+            if cat_norm in norm or norm in cat_norm:
+                return {
+                    "action": "budget_search",
+                    "params": {
+                        "category": cat_name,
+                        "max_monthly_cost": ctx["budget"],
+                    },
+                    "context": ctx,
+                }
+
+        # Usar scoring general
+        category_result = self._match_category(norm)
+        if category_result["status"] == "exact":
+            return {
+                "action": "budget_search",
+                "params": {
+                    "category": category_result["category"],
+                    "max_monthly_cost": ctx["budget"],
+                },
+                "context": ctx,
+            }
+
+        return {
+            "action": "clarify_category",
+            "message": "No he entendido la categoría. ¿Puedes elegir una opción?",
+            "options": [
+                {
+                    "category": c,
+                    "label": (self._get_cat_info(c) or {}).get("nombre_corto", c),
+                }
+                for c in candidates
+            ],
+            "context": ctx,
+        }
 
     def _get_cat_info(self, category: str) -> dict[str, Any] | None:
         for cat in self.categorias:

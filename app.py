@@ -378,6 +378,13 @@ def api_chat():
         session.pop("chat_context", None)
         return jsonify({"type": "result", "data": sim_result})
 
+    if action == "budget_search":
+        budget_result = _get_engine().find_contracts_by_budget(**result["params"])
+        if "error" in budget_result:
+            return jsonify({"type": "error", "message": budget_result["error"]})
+        session.pop("chat_context", None)
+        return jsonify({"type": "budget_result", "data": budget_result})
+
     if action in ("clarify_category", "need_params"):
         return jsonify(
             {

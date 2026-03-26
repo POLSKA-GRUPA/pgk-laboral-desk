@@ -299,6 +299,96 @@ class LaboralEngine:
         }
 
     # ------------------------------------------------------------------
+    # Consulta inversa: presupuesto → opciones de contratación
+    # ------------------------------------------------------------------
+
+    def find_contracts_by_budget(
+        self,
+        category: str,
+        max_monthly_cost: float,
+        seniority_years: int = 0,
+        region: str = "generica",
+    ) -> dict[str, Any]:
+        """Dado un presupuesto máximo mensual (coste empresa), sugiere combinaciones
+        de tipo de contrato y jornada que encajan.
+
+        Returns:
+            dict con: categoria, presupuesto, opciones (list of dicts), mensaje
+        """
+        row = self._find_category(category)
+        if row is None:
+            return {"error": f"Categoría no encontrada: {category}"}
+
+        contract_types = ["indefinido", "fijo-discontinuo", "temporal"]
+        hour_options = [40, 35, 30, 25, 20, 15, 10]
+
+        opciones: list[dict[str, Any]] = []
+
+        for ct in contract_types:
+            for hours in hour_options:
+                sim = self.simulate(
+                    category=category,
+                    contract_type=ct,
+                    weekly_hours=float(hours),
+                    seniority_years=seniority_years,
+                    region=region,
+                )
+                if "error" in sim:
+                    continue
+
+                coste = sim["coste_total_empresa_mes_eur"]
+                if coste <= max_monthly_cost:
+                    opciones.append(
+                        {
+                            "contrato": sim["contrato"],
+                            "contrato_tipo": ct,
+                            "jornada_horas": hours,
+                            "jornada_pct": sim["jornada_pct"],
+                            "coste_empresa_mes": coste,
+                            "bruto_mensual": sim["bruto_mensual_eur"],
+                            "neto_estimado": sim["neto_mensual_eur"],
+                            "ss_empresa": sim["ss_empresa_mes_eur"],
+                            "margen": round(max_monthly_cost - coste, 2),
+                        }
+                    )
+
+        # Ordenar por coste descendente (aprovechar al máximo el presupuesto)
+        opciones.sort(key=lambda x: x["coste_empresa_mes"], reverse=True)
+
+        cat_label = row.category.rstrip(".")
+        if not opciones:
+            # Calcular el coste mínimo posible (10h/sem indefinido)
+            sim_min = self.simulate(
+                category=category,
+                contract_type="indefinido",
+                weekly_hours=10.0,
+                seniority_years=seniority_years,
+                region=region,
+            )
+            coste_min = sim_min.get("coste_total_empresa_mes_eur", 0)
+            return {
+                "categoria": cat_label,
+                "presupuesto_max": max_monthly_cost,
+                "opciones": [],
+                "mensaje": (
+                    f"Con un presupuesto de {max_monthly_cost:.0f} €/mes no es posible "
+                    f"contratar a un **{cat_label}** ni siquiera a 10h/semana "
+                    f"(coste mínimo: {coste_min:.2f} €/mes)."
+                ),
+            }
+
+        return {
+            "categoria": cat_label,
+            "presupuesto_max": max_monthly_cost,
+            "opciones": opciones,
+            "mensaje": (
+                f"Para **{cat_label}** con presupuesto máximo de "
+                f"**{max_monthly_cost:.0f} €/mes**, he encontrado "
+                f"**{len(opciones)} combinaciones** posibles."
+            ),
+        }
+
+    # ------------------------------------------------------------------
     # Calculadora de despido / extinción laboral
     # ------------------------------------------------------------------
 
