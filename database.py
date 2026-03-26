@@ -171,15 +171,16 @@ def authenticate(
     try:
         row = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
         if row and check_password_hash(row["password_hash"], password):
+            d = dict(row)
             return {
-                "id": row["id"],
-                "username": row["username"],
-                "empresa_nombre": row["empresa_nombre"],
-                "empresa_cif": row["empresa_cif"],
-                "convenio_id": row["convenio_id"],
-                "role": row["role"],
-                "empresa_domicilio": row.get("empresa_domicilio", ""),
-                "empresa_ccc": row.get("empresa_ccc", ""),
+                "id": d["id"],
+                "username": d["username"],
+                "empresa_nombre": d["empresa_nombre"],
+                "empresa_cif": d["empresa_cif"],
+                "convenio_id": d["convenio_id"],
+                "role": d["role"],
+                "empresa_domicilio": d.get("empresa_domicilio", ""),
+                "empresa_ccc": d.get("empresa_ccc", ""),
             }
         return None
     finally:
