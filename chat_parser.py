@@ -834,7 +834,7 @@ class ChatParser:
         - "por 1200€", "con 1200€"
         """
         # Number pattern: supports "1200", "1.200", "1.200,50", "1200,50"
-        _n = r"(\d{1,3}(?:\.\d{3})*(?:,\d+)?|\d+(?:,\d+)?)"
+        _n = r"(\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?)"
         patterns = [
             rf"(?:maximo|max|presupuesto|pagar|pagarle|gastar|gastarm?e|tope|limite)\s+(?:de\s+)?(?:hasta\s+)?{_n}",
             rf"{_n}\s*(?:€|euros?|eur)\s*(?:maximo|max|como\s+mucho|de\s+tope)",
@@ -926,6 +926,8 @@ class ChatParser:
         try:
             idx = int(norm.strip()) - 1
             if 0 <= idx < len(candidates):
+                ctx.pop("waiting_for", None)
+                ctx.pop("candidates", None)
                 return {
                     "action": "budget_search",
                     "params": {
@@ -941,6 +943,8 @@ class ChatParser:
         for cat_name in candidates:
             cat_norm = _normalize(cat_name)
             if cat_norm in norm or norm in cat_norm:
+                ctx.pop("waiting_for", None)
+                ctx.pop("candidates", None)
                 return {
                     "action": "budget_search",
                     "params": {
@@ -953,6 +957,8 @@ class ChatParser:
         # Usar scoring general
         category_result = self._match_category(norm)
         if category_result["status"] == "exact":
+            ctx.pop("waiting_for", None)
+            ctx.pop("candidates", None)
             return {
                 "action": "budget_search",
                 "params": {
