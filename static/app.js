@@ -215,9 +215,12 @@
       hideSuggestions();
       addBubble(msg, 'user');
       const typing = showTypingIndicator();
-      const res = await api('/api/chat', { method: 'POST', body: JSON.stringify({ message: msg }) });
-      typing.remove();
-      if (res) handleChatResponse(res);
+      try {
+        const res = await api('/api/chat', { method: 'POST', body: JSON.stringify({ message: msg }) });
+        if (res) handleChatResponse(res);
+      } finally {
+        typing.remove();
+      }
     }
 
     form.addEventListener('submit', async e => {
