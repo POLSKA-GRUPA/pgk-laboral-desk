@@ -2112,6 +2112,42 @@ h1, h2, h3, h4, h5, h6 {
   to { transform: rotate(360deg); }
 }
 
+/* ============================================================
+   Budget results table (inverse queries)
+   ============================================================ */
+.budget-results {
+  margin-top: 10px;
+  overflow-x: auto;
+}
+
+.budget-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.budget-table th {
+  text-align: left;
+  padding: 6px 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  border-bottom: 2px solid var(--line);
+  white-space: nowrap;
+}
+
+.budget-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.budget-table tr:hover td {
+  background: rgba(220, 203, 179, 0.1);
+}
+
 .btn-primary:disabled,
 .btn-danger:disabled {
   opacity: 0.6;

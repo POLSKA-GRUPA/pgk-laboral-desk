@@ -274,9 +274,38 @@
       return;
     }
 
+    if (res.type === 'budget_result') {
+      renderBudgetResult(res.data);
+      return;
+    }
+
     if (res.type === 'not_found') {
       addBubble(res.message || 'No encontré esa categoría. Intenta con otra descripción.', 'system');
     }
+  }
+
+  function renderBudgetResult(data) {
+    let html = `<span>${md(data.mensaje)}</span>`;
+    if (data.opciones && data.opciones.length) {
+      html += '<div class="budget-results">';
+      html += '<table class="budget-table"><thead><tr>'
+        + '<th>Contrato</th><th>Jornada</th><th>Coste empresa</th><th>Bruto</th><th>Neto est.</th><th>Margen</th>'
+        + '</tr></thead><tbody>';
+      data.opciones.forEach(op => {
+        const highlight = op.margen < 50 ? ' style="background:rgba(220,203,179,0.15)"' : '';
+        html += `<tr${highlight}>`
+          + `<td>${esc(op.contrato)}</td>`
+          + `<td>${op.jornada_horas}h (${op.jornada_pct}%)</td>`
+          + `<td><strong>${fmt(op.coste_empresa_mes)}</strong></td>`
+          + `<td>${fmt(op.bruto_mensual)}</td>`
+          + `<td>${fmt(op.neto_estimado)}</td>`
+          + `<td style="color:var(--muted)">${fmt(op.margen)}</td>`
+          + '</tr>';
+      });
+      html += '</tbody></table></div>';
+      html += `<div style="margin-top:8px;font-size:12px;color:var(--muted)">Presupuesto máx: ${fmt(data.presupuesto_max)} · ${data.opciones.length} combinaciones encontradas</div>`;
+    }
+    addBubble(html, 'system', true);
   }
 
   // ------------------------------------------------------------------
@@ -303,6 +332,62 @@
       if (res?.error) { showToast(res.error, 'error'); return; }
       if (res) renderResult(res);
     });
+  }
+
+  // ------------------------------------------------------------------
+  // Render SS detalle (handles nested empresa/trabajador objects)
+  // ------------------------------------------------------------------
+  function renderSSDetalle(ssD) {
+    if (!ssD || !Object.keys(ssD).length) {
+      return '<span style="color:var(--muted);font-size:13px">—</span>';
+    }
+    const labelMap = {
+      base_cotizacion_eur: 'Base cotización',
+      contingencias_comunes: 'Contingencias comunes',
+      desempleo: 'Desempleo',
+      fogasa: 'FOGASA',
+      formacion_profesional: 'Formación profesional',
+      mei: 'MEI',
+      at_ep: 'AT/EP',
+      total_eur: 'Total',
+      pct_total: '% sobre base',
+      recargo_contrato_corto_eur: 'Recargo contrato corto',
+      grupo_cotizacion: 'Grupo cotización',
+    };
+    const fmtVal = (k, v) => {
+      if (k === 'pct_total') return v.toFixed(2) + ' %';
+      if (k === 'grupo_cotizacion') return esc(String(v));
+      if (typeof v === 'number') return fmt(v);
+      return esc(String(v));
+    };
+    let html = '';
+    // Base de cotización
+    if (ssD.base_cotizacion_eur != null) {
+      html += `<div class="desglose-row"><span>Base cotización</span><span>${fmt(ssD.base_cotizacion_eur)}</span></div>`;
+    }
+    // Empresa
+    if (ssD.empresa && typeof ssD.empresa === 'object') {
+      html += '<h5 style="margin:10px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted)">Empresa</h5>';
+      for (const [k, v] of Object.entries(ssD.empresa)) {
+        html += `<div class="desglose-row"><span>${esc(labelMap[k] || k.replace(/_/g, ' '))}</span><span>${fmtVal(k, v)}</span></div>`;
+      }
+    }
+    // Trabajador
+    if (ssD.trabajador && typeof ssD.trabajador === 'object') {
+      html += '<h5 style="margin:10px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted)">Trabajador</h5>';
+      for (const [k, v] of Object.entries(ssD.trabajador)) {
+        html += `<div class="desglose-row"><span>${esc(labelMap[k] || k.replace(/_/g, ' '))}</span><span>${fmtVal(k, v)}</span></div>`;
+      }
+    }
+    // Grupo cotización
+    if (ssD.grupo_cotizacion) {
+      html += `<div class="desglose-row"><span>Grupo cotización</span><span>${esc(ssD.grupo_cotizacion)}</span></div>`;
+    }
+    // Recargo
+    if (ssD.recargo_contrato_corto_eur) {
+      html += `<div class="desglose-row"><span>Recargo contrato corto</span><span>${fmt(ssD.recargo_contrato_corto_eur)}</span></div>`;
+    }
+    return html || '<span style="color:var(--muted);font-size:13px">—</span>';
   }
 
   // ------------------------------------------------------------------
@@ -336,10 +421,7 @@
     ).join('');
 
     const ssD = d.ss_detalle || {};
-    $('ssDetalle').innerHTML = Object.entries(ssD)
-      .filter(([k]) => !['grupo_cotizacion', 'emp_total', 'trab_total'].includes(k))
-      .map(([k, v]) => `<div class="desglose-row"><span>${esc(k.replace(/_/g, ' '))}</span><span>${typeof v === 'number' ? fmt(v) : esc(String(v))}</span></div>`)
-      .join('') || '<span style="color:var(--muted);font-size:13px">—</span>';
+    $('ssDetalle').innerHTML = renderSSDetalle(ssD);
 
     const notas = d.notas || [];
     $('notasBox').innerHTML = notas.length
