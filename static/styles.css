@@ -2166,6 +2166,10 @@ h1, h2, h3, h4, h5, h6 {
   animation: fadeSlideUp 0.4s var(--ease-out);
 }
 
+.chat-suggestions[hidden] {
+  display: none;
+}
+
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
