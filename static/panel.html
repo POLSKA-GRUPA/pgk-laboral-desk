@@ -65,8 +65,17 @@
 
           <!-- CHAT -->
           <section id="chatSection" class="tool-section">
+            <div class="chat-mode-toggle">
+              <button class="chat-mode-btn active" data-chat-mode="agent" id="btnModeAgent">
+                <span class="chat-mode-dot agent"></span> IA (CodeAct)
+              </button>
+              <button class="chat-mode-btn" data-chat-mode="classic" id="btnModeClassic">
+                <span class="chat-mode-dot classic"></span> Cl&aacute;sico
+              </button>
+              <span id="agentStatusBadge" class="agent-status-badge" hidden>Sin API key</span>
+            </div>
             <div id="chatLog" class="chat-log">
-              <div class="chat-bubble system">Hola. Dime qu&eacute; puesto quieres cubrir y te calculo el coste real. Por ejemplo: <em>&ldquo;Necesito un socorrista para verano a jornada completa&rdquo;</em></div>
+              <div class="chat-bubble system">Hola. Soy tu asistente laboral con IA. Pregunta lo que quieras sobre contrataci&oacute;n, despidos, costes, convenio&hellip; Por ejemplo: <em>&ldquo;Necesito un socorrista para verano a jornada completa&rdquo;</em></div>
             </div>
             <form id="chatForm" class="chat-input-row">
               <input id="chatInput" type="text" placeholder="Escribe aqu&iacute;&hellip;" autocomplete="off">
