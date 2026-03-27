@@ -33,8 +33,9 @@
   }
 
   // Richer markdown for agent responses (tables, headers, code, lists)
+  // Escapes HTML first to prevent XSS from LLM-generated output.
   function mdAgent(text) {
-    let s = String(text ?? '');
+    let s = esc(String(text ?? ''));
     // Code blocks (```...```)
     s = s.replace(/```(?:\w+)?\n([\s\S]*?)```/g, '<pre class="agent-code"><code>$1</code></pre>');
     // Inline code

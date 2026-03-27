@@ -489,7 +489,15 @@ def api_agent_chat():
 @app.route("/api/agent/stream", methods=["POST"])
 @login_required
 def api_agent_stream():
-    """Chat con el agente CodeAct via Server-Sent Events (streaming)."""
+    """Chat con el agente CodeAct via Server-Sent Events (streaming).
+
+    Note: Flask cookie-based sessions cannot be updated inside a streaming
+    generator (the Set-Cookie header is sent before the body). We collect
+    the full response first and update the session *before* returning the
+    streaming Response. The trade-off is that we buffer the full response
+    instead of truly streaming, but for typical labor-law answers this is
+    acceptable (~1-5 seconds total) and avoids losing conversation context.
+    """
     import json as _json
 
     agent = _get_agent()
@@ -504,34 +512,35 @@ def api_agent_stream():
     history = list(session.get("agent_history", []))
     ctx = dict(session.get("agent_context", {}))
 
+    # Collect all events first so we can update session before streaming
+    events: list[dict[str, str]] = []
+    full_response = ""
+    final_ctx = ctx
+
+    for event in agent.stream_chat(message, history=history, context=ctx):
+        event_type = event.get("type", "token")
+        content = event.get("content", "")
+        events.append({"type": event_type, "content": content})
+
+        if event_type == "token":
+            full_response += content
+        elif event_type == "done":
+            if content:
+                full_response = content
+            final_ctx = event.get("context", ctx)
+
+    # Update session BEFORE returning Response (so Set-Cookie is correct)
+    new_history = list(history)
+    new_history.append({"role": "user", "content": message})
+    new_history.append({"role": "assistant", "content": full_response})
+    if len(new_history) > 20:
+        new_history = new_history[-20:]
+    session["agent_history"] = new_history
+    session["agent_context"] = final_ctx
+
     def generate():
-        full_response = ""
-        for event in agent.stream_chat(message, history=history, context=ctx):
-            event_type = event.get("type", "token")
-            content = event.get("content", "")
-
-            if event_type == "token":
-                full_response += content
-                yield f"data: {_json.dumps({'type': 'token', 'content': content})}\n\n"
-            elif event_type == "code":
-                yield f"data: {_json.dumps({'type': 'code', 'content': content})}\n\n"
-            elif event_type == "result":
-                yield f"data: {_json.dumps({'type': 'result', 'content': content})}\n\n"
-            elif event_type == "done":
-                if content:
-                    full_response = content
-                new_ctx = event.get("context", ctx)
-                yield f"data: {_json.dumps({'type': 'done', 'content': ''})}\n\n"
-
-                # Actualizar historial en sesión
-                new_history = list(history)
-                new_history.append({"role": "user", "content": message})
-                new_history.append({"role": "assistant", "content": full_response})
-                if len(new_history) > 20:
-                    new_history = new_history[-20:]
-                session["agent_history"] = new_history
-                session["agent_context"] = new_ctx
-                return
+        for evt in events:
+            yield f"data: {_json.dumps(evt)}\n\n"
 
     return Response(
         generate(),
