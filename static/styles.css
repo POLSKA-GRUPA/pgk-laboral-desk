@@ -2153,3 +2153,228 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ============================================================
+   TYPING INDICATOR
+   ============================================================ */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+  align-self: flex-start;
+}
+
+.typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(21, 38, 33, 0.25);
+  animation: typingBounce 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+  30% { transform: translateY(-6px); opacity: 0.8; }
+}
+
+/* ============================================================
+   AGENT MODE TOGGLE & STYLES (CodeAct)
+   ============================================================ */
+.chat-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+  padding: 3px;
+  background: rgba(21, 38, 33, 0.05);
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.chat-mode-btn {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.chat-mode-btn.active {
+  background: var(--paper-strong);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.chat-mode-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chat-mode-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.chat-mode-dot.agent {
+  background: #0f766e;
+}
+
+.chat-mode-dot.classic {
+  background: var(--pgk-gold);
+}
+
+.agent-status-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(154, 52, 18, 0.1);
+  color: var(--warn);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Agent chat bubble */
+.agent-bubble {
+  border-left: 3px solid #0f766e;
+}
+
+.agent-thinking {
+  color: var(--muted);
+  font-style: italic;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.agent-error {
+  color: var(--warn);
+  font-weight: 500;
+}
+
+/* Agent markdown rendering */
+.agent-h {
+  margin: 12px 0 6px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+h3.agent-h { font-size: 16px; }
+h4.agent-h { font-size: 14px; }
+h5.agent-h { font-size: 13px; }
+
+.agent-code {
+  display: block;
+  margin: 8px 0;
+  padding: 10px 12px;
+  background: var(--pgk-green-dark);
+  color: var(--pgk-gold);
+  border-radius: 8px;
+  font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.agent-inline-code {
+  padding: 1px 5px;
+  background: rgba(21, 38, 33, 0.07);
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
+  font-size: 0.9em;
+}
+
+.agent-list {
+  margin: 6px 0;
+  padding-left: 18px;
+}
+
+.agent-list li {
+  margin-bottom: 3px;
+}
+
+.agent-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: 12px;
+}
+
+.agent-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.agent-table tr:first-child td {
+  font-weight: 600;
+  border-bottom: 2px solid var(--line-strong);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.agent-table tr:hover td {
+  background: rgba(220, 203, 179, 0.08);
+}
+
+/* Code execution indicator */
+.agent-code-exec {
+  margin: 8px 0;
+}
+
+.agent-code-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(15, 118, 110, 0.08);
+  color: var(--ok);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.agent-code-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.agent-result {
+  margin: 4px 0;
+  padding: 8px 10px;
+  background: rgba(15, 118, 110, 0.05);
+  border: 1px solid rgba(15, 118, 110, 0.15);
+  border-radius: 6px;
+  font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ink-secondary);
+  overflow-x: auto;
+  white-space: pre-wrap;
+}

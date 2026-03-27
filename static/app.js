@@ -32,6 +32,40 @@
       .replace(/\n/g, '<br>');
   }
 
+  // Richer markdown for agent responses (tables, headers, code, lists)
+  function mdAgent(text) {
+    let s = String(text ?? '');
+    // Code blocks (```...```)
+    s = s.replace(/```(?:\w+)?\n([\s\S]*?)```/g, '<pre class="agent-code"><code>$1</code></pre>');
+    // Inline code
+    s = s.replace(/`([^`]+)`/g, '<code class="agent-inline-code">$1</code>');
+    // Headers (### / ## / #)
+    s = s.replace(/^### (.+)$/gm, '<h5 class="agent-h">$1</h5>');
+    s = s.replace(/^## (.+)$/gm, '<h4 class="agent-h">$1</h4>');
+    s = s.replace(/^# (.+)$/gm, '<h3 class="agent-h">$1</h3>');
+    // Bold / italic
+    s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // Unordered lists
+    s = s.replace(/^[-*] (.+)$/gm, '<li>$1</li>');
+    s = s.replace(/(<li>.*<\/li>)/gs, '<ul class="agent-list">$1</ul>');
+    // Simple table detection (| col | col |)
+    s = s.replace(/^(\|.+\|)$/gm, (line) => {
+      if (/^\|[-: ]+\|$/.test(line)) return ''; // separator row
+      const cells = line.split('|').filter(c => c.trim());
+      const isHeader = false; // simplified
+      const tag = 'td';
+      return '<tr>' + cells.map(c => `<${tag}>${c.trim()}</${tag}>`).join('') + '</tr>';
+    });
+    s = s.replace(/(<tr>.*<\/tr>(?:\s*<tr>.*<\/tr>)*)/gs, '<table class="agent-table">$1</table>');
+    // Newlines
+    s = s.replace(/\n/g, '<br>');
+    // Clean up extra <br> around block elements
+    s = s.replace(/<br>\s*(<(?:pre|h[3-5]|ul|table|li))/g, '$1');
+    s = s.replace(/(<\/(?:pre|h[3-5]|ul|table|li)>)\s*<br>/g, '$1');
+    return s;
+  }
+
   async function api(path, options = {}) {
     const res = await fetch(path, {
       headers: { 'Content-Type': 'application/json' },
@@ -203,12 +237,50 @@
   }
 
   // ------------------------------------------------------------------
-  // Chat conversacional
+  // Chat conversacional (con soporte Agent CodeAct + Clásico)
   // ------------------------------------------------------------------
+  let chatMode = 'agent'; // 'agent' | 'classic'
+  let agentAvailable = false;
+
+  async function checkAgentStatus() {
+    try {
+      const res = await api('/api/agent/status');
+      agentAvailable = res && res.available;
+    } catch (_e) {
+      agentAvailable = false;
+    }
+    const badge = $('agentStatusBadge');
+    const agentBtn = $('btnModeAgent');
+    if (!agentAvailable) {
+      if (badge) { badge.hidden = false; badge.textContent = 'Sin API key'; }
+      if (agentBtn) agentBtn.classList.add('disabled');
+      chatMode = 'classic';
+      document.querySelectorAll('.chat-mode-btn').forEach(b => b.classList.remove('active'));
+      const classicBtn = $('btnModeClassic');
+      if (classicBtn) classicBtn.classList.add('active');
+    } else {
+      if (badge) badge.hidden = true;
+      if (agentBtn) agentBtn.classList.remove('disabled');
+    }
+  }
+
   function setupChat() {
     const form = $('chatForm');
     const input = $('chatInput');
     const resetBtn = $('chatResetBtn');
+
+    // Mode toggle
+    document.querySelectorAll('.chat-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.chatMode;
+        if (mode === 'agent' && !agentAvailable) return;
+        chatMode = mode;
+        document.querySelectorAll('.chat-mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    checkAgentStatus();
 
     form.addEventListener('submit', async e => {
       e.preventDefault();
@@ -216,16 +288,125 @@
       if (!msg) return;
       input.value = '';
       addBubble(msg, 'user');
-      const res = await api('/api/chat', { method: 'POST', body: JSON.stringify({ message: msg }) });
-      if (res) handleChatResponse(res);
+
+      if (chatMode === 'agent' && agentAvailable) {
+        await sendAgentMessage(msg);
+      } else {
+        const typing = showTypingIndicator();
+        try {
+          const res = await api('/api/chat', { method: 'POST', body: JSON.stringify({ message: msg }) });
+          if (res) handleChatResponse(res);
+        } finally {
+          typing.remove();
+        }
+      }
     });
 
     resetBtn.addEventListener('click', async () => {
       await api('/api/chat/reset', { method: 'POST' });
-      $('chatLog').innerHTML = '<div class="chat-bubble system">Hola. Dime qu\u00e9 puesto quieres cubrir y te calculo el coste real.</div>';
+      const greeting = chatMode === 'agent'
+        ? 'Hola. Soy tu asistente laboral con IA. Pregunta lo que quieras.'
+        : 'Hola. Dime qu\u00e9 puesto quieres cubrir y te calculo el coste real.';
+      $('chatLog').innerHTML = `<div class="chat-bubble system">${greeting}</div>`;
       $('resultSection').hidden = true;
       $('resultPlaceholder').hidden = false;
     });
+  }
+
+  function showTypingIndicator() {
+    const log = $('chatLog');
+    const div = document.createElement('div');
+    div.className = 'typing-indicator';
+    div.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+    return div;
+  }
+
+  // ------------------------------------------------------------------
+  // Agent streaming (SSE)
+  // ------------------------------------------------------------------
+  async function sendAgentMessage(msg) {
+    const log = $('chatLog');
+
+    // Create bubble for streaming response
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble system agent-bubble';
+    bubble.innerHTML = '<span class="agent-thinking">Pensando...</span>';
+    log.appendChild(bubble);
+    log.scrollTop = log.scrollHeight;
+
+    let fullText = '';
+    let hasStarted = false;
+
+    try {
+      const res = await fetch('/api/agent/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg }),
+      });
+
+      if (res.status === 401) { location.href = '/'; return; }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Error del servidor' }));
+        bubble.innerHTML = `<span class="agent-error">${esc(err.error || 'Error')}</span>`;
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          let event;
+          try { event = JSON.parse(line.slice(6)); } catch (_e) { continue; }
+
+          if (event.type === 'token') {
+            if (!hasStarted) {
+              bubble.innerHTML = '';
+              hasStarted = true;
+            }
+            fullText += event.content;
+            bubble.innerHTML = mdAgent(fullText);
+            log.scrollTop = log.scrollHeight;
+          } else if (event.type === 'code') {
+            // Show code execution indicator
+            const codeEl = document.createElement('div');
+            codeEl.className = 'agent-code-exec';
+            codeEl.innerHTML = '<span class="agent-code-badge">Ejecutando c\u00f3digo...</span>';
+            bubble.appendChild(codeEl);
+            log.scrollTop = log.scrollHeight;
+          } else if (event.type === 'result') {
+            // Replace code execution indicator with result
+            const codeExec = bubble.querySelector('.agent-code-exec:last-child');
+            if (codeExec) {
+              codeExec.innerHTML = `<pre class="agent-result"><code>${esc(event.content)}</code></pre>`;
+            }
+            fullText = ''; // Reset for next response after code exec
+            hasStarted = false;
+            log.scrollTop = log.scrollHeight;
+          } else if (event.type === 'done') {
+            // Final
+            if (!hasStarted && !fullText) {
+              bubble.innerHTML = '<span class="agent-error">Sin respuesta del agente.</span>';
+            }
+          }
+        }
+      }
+    } catch (err) {
+      if (!hasStarted) {
+        bubble.innerHTML = `<span class="agent-error">Error de conexi\u00f3n: ${esc(String(err))}</span>`;
+      }
+    }
   }
 
   function addBubble(text, type, html = false) {

@@ -10,6 +10,7 @@ from pathlib import Path
 
 from flask import (
     Flask,
+    Response,
     jsonify,
     redirect,
     request,
@@ -19,6 +20,11 @@ from flask import (
 
 from chat_parser import ChatParser
 from client_manager import ClientManager
+
+try:
+    from laboral_agent import LaboralAgent
+except ImportError:
+    LaboralAgent = None  # type: ignore[assignment,misc]
 from convenio_verifier import ConvenioVerifier
 from database import (
     add_employee,
@@ -63,6 +69,26 @@ init_db()
 logger.info("Database initialized")
 chat_parser = ChatParser()
 client_mgr = ClientManager()
+
+# Inicializar agente CodeAct (requiere API key)
+_agent_cache: dict[str, LaboralAgent] = {}  # type: ignore[name-defined]
+
+
+def _get_agent(convenio_id: str | None = None):
+    """Devuelve el agente CodeAct para el convenio indicado, o None si no hay LLM."""
+    if LaboralAgent is None:
+        return None
+    cid = convenio_id or session.get("convenio_id", "")
+    if not cid:
+        cid = "convenio_acuaticas_2025_2027"
+    if cid not in _agent_cache:
+        engine = _get_engine(cid)
+        agent = LaboralAgent(engine)
+        if agent.available:
+            _agent_cache[cid] = agent
+        else:
+            return None
+    return _agent_cache.get(cid)
 client_mgr.init_tables()
 convenio_verifier = ConvenioVerifier()
 rates_verifier = RatesVerifier()
@@ -405,7 +431,117 @@ def api_chat():
 @login_required
 def api_chat_reset():
     session.pop("chat_context", None)
+    session.pop("agent_history", None)
+    session.pop("agent_context", None)
     return jsonify({"ok": True})
+
+
+# ------------------------------------------------------------------
+# Agent Chat (CodeAct — streaming SSE)
+# ------------------------------------------------------------------
+
+
+@app.route("/api/agent/status")
+@login_required
+def api_agent_status():
+    """Devuelve si el agente IA está disponible."""
+    agent = _get_agent()
+    return jsonify({"available": agent is not None and agent.available})
+
+
+@app.route("/api/agent/chat", methods=["POST"])
+@login_required
+def api_agent_chat():
+    """Chat con el agente CodeAct (respuesta completa, no streaming)."""
+    agent = _get_agent()
+    if not agent:
+        return jsonify({"error": "Agente IA no disponible. Configura GOOGLE_API_KEY."}), 503
+
+    data = request.get_json(silent=True) or {}
+    message = str(data.get("message", "")).strip()
+    if not message:
+        return jsonify({"error": "Escribe algo"}), 400
+
+    history = session.get("agent_history", [])
+    ctx = session.get("agent_context", {})
+
+    try:
+        result = agent.chat(message, history=history, context=ctx)
+    except Exception as exc:
+        logger.error("Agent error: %s", exc)
+        return jsonify({"error": f"Error del agente: {exc}"}), 500
+
+    # Actualizar historial (max 20 mensajes)
+    history.append({"role": "user", "content": message})
+    history.append({"role": "assistant", "content": result["response"]})
+    if len(history) > 20:
+        history = history[-20:]
+    session["agent_history"] = history
+    session["agent_context"] = result["context"]
+
+    return jsonify({
+        "type": "agent_response",
+        "response": result["response"],
+        "tool_calls": result["tool_calls"],
+    })
+
+
+@app.route("/api/agent/stream", methods=["POST"])
+@login_required
+def api_agent_stream():
+    """Chat con el agente CodeAct via Server-Sent Events (streaming)."""
+    import json as _json
+
+    agent = _get_agent()
+    if not agent:
+        return jsonify({"error": "Agente IA no disponible"}), 503
+
+    data = request.get_json(silent=True) or {}
+    message = str(data.get("message", "")).strip()
+    if not message:
+        return jsonify({"error": "Escribe algo"}), 400
+
+    history = list(session.get("agent_history", []))
+    ctx = dict(session.get("agent_context", {}))
+
+    def generate():
+        full_response = ""
+        for event in agent.stream_chat(message, history=history, context=ctx):
+            event_type = event.get("type", "token")
+            content = event.get("content", "")
+
+            if event_type == "token":
+                full_response += content
+                yield f"data: {_json.dumps({'type': 'token', 'content': content})}\n\n"
+            elif event_type == "code":
+                yield f"data: {_json.dumps({'type': 'code', 'content': content})}\n\n"
+            elif event_type == "result":
+                yield f"data: {_json.dumps({'type': 'result', 'content': content})}\n\n"
+            elif event_type == "done":
+                if content:
+                    full_response = content
+                new_ctx = event.get("context", ctx)
+                yield f"data: {_json.dumps({'type': 'done', 'content': ''})}\n\n"
+
+                # Actualizar historial en sesión
+                new_history = list(history)
+                new_history.append({"role": "user", "content": message})
+                new_history.append({"role": "assistant", "content": full_response})
+                if len(new_history) > 20:
+                    new_history = new_history[-20:]
+                session["agent_history"] = new_history
+                session["agent_context"] = new_ctx
+                return
+
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 # ------------------------------------------------------------------
