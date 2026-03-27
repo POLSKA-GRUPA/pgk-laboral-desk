@@ -6,9 +6,10 @@
   // Utilidades
   // ------------------------------------------------------------------
   const $ = id => document.getElementById(id);
-  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const fmt = n => n == null ? '—' : Number(n).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '\u00a0€';
-  const fmtShort = n => n == null ? '—' : Number(n).toLocaleString('es-ES', {minimumFractionDigits: 0, maximumFractionDigits: 0}) + '\u00a0€';
+  const _str = v => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v));
+  const esc = s => _str(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt = n => n == null ? '—' : (typeof n === 'object' ? '—' : Number(n).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '\u00a0€');
+  const fmtShort = n => n == null ? '—' : (typeof n === 'object' ? '—' : Number(n).toLocaleString('es-ES', {minimumFractionDigits: 0, maximumFractionDigits: 0}) + '\u00a0€');
 
   // Toast notification system
   function showToast(message, type = 'error') {
@@ -283,11 +284,9 @@
 
     checkAgentStatus();
 
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      const msg = input.value.trim();
+    async function sendMessage(msg) {
       if (!msg) return;
-      input.value = '';
+      hideSuggestions();
       addBubble(msg, 'user');
 
       if (chatMode === 'agent' && agentAvailable) {
@@ -301,6 +300,22 @@
           typing.remove();
         }
       }
+    }
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const msg = input.value.trim();
+      if (!msg) return;
+      input.value = '';
+      await sendMessage(msg);
+    });
+
+    // Suggestion chips
+    document.querySelectorAll('.chat-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const msg = chip.dataset.msg;
+        sendMessage(msg);
+      });
     });
 
     resetBtn.addEventListener('click', async () => {
@@ -311,7 +326,18 @@
       $('chatLog').innerHTML = `<div class="chat-bubble system">${greeting}</div>`;
       $('resultSection').hidden = true;
       $('resultPlaceholder').hidden = false;
+      showSuggestions();
     });
+  }
+
+  function hideSuggestions() {
+    const el = $('chatSuggestions');
+    if (el) el.hidden = true;
+  }
+
+  function showSuggestions() {
+    const el = $('chatSuggestions');
+    if (el) el.hidden = false;
   }
 
   function showTypingIndicator() {
@@ -537,10 +563,11 @@
       grupo_cotizacion: 'Grupo cotización',
     };
     const fmtVal = (k, v) => {
-      if (k === 'pct_total') return v.toFixed(2) + ' %';
-      if (k === 'grupo_cotizacion') return esc(String(v));
+      if (typeof v === 'object' && v !== null) return '—';
+      if (k === 'pct_total') return (typeof v === 'number' ? v.toFixed(2) : String(v ?? '')) + ' %';
+      if (k === 'grupo_cotizacion') return esc(v);
       if (typeof v === 'number') return fmt(v);
-      return esc(String(v));
+      return esc(v);
     };
     let html = '';
     // Base de cotización
@@ -573,6 +600,36 @@
   }
 
   // ------------------------------------------------------------------
+  // Cost breakdown bar
+  // ------------------------------------------------------------------
+  function renderCostBreakdownBar(d) {
+    const bar = $('costBreakdownBar');
+    if (!bar) return;
+    const neto = d.neto_mensual_eur || 0;
+    const ssTrab = d.ss_trabajador_mes_eur || 0;
+    const irpf = d.irpf_mensual_eur || 0;
+    const ssEmp = d.ss_empresa_mes_eur || 0;
+    const total = neto + ssTrab + irpf + ssEmp;
+    if (total <= 0) { bar.hidden = true; return; }
+
+    const pct = v => ((v / total) * 100).toFixed(1);
+    bar.innerHTML = `
+      <div class="cost-bar-track">
+        <div class="cost-bar-seg" data-type="neto" style="width:${pct(neto)}%"></div>
+        <div class="cost-bar-seg" data-type="ss_trab" style="width:${pct(ssTrab)}%"></div>
+        <div class="cost-bar-seg" data-type="irpf" style="width:${pct(irpf)}%"></div>
+        <div class="cost-bar-seg" data-type="ss_emp" style="width:${pct(ssEmp)}%"></div>
+      </div>
+      <div class="cost-bar-legend">
+        <span class="cost-bar-item"><span class="cost-bar-dot" data-type="neto"></span>Neto ${pct(neto)}%</span>
+        <span class="cost-bar-item"><span class="cost-bar-dot" data-type="ss_trab"></span>SS trab. ${pct(ssTrab)}%</span>
+        <span class="cost-bar-item"><span class="cost-bar-dot" data-type="irpf"></span>IRPF ${pct(irpf)}%</span>
+        <span class="cost-bar-item"><span class="cost-bar-dot" data-type="ss_emp"></span>SS emp. ${pct(ssEmp)}%</span>
+      </div>`;
+    bar.hidden = false;
+  }
+
+  // ------------------------------------------------------------------
   // Render resultado CONTRATAR
   // ------------------------------------------------------------------
   function renderResult(d) {
@@ -596,6 +653,9 @@
     $('valSSTrab').textContent = fmt(d.ss_trabajador_mes_eur);
     $('valIRPFPct').textContent = d.irpf_retencion_pct ?? 0;
     $('valIRPF').textContent = fmt(d.irpf_mensual_eur);
+
+    // Cost breakdown bar
+    renderCostBreakdownBar(d);
 
     const tbody = $('devengosTable').querySelector('tbody');
     tbody.innerHTML = (d.devengos || []).map(dv =>
@@ -853,7 +913,7 @@
     const badge = $('plantillaBadge');
 
     if (!employees.length) {
-      box.innerHTML = '<p class="empty-msg">Sin trabajadores registrados. Añade el primero para hacer seguimiento y calcular despidos en un clic.</p>';
+      box.innerHTML = '<div style="padding:24px;text-align:center"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="opacity:.25;margin-bottom:8px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><p class="empty-msg">Sin trabajadores registrados</p><p style="font-size:12px;color:var(--muted);margin:0">Añade el primero para hacer seguimiento y calcular despidos en un clic.</p></div>';
       if (badge) badge.hidden = true;
       return;
     }
@@ -864,30 +924,32 @@
     }
 
     const today = new Date().toISOString().split('T')[0];
-    box.innerHTML = `
-      <table class="clients-table">
-        <thead><tr><th>Nombre</th><th>Categoría</th><th>Contrato</th><th>Inicio</th><th>Bruto/mes</th><th>Acciones</th></tr></thead>
-        <tbody>
-          ${employees.map(emp => {
-            const vence = emp.fecha_fin ? (emp.fecha_fin <= today ? '⚠ Vencido' : emp.fecha_fin) : '—';
-            return `<tr>
-              <td><strong>${esc(emp.nombre)}</strong></td>
-              <td>${esc((emp.categoria || '').replace(/\.$/, ''))}</td>
-              <td>${esc(emp.contrato_tipo)} · ${emp.jornada_horas}h/sem</td>
-              <td>${esc(emp.fecha_inicio)}${emp.fecha_fin ? `<br><span style="font-size:11px;color:var(--muted)">${esc(vence)}</span>` : ''}</td>
-              <td>${emp.salario_bruto_mensual ? fmt(emp.salario_bruto_mensual) : '<span style="color:var(--muted)">—</span>'}</td>
-              <td>
-                <button class="btn-link" style="font-size:12px;color:var(--accent,#6b4c2a)" onclick="window._descargarNomina(${emp.id})">📄 Nómina</button>
-                &nbsp;·&nbsp;
-                <button class="btn-link" style="font-size:12px;color:var(--danger)" onclick="window._despidirEmpleado(${emp.id})">Despedir</button>
-                &nbsp;·&nbsp;
-                <button class="btn-link" style="font-size:12px" onclick="window._darDeBajaEmpleado(${emp.id})">Dar de baja</button>
-              </td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>`;
-  }
+    box.innerHTML = `<div class="emp-card-grid">
+      ${employees.map(emp => {
+        const initials = (emp.nombre || '').split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+        const cat = (emp.categoria || '').replace(/\.$/, '');
+        const expired = emp.fecha_fin && emp.fecha_fin <= today;
+        return `<div class="emp-card">
+          <div class="emp-avatar">${esc(initials)}</div>
+          <div class="emp-info">
+            <div class="emp-name">${esc(emp.nombre)}</div>
+            <div class="emp-meta">${esc(cat)} · ${emp.jornada_horas}h/sem · desde ${esc(emp.fecha_inicio)}</div>
+            <div class="emp-badges">
+              <span class="emp-badge emp-badge--contract">${esc(emp.contrato_tipo)}</span>
+              ${emp.salario_bruto_mensual ? `<span class="emp-badge emp-badge--cost">${fmt(emp.salario_bruto_mensual)}</span>` : ''}
+              ${expired ? '<span class="emp-badge emp-badge--expired">Vencido</span>' : ''}
+            </div>
+            <div class="emp-actions">
+              <button class="btn-link" onclick="window._descargarNomina(${emp.id})">Nómina</button>
+              <span style="color:var(--line-strong)">·</span>
+              <button class="btn-link" onclick="window._despidirEmpleado(${emp.id})">Despedir</button>
+              <span style="color:var(--line-strong)">·</span>
+              <button class="btn-link" onclick="window._darDeBajaEmpleado(${emp.id})">Baja</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;  }
 
   function populateDespidoEmpleadoSelect(employees) {
     const sel = $('despidoEmpleado');

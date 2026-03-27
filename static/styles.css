@@ -1515,9 +1515,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tool-tab-icon {
-  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
-  font-weight: 300;
   opacity: 0.7;
 }
 
@@ -2155,6 +2156,52 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================================
+   CHAT SUGGESTION CHIPS
+   ============================================================ */
+.chat-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  animation: fadeSlideUp 0.4s var(--ease-out);
+}
+
+.chat-suggestions[hidden] {
+  display: none;
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.chat-chip {
+  padding: 7px 14px;
+  border: 1px solid rgba(220, 203, 179, 0.35);
+  border-radius: 20px;
+  background: rgba(220, 203, 179, 0.08);
+  color: var(--ink-secondary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all var(--duration) var(--ease-out);
+  white-space: nowrap;
+}
+
+.chat-chip:hover {
+  background: var(--pgk-green);
+  color: var(--pgk-cream);
+  border-color: var(--pgk-green);
+  box-shadow: 0 2px 8px rgba(21, 38, 33, 0.15);
+  transform: translateY(-1px);
+}
+
+.chat-chip:active {
+  transform: translateY(0);
+}
+
+/* ============================================================
    TYPING INDICATOR
    ============================================================ */
 .typing-indicator {
@@ -2180,6 +2227,73 @@ h1, h2, h3, h4, h5, h6 {
 @keyframes typingBounce {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
   30% { transform: translateY(-6px); opacity: 0.8; }
+}
+
+/* ============================================================
+   COST BREAKDOWN BAR
+   ============================================================ */
+.cost-breakdown-bar {
+  margin: 16px 0 8px;
+  padding: 0;
+}
+
+.cost-bar-track {
+  display: flex;
+  height: 10px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.cost-bar-seg {
+  height: 100%;
+  transition: width 0.6s var(--ease-out);
+  position: relative;
+}
+
+.cost-bar-seg[data-type="neto"]     { background: var(--ok); }
+.cost-bar-seg[data-type="ss_trab"]  { background: #e8a838; }
+.cost-bar-seg[data-type="irpf"]     { background: #8b8178; }
+.cost-bar-seg[data-type="ss_emp"]   { background: var(--pgk-gold); }
+
+.cost-bar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.cost-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.cost-bar-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.cost-bar-dot[data-type="neto"]     { background: var(--ok); }
+.cost-bar-dot[data-type="ss_trab"]  { background: #e8a838; }
+.cost-bar-dot[data-type="irpf"]     { background: #8b8178; }
+.cost-bar-dot[data-type="ss_emp"]   { background: var(--pgk-gold); }
+
+/* Send button compact styling */
+.chat-input-row .btn-primary {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tool-tab-icon svg {
+  flex-shrink: 0;
 }
 
 /* ============================================================
@@ -2377,4 +2491,112 @@ h5.agent-h { font-size: 13px; }
   color: var(--ink-secondary);
   overflow-x: auto;
   white-space: pre-wrap;
+}
+
+/* ============================================================
+   EMPLOYEE CARD STYLE (plantilla)
+   ============================================================ */
+.emp-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  padding: 16px;
+}
+
+.emp-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper-strong);
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+}
+
+.emp-card:hover {
+  border-color: rgba(220, 203, 179, 0.4);
+  box-shadow: var(--shadow-sm);
+}
+
+.emp-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--pgk-green);
+  color: var(--pgk-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: -0.02em;
+}
+
+.emp-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.emp-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.emp-meta {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.emp-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.emp-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.emp-badge--contract {
+  background: rgba(21, 38, 33, 0.08);
+  color: var(--pgk-green);
+}
+
+.emp-badge--cost {
+  background: rgba(15, 118, 110, 0.08);
+  color: var(--ok);
+}
+
+.emp-badge--expired {
+  background: rgba(154, 52, 18, 0.1);
+  color: var(--warn);
+}
+
+.emp-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.emp-actions .btn-link {
+  font-size: 11px;
+  padding: 2px 4px;
+}
+
+@media (max-width: 640px) {
+  .emp-card-grid {
+    grid-template-columns: 1fr;
+  }
 }
