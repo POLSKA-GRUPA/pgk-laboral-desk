@@ -50,7 +50,7 @@
     s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
     // Unordered lists
     s = s.replace(/^[-*] (.+)$/gm, '<li>$1</li>');
-    s = s.replace(/(<li>.*<\/li>)/gs, '<ul class="agent-list">$1</ul>');
+    s = s.replace(/((?:<li>.*?<\/li>\s*)+)/gs, '<ul class="agent-list">$1</ul>');
     // Simple table detection (| col | col |)
     s = s.replace(/^(\|.+\|)$/gm, (line) => {
       if (/^\|[-: ]+\|$/.test(line)) return ''; // separator row

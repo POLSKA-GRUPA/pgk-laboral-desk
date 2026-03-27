@@ -13,6 +13,7 @@ Ventajas:
 
 from __future__ import annotations
 
+import ast
 import builtins
 import contextlib
 import io
@@ -84,12 +85,44 @@ def _get_model():
 # ---------------------------------------------------------------------------
 
 
+_BLOCKED_DUNDERS = {
+    "__class__", "__bases__", "__subclasses__", "__globals__",
+    "__init__", "__mro__", "__dict__", "__import__", "__builtins__",
+    "__loader__", "__spec__", "__code__", "__func__", "__self__",
+    "__module__", "__qualname__", "__reduce__", "__reduce_ex__",
+    "__getattr__", "__setattr__", "__delattr__",
+}
+
+
+def _validate_code_safety(code: str) -> str | None:
+    """Analiza el AST del código para bloquear accesos a atributos dunder peligrosos.
+
+    Returns None if safe, or an error message if unsafe.
+    """
+    try:
+        tree = ast.parse(code)
+    except SyntaxError as e:
+        return f"SyntaxError: {e}"
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute) and node.attr.startswith("__") and node.attr.endswith("__") and node.attr in _BLOCKED_DUNDERS:
+            return f"Acceso bloqueado a atributo restringido: {node.attr}"
+        if isinstance(node, ast.Name) and node.id == "__import__":
+            return "Uso de __import__ no permitido"
+    return None
+
+
 def _create_sandbox(tools_context: dict[str, Any]):
     """Crea un entorno de ejecución restringido con las herramientas disponibles."""
 
     safe_builtins_dict = {k: getattr(builtins, k) for k in _SAFE_BUILTINS if hasattr(builtins, k)}
 
     def execute(code: str, _locals: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+        # AST validation to block sandbox escape via dunder introspection
+        safety_error = _validate_code_safety(code)
+        if safety_error:
+            return f"Error de seguridad: {safety_error}", {}
+
         original_keys = set(_locals.keys())
         sandbox_globals = {**safe_builtins_dict, "__builtins__": safe_builtins_dict}
         sandbox_locals = {**_locals, **tools_context}
