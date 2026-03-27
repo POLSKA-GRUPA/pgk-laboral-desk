@@ -6,9 +6,10 @@
   // Utilidades
   // ------------------------------------------------------------------
   const $ = id => document.getElementById(id);
-  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const fmt = n => n == null ? '—' : Number(n).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '\u00a0€';
-  const fmtShort = n => n == null ? '—' : Number(n).toLocaleString('es-ES', {minimumFractionDigits: 0, maximumFractionDigits: 0}) + '\u00a0€';
+  const _str = v => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v));
+  const esc = s => _str(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt = n => n == null ? '—' : (typeof n === 'object' ? '—' : Number(n).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '\u00a0€');
+  const fmtShort = n => n == null ? '—' : (typeof n === 'object' ? '—' : Number(n).toLocaleString('es-ES', {minimumFractionDigits: 0, maximumFractionDigits: 0}) + '\u00a0€');
 
   // Toast notification system
   function showToast(message, type = 'error') {
@@ -395,10 +396,11 @@
       grupo_cotizacion: 'Grupo cotización',
     };
     const fmtVal = (k, v) => {
-      if (k === 'pct_total') return v.toFixed(2) + ' %';
-      if (k === 'grupo_cotizacion') return esc(String(v));
+      if (typeof v === 'object' && v !== null) return '—';
+      if (k === 'pct_total') return (typeof v === 'number' ? v.toFixed(2) : String(v ?? '')) + ' %';
+      if (k === 'grupo_cotizacion') return esc(v);
       if (typeof v === 'number') return fmt(v);
-      return esc(String(v));
+      return esc(v);
     };
     let html = '';
     // Base de cotización
