@@ -181,6 +181,10 @@ class IRPFEstimator:
         # NO se practica retención alguna (ni siquiera el 2% de temporal).
         exempt = self._is_exempt(annual_gross, num_children, has_spouse_low_income)
 
+        region_key = region.lower().replace("ñ", "n").replace("í", "i").replace("á", "a")
+        if region_key not in _REGIONAL_BRACKETS:
+            region_key = "generica"
+
         if exempt:
             return IRPFResult(
                 annual_gross=annual_gross,
@@ -193,7 +197,7 @@ class IRPFEstimator:
                 annual_retention=0.0,
                 retention_rate_pct=0.0,
                 monthly_retention=0.0,
-                region=region,
+                region=region_key,
             )
 
         # ── 1. Rendimiento neto ─────────────────────────────────────────
@@ -209,10 +213,6 @@ class IRPFEstimator:
         personal_minimum = self._personal_family_minimum(num_children, children_under_3)
 
         # ── 5. Cuotas: estatal + autonómica ─────────────────────────────
-        region_key = region.lower().replace("ñ", "n").replace("í", "i").replace("á", "a")
-        if region_key not in _REGIONAL_BRACKETS:
-            region_key = "generica"
-
         tax_state = self._apply_scale(taxable_base, _STATE_BRACKETS)
         tax_region = self._apply_scale(taxable_base, _REGIONAL_BRACKETS[region_key])
         tax_on_income = tax_state + tax_region
