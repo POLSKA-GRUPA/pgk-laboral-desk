@@ -142,7 +142,7 @@ class ConvenioVGRAGBackend:
                 "seccion": seccion,
                 "source": "convenio_colectivo",
             }
-            rag.index_documents(documents=[doc_text], metadata=[metadata])
+            rag.add_texts(texts=[doc_text], metadatas=[metadata])
             return True
         except Exception as exc:
             logger.warning("Error indexando articulo convenio: %s", exc)
@@ -162,21 +162,22 @@ class ConvenioVGRAGBackend:
             return []
 
         try:
-            results = rag.search(query, top_k=limit)
+            result = rag.retrieve(query, top_k=limit)
+
             vgrag_results: list[VGRAGResult] = []
-            for r in results:
-                content = r.get("content", "") if isinstance(r, dict) else str(r)
-                score = r.get("score", 0.0) if isinstance(r, dict) else 0.0
-                metadata = r.get("metadata", {}) if isinstance(r, dict) else {}
-                normalized_score = max(0.0, min(1.0, 1.0 - score))
+            passages = result.passages or result.retrieved_passages or []
+            for i, passage in enumerate(passages[:limit]):
+                # Score by position: first result is best
+                score = 1.0 - (i / max(len(passages), 1))
                 vgrag_results.append(
                     VGRAGResult(
-                        content=content,
-                        score=normalized_score,
-                        metadata=metadata,
+                        content=passage,
+                        score=score,
+                        metadata={"source": "vgrag", "rank": i},
                     )
                 )
-            return vgrag_results[:limit]
+
+            return vgrag_results
         except Exception as exc:
             logger.warning("Error en busqueda semantica convenio: %s", exc)
             return []

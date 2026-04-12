@@ -284,7 +284,20 @@ class ChatParser:
                 "context": ctx,
             }
 
-        # No se encontró nada
+        # No se encontró con keywords — check VGRAG semantic hints
+        vgrag_hints = ctx.pop("_vgrag_hints", None)
+        if vgrag_hints:
+            return {
+                "action": "not_found",
+                "message": (
+                    "No he encontrado una categoría exacta, pero el análisis "
+                    "semántico sugiere estos fragmentos relevantes del convenio:"
+                ),
+                "options": [],
+                "vgrag_hints": vgrag_hints,
+                "context": ctx,
+            }
+
         return {
             "action": "not_found",
             "message": "No he podido identificar la categoría profesional. Intenta describir el puesto con más detalle o elige directamente del formulario.",
