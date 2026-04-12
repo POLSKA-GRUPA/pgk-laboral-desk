@@ -204,6 +204,24 @@ class ChatParser:
             ctx["budget"] = budget
             return self._handle_budget_query(norm, ctx)
 
+        # --- Vector-Graph-RAG semantic matching (optional) ---
+        # When enabled, enriches keyword matching with semantic search
+        # over convenio colectivo using Z.ai infrastructure.
+        try:
+            from vgrag_search import get_convenio_vgrag_backend, is_enabled as vgrag_enabled
+
+            if vgrag_enabled():
+                vgrag = get_convenio_vgrag_backend()
+                if vgrag.available:
+                    semantic_results = vgrag.search_categoria(message, limit=3)
+                    if semantic_results:
+                        ctx["_vgrag_hints"] = [
+                            {"content": r.content, "score": r.score}
+                            for r in semantic_results
+                        ]
+        except Exception:
+            pass  # VGRAG not available — continue with keyword matching
+
         # Primera interacción: buscar categoría
         category_result = self._match_category(norm)
 
