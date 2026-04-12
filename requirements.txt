@@ -2,3 +2,4 @@ flask>=3.0
 werkzeug>=3.0
 gunicorn>=22.0
 weasyprint>=62.0
+vector-graph-rag>=0.1.3
