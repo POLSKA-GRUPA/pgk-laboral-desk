@@ -61,8 +61,8 @@ MCP_TOOLS = [
     {
         "name": "laboral_calcular_nomina",
         "description": (
-            "Calcular desglose de nomina: salario bruto, deducciones SS, "
-            "retencion IRPF, salario neto."
+            "Calcular desglose de nomina: salario bruto y deducciones SS. "
+            "IRPF y salario neto requieren laboral_estimar_irpf por separado."
         ),
         "inputSchema": {
             "type": "object",
@@ -238,11 +238,17 @@ def _calcular_nomina(arguments: dict[str, object]) -> dict[str, object]:
     Tasas: Orden ISM/31/2026 (BOE-A-2026-1921)
     """
     bruto_anual = Decimal(str(arguments["salario_bruto_anual"]))
-    pagas = int(arguments.get("pagas_extra", 2) or 2)
+    pagas_raw = arguments.get("pagas_extra")
+    pagas = int(pagas_raw) if pagas_raw is not None else 2
     total_pagas = 12 + pagas
     bruto_mensual = (bruto_anual / Decimal(str(total_pagas))).quantize(
         Decimal("0.01"), rounding=ROUND_HALF_UP
     )
+
+    # Aplicar topes de cotizacion — Orden ISM/31/2026 (BOE-A-2026-1921)
+    base_min = Decimal("1424.50")
+    base_max = Decimal("5101.20")
+    base_cotizacion = max(base_min, min(base_max, bruto_mensual))
 
     # Tasas trabajador desde ss_config.json — Orden ISM/31/2026 (BOE-A-2026-1921)
     tasa_cc = _ss_rate("trabajador", "contingencias_comunes", "4.70")
@@ -250,16 +256,16 @@ def _calcular_nomina(arguments: dict[str, object]) -> dict[str, object]:
     tasa_fp = _ss_rate("trabajador", "formacion_profesional", "0.10")
     tasa_mei = _ss_rate("trabajador", "mei", "0.15")
 
-    ss_trabajador = (bruto_mensual * tasa_cc).quantize(
+    ss_trabajador = (base_cotizacion * tasa_cc).quantize(
         Decimal("0.01"), rounding=ROUND_HALF_UP
     )
-    desempleo = (bruto_mensual * tasa_desempleo).quantize(
+    desempleo = (base_cotizacion * tasa_desempleo).quantize(
         Decimal("0.01"), rounding=ROUND_HALF_UP
     )
-    formacion = (bruto_mensual * tasa_fp).quantize(
+    formacion = (base_cotizacion * tasa_fp).quantize(
         Decimal("0.01"), rounding=ROUND_HALF_UP
     )
-    mei = (bruto_mensual * tasa_mei).quantize(
+    mei = (base_cotizacion * tasa_mei).quantize(
         Decimal("0.01"), rounding=ROUND_HALF_UP
     )
 
@@ -324,8 +330,13 @@ def _calcular_ss(arguments: dict[str, object]) -> dict[str, object]:
 
     Tasas empresa: Orden ISM/31/2026 (BOE-A-2026-1921)
     """
-    base = Decimal(str(arguments["base_cotizacion"]))
+    base_raw = Decimal(str(arguments["base_cotizacion"]))
     tipo_contrato = str(arguments.get("tipo_contrato", "indefinido") or "indefinido")
+
+    # Aplicar topes de cotizacion — Orden ISM/31/2026 (BOE-A-2026-1921)
+    base_min = Decimal("1424.50")
+    base_max = Decimal("5101.20")
+    base = max(base_min, min(base_max, base_raw))
 
     # Tasas empresa desde ss_config.json — Orden ISM/31/2026 (BOE-A-2026-1921)
     tasa_cc = _ss_rate("empresa", "contingencias_comunes", "23.60")
@@ -356,7 +367,9 @@ def _calcular_ss(arguments: dict[str, object]) -> dict[str, object]:
     total_empresa = cc_empresa + desempleo_empresa + formacion_empresa + fogasa + mei_empresa
 
     resultado = {
-        "base_cotizacion": str(base),
+        "base_cotizacion_original": str(base_raw),
+        "base_cotizacion_aplicada": str(base),
+        "topes": {"minimo": str(base_min), "maximo": str(base_max)},
         "tipo_contrato": tipo_contrato,
         "cuotas_empresa": {
             "contingencias_comunes": str(cc_empresa),
