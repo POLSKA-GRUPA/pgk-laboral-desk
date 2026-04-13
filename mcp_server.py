@@ -15,9 +15,44 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any
+from decimal import ROUND_HALF_UP, Decimal
+from pathlib import Path
 
 logger = logging.getLogger("laboral.mcp")
+
+# ── Cargar tasas SS desde fuente de verdad (data/ss_config.json) ────
+# Ref: Orden ISM/31/2026 (BOE-A-2026-1921) + RDL 3/2026 (BOE-A-2026-2548)
+
+_SS_CONFIG_PATH = Path(__file__).parent / "data" / "ss_config.json"
+
+
+def _load_ss_config() -> dict[str, object]:
+    """Carga tasas SS desde data/ss_config.json."""
+    try:
+        with open(_SS_CONFIG_PATH, encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        logger.warning("No se pudo cargar ss_config.json: %s. Usando fallback.", e)
+        return {}
+
+
+_SS_CONFIG = _load_ss_config()
+
+
+def _ss_rate(section: str, key: str, fallback: str) -> Decimal:
+    """Obtiene una tasa SS del config como Decimal.
+
+    Args:
+        section: 'trabajador' o 'empresa'
+        key: nombre de la tasa (ej: 'contingencias_comunes')
+        fallback: valor por defecto como string (ej: '4.70')
+    """
+    raw = _SS_CONFIG.get(section, {})
+    if isinstance(raw, dict):
+        val = raw.get(key, fallback)
+    else:
+        val = fallback
+    return Decimal(str(val)) / Decimal("100")
 
 
 # ── MCP Tool Schemas ──────────────────────────────────────────────
@@ -132,8 +167,8 @@ MCP_TOOLS = [
 
 
 async def handle_mcp_request(
-    method: str, params: dict[str, Any] | None = None
-) -> dict[str, Any]:
+    method: str, params: dict[str, object] | None = None
+) -> dict[str, object]:
     """Handle an MCP protocol request.
 
     Supports: tools/list, tools/call, resources/list
@@ -175,7 +210,7 @@ async def handle_mcp_request(
     return {"error": {"code": -32601, "message": f"Method not found: {method}"}}
 
 
-async def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+async def _call_tool(name: str, arguments: dict[str, object]) -> dict[str, object]:
     """Execute an MCP tool and return the result."""
     try:
         if name == "laboral_calcular_nomina":
@@ -197,35 +232,51 @@ async def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         return {"error": {"code": -32603, "message": str(e)}}
 
 
-def _calcular_nomina(arguments: dict[str, Any]) -> dict[str, Any]:
-    """Calcular desglose de nomina."""
-    bruto_anual = arguments["salario_bruto_anual"]
-    pagas = arguments.get("pagas_extra", 2)
-    total_pagas = 12 + pagas
-    bruto_mensual = bruto_anual / total_pagas
+def _calcular_nomina(arguments: dict[str, object]) -> dict[str, object]:
+    """Calcular desglose de nomina.
 
-    # Contingencias comunes trabajador: 4.70%
-    ss_trabajador = bruto_mensual * 0.0470
-    # Desempleo trabajador (indefinido): 1.55%
-    desempleo = bruto_mensual * 0.0155
-    # Formacion profesional: 0.10%
-    formacion = bruto_mensual * 0.001
-    # MEI trabajador: 0.15%
-    mei = bruto_mensual * 0.0015
+    Tasas: Orden ISM/31/2026 (BOE-A-2026-1921)
+    """
+    bruto_anual = Decimal(str(arguments["salario_bruto_anual"]))
+    pagas = int(arguments.get("pagas_extra", 2) or 2)
+    total_pagas = 12 + pagas
+    bruto_mensual = (bruto_anual / Decimal(str(total_pagas))).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+
+    # Tasas trabajador desde ss_config.json — Orden ISM/31/2026 (BOE-A-2026-1921)
+    tasa_cc = _ss_rate("trabajador", "contingencias_comunes", "4.70")
+    tasa_desempleo = _ss_rate("trabajador", "desempleo_indefinido", "1.55")
+    tasa_fp = _ss_rate("trabajador", "formacion_profesional", "0.10")
+    tasa_mei = _ss_rate("trabajador", "mei", "0.15")
+
+    ss_trabajador = (bruto_mensual * tasa_cc).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    desempleo = (bruto_mensual * tasa_desempleo).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    formacion = (bruto_mensual * tasa_fp).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    mei = (bruto_mensual * tasa_mei).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
 
     total_deducciones_ss = ss_trabajador + desempleo + formacion + mei
 
     resultado = {
-        "salario_bruto_anual": bruto_anual,
+        "salario_bruto_anual": str(bruto_anual),
         "pagas_totales": total_pagas,
-        "bruto_mensual": round(bruto_mensual, 2),
+        "bruto_mensual": str(bruto_mensual),
         "deducciones_ss": {
-            "contingencias_comunes": round(ss_trabajador, 2),
-            "desempleo": round(desempleo, 2),
-            "formacion_profesional": round(formacion, 2),
-            "mei": round(mei, 2),
-            "total_ss": round(total_deducciones_ss, 2),
+            "contingencias_comunes": str(ss_trabajador),
+            "desempleo": str(desempleo),
+            "formacion_profesional": str(formacion),
+            "mei": str(mei),
+            "total_ss": str(total_deducciones_ss),
         },
+        "ref_legal": "Orden ISM/31/2026 (BOE-A-2026-1921)",
         "nota": (
             "Conectar con irpf_estimator.py para calculo exacto de retencion IRPF. "
             "Conectar con ss_calculator.py para bases y tipos actualizados."
@@ -242,7 +293,7 @@ def _calcular_nomina(arguments: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _consultar_convenio(arguments: dict[str, Any]) -> dict[str, Any]:
+def _consultar_convenio(arguments: dict[str, object]) -> dict[str, object]:
     """Consultar tablas salariales de convenio."""
     convenio = arguments["convenio"]
     categoria = arguments.get("categoria")
@@ -268,32 +319,55 @@ def _consultar_convenio(arguments: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _calcular_ss(arguments: dict[str, Any]) -> dict[str, Any]:
-    """Calcular cuotas Seguridad Social."""
-    base = arguments["base_cotizacion"]
-    tipo_contrato = arguments.get("tipo_contrato", "indefinido")
+def _calcular_ss(arguments: dict[str, object]) -> dict[str, object]:
+    """Calcular cuotas Seguridad Social.
 
-    # Tipos SS empresa (general)
-    cc_empresa = base * 0.2360  # Contingencias comunes
-    desempleo_empresa = base * (0.0550 if tipo_contrato == "indefinido" else 0.0670)
-    formacion_empresa = base * 0.006
-    fogasa = base * 0.002
-    mei_empresa = base * 0.0075  # MEI empresa
+    Tasas empresa: Orden ISM/31/2026 (BOE-A-2026-1921)
+    """
+    base = Decimal(str(arguments["base_cotizacion"]))
+    tipo_contrato = str(arguments.get("tipo_contrato", "indefinido") or "indefinido")
+
+    # Tasas empresa desde ss_config.json — Orden ISM/31/2026 (BOE-A-2026-1921)
+    tasa_cc = _ss_rate("empresa", "contingencias_comunes", "23.60")
+    if tipo_contrato == "indefinido":
+        tasa_desempleo = _ss_rate("empresa", "desempleo_indefinido", "5.50")
+    else:
+        tasa_desempleo = _ss_rate("empresa", "desempleo_temporal", "6.70")
+    tasa_fp = _ss_rate("empresa", "formacion_profesional", "0.60")
+    tasa_fogasa = _ss_rate("empresa", "fogasa", "0.20")
+    tasa_mei = _ss_rate("empresa", "mei", "0.75")
+
+    cc_empresa = (base * tasa_cc).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    desempleo_empresa = (base * tasa_desempleo).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    formacion_empresa = (base * tasa_fp).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    fogasa = (base * tasa_fogasa).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    mei_empresa = (base * tasa_mei).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
 
     total_empresa = cc_empresa + desempleo_empresa + formacion_empresa + fogasa + mei_empresa
 
     resultado = {
-        "base_cotizacion": base,
+        "base_cotizacion": str(base),
         "tipo_contrato": tipo_contrato,
         "cuotas_empresa": {
-            "contingencias_comunes": round(cc_empresa, 2),
-            "desempleo": round(desempleo_empresa, 2),
-            "formacion": round(formacion_empresa, 2),
-            "fogasa": round(fogasa, 2),
-            "mei": round(mei_empresa, 2),
-            "total": round(total_empresa, 2),
+            "contingencias_comunes": str(cc_empresa),
+            "desempleo": str(desempleo_empresa),
+            "formacion": str(formacion_empresa),
+            "fogasa": str(fogasa),
+            "mei": str(mei_empresa),
+            "total": str(total_empresa),
         },
-        "nota": "Tipos SS 2026. Verificar con ss_calculator.py para datos actualizados.",
+        "ref_legal": "Orden ISM/31/2026 (BOE-A-2026-1921)",
+        "nota": "Tasas SS 2026 cargadas desde data/ss_config.json.",
     }
 
     return {
@@ -306,7 +380,7 @@ def _calcular_ss(arguments: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _estimar_irpf(arguments: dict[str, Any]) -> dict[str, Any]:
+def _estimar_irpf(arguments: dict[str, object]) -> dict[str, object]:
     """Estimar retencion IRPF."""
     bruto = arguments["salario_bruto_anual"]
     situacion = arguments.get("situacion_familiar", "soltero")
