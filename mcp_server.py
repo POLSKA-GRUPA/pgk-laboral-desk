@@ -342,7 +342,7 @@ def _calcular_ss(arguments: dict[str, object]) -> dict[str, object]:
 
     # Tasas empresa desde ss_config.json — Orden ISM/31/2026 (BOE-A-2026-1921)
     tasa_cc = _ss_rate("empresa", "contingencias_comunes", "23.60")
-    if tipo_contrato == "indefinido":
+    if tipo_contrato in ("indefinido", "practicas", "formacion"):
         tasa_desempleo = _ss_rate("empresa", "desempleo_indefinido", "5.50")
     else:
         tasa_desempleo = _ss_rate("empresa", "desempleo_temporal", "6.70")
