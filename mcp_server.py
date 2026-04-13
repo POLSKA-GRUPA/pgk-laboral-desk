@@ -246,8 +246,9 @@ def _calcular_nomina(arguments: dict[str, object]) -> dict[str, object]:
     )
 
     # Aplicar topes de cotizacion — Orden ISM/31/2026 (BOE-A-2026-1921)
-    base_min = Decimal("1424.50")
-    base_max = Decimal("5101.20")
+    _topes = _SS_CONFIG.get("topes", {})
+    base_min = Decimal(str(_topes.get("base_min_mensual", "1424.50") if isinstance(_topes, dict) else "1424.50"))
+    base_max = Decimal(str(_topes.get("base_max_mensual", "5101.20") if isinstance(_topes, dict) else "5101.20"))
     base_cotizacion = max(base_min, min(base_max, bruto_mensual))
 
     # Tasas trabajador desde ss_config.json — Orden ISM/31/2026 (BOE-A-2026-1921)
@@ -334,8 +335,9 @@ def _calcular_ss(arguments: dict[str, object]) -> dict[str, object]:
     tipo_contrato = str(arguments.get("tipo_contrato", "indefinido") or "indefinido")
 
     # Aplicar topes de cotizacion — Orden ISM/31/2026 (BOE-A-2026-1921)
-    base_min = Decimal("1424.50")
-    base_max = Decimal("5101.20")
+    _topes = _SS_CONFIG.get("topes", {})
+    base_min = Decimal(str(_topes.get("base_min_mensual", "1424.50") if isinstance(_topes, dict) else "1424.50"))
+    base_max = Decimal(str(_topes.get("base_max_mensual", "5101.20") if isinstance(_topes, dict) else "5101.20"))
     base = max(base_min, min(base_max, base_raw))
 
     # Tasas empresa desde ss_config.json — Orden ISM/31/2026 (BOE-A-2026-1921)
