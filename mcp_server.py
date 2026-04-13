@@ -210,8 +210,10 @@ def _calcular_nomina(arguments: dict[str, Any]) -> dict[str, Any]:
     desempleo = bruto_mensual * 0.0155
     # Formacion profesional: 0.10%
     formacion = bruto_mensual * 0.001
+    # MEI trabajador: 0.15%
+    mei = bruto_mensual * 0.0015
 
-    total_deducciones_ss = ss_trabajador + desempleo + formacion
+    total_deducciones_ss = ss_trabajador + desempleo + formacion + mei
 
     resultado = {
         "salario_bruto_anual": bruto_anual,
@@ -221,6 +223,7 @@ def _calcular_nomina(arguments: dict[str, Any]) -> dict[str, Any]:
             "contingencias_comunes": round(ss_trabajador, 2),
             "desempleo": round(desempleo, 2),
             "formacion_profesional": round(formacion, 2),
+            "mei": round(mei, 2),
             "total_ss": round(total_deducciones_ss, 2),
         },
         "nota": (
@@ -272,11 +275,12 @@ def _calcular_ss(arguments: dict[str, Any]) -> dict[str, Any]:
 
     # Tipos SS empresa (general)
     cc_empresa = base * 0.2360  # Contingencias comunes
-    desempleo_empresa = base * (0.0550 if tipo_contrato == "indefinido" else 0.0660)
+    desempleo_empresa = base * (0.0550 if tipo_contrato == "indefinido" else 0.0670)
     formacion_empresa = base * 0.006
     fogasa = base * 0.002
+    mei_empresa = base * 0.0075  # MEI empresa
 
-    total_empresa = cc_empresa + desempleo_empresa + formacion_empresa + fogasa
+    total_empresa = cc_empresa + desempleo_empresa + formacion_empresa + fogasa + mei_empresa
 
     resultado = {
         "base_cotizacion": base,
@@ -286,6 +290,7 @@ def _calcular_ss(arguments: dict[str, Any]) -> dict[str, Any]:
             "desempleo": round(desempleo_empresa, 2),
             "formacion": round(formacion_empresa, 2),
             "fogasa": round(fogasa, 2),
+            "mei": round(mei_empresa, 2),
             "total": round(total_empresa, 2),
         },
         "nota": "Tipos SS 2026. Verificar con ss_calculator.py para datos actualizados.",
