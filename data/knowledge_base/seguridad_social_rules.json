@@ -1,0 +1,220 @@
+{
+  "_meta": {
+    "source": "Base de conocimiento laboral (fuentes oficiales BOE/SEPE/TGSS)",
+    "extracted": "2026-04-14",
+    "sections": ["cotizacion_autonomos", "regimenes", "bonifications", "pluriactividad", "prestaciones"]
+  },
+  "cotizacion_autonomos": {
+    "reform": "RDL 13/2022 y RDL 14/2022 - Cotización por ingresos reales desde 01/01/2023",
+    "principles": [
+      "1. Rendimientos netos anuales determinan el tramo de cotización",
+      "2. Base de cotización mínima y máxima por tramo",
+      "3. Hasta 6 cambios de base al año",
+      "4. Validación cruzada Hacienda-TGSS tras declaración IRPF",
+      "5. Regularización automática de cuotas",
+      "6. Mantenimiento de bases para altas anteriores al 01/01/2023",
+      "7. Tarifa Plana nuevos autónomos: 80€/mes durante 12 meses",
+      "8. Familiares colaboradores/societarios: base mínima grupo cotización 7 RG",
+      "9. Altas fuera de plazo: base mínima tramo 1",
+      "10. No presentar IRPF o no declarar ingresos: base mínima grupo 7 RG"
+    ],
+    "base_changes_per_year": {
+      "max_changes": 6,
+      "effective_dates": [
+        {"change_date": "01/03", "request_window": "01/01 a último día febrero"},
+        {"change_date": "01/05", "request_window": "01/03 a 30/04"},
+        {"change_date": "01/07", "request_window": "01/05 a 30/06"},
+        {"change_date": "01/09", "request_window": "01/07 a 31/08"},
+        {"change_date": "01/11", "request_window": "01/09 a 31/10"},
+        {"change_date": "01/01 año sig.", "request_window": "01/11 a 31/12"}
+      ]
+    },
+    "regularization": {
+      "process": "Tras IRPF, Hacienda comunica rendimientos netos a TGSS",
+      "if_overpaid": "TGSS devuelve exceso antes del 31/05 del año siguiente",
+      "if_underpaid": "TGSS emite recargo con plazo hasta último día mes siguiente sin intereses ni recargos",
+      "condition": "Solo si base cotización provisional < base mínima del tramo que corresponde por ingresos reales"
+    },
+    "tarifa_plana": {
+      "cuota_monthly_eur": 80,
+      "duration_months": 12,
+      "extension": "Otros 12 meses si facturación < SMI en el año",
+      "applicable_from": "01/01/2023",
+      "base_cotizacion_efectos_prestaciones": "Mínima del tramo 1 (950.58€ para 2023)",
+      "notes": "Para altas anteriores al 01/01/2023, se mantiene normativa anterior"
+    },
+    "family_collaborators": {
+      "minimum_base": "Mínima grupo cotización 7 del Régimen General",
+      "example_2023": "1166.70€",
+      "applies_to": [
+        "Familiares colaboradores",
+        "Societarios",
+        "Familiares de socios",
+        "Socios trabajadores sociedades laborales con participación >= 50% (conjunta con cónyuge y parientes hasta 2º grado)"
+      ]
+    },
+    "unpaid_quotas": {
+      "month_1": "Cuota ordinaria sin reducciones + 10% recargo",
+      "month_2_plus": "Cuota ordinaria sin reducciones + 20% recargo + intereses"
+    }
+  },
+  "regimenes": [
+    {
+      "code": "0111",
+      "name": "Régimen General",
+      "description": "Trabajadores por cuenta ajena del sector privado y entidades públicas no incluidos en otros regímenes"
+    },
+    {
+      "code": "0112",
+      "name": "Régimen General - Artistas",
+      "description": "Personas artistas (actores, músicos, etc.) - protegidos por RDL 1/2023",
+      "special_rules": "Medidas urgentes de mejora de protección social de las personas artistas"
+    },
+    {
+      "code": "0121",
+      "name": "Régimen Especial de Trabajadores Autónomos (RETA)",
+      "description": "Trabajadores por cuenta propia, autónomos societarios, familiares colaboradores"
+    },
+    {
+      "code": "0131",
+      "name": "Régimen Especial Agrario",
+      "description": "Trabajadores por cuenta ajena del sector agrario",
+      "notes": "Subsidio especial por desempleo para eventuales del REASS"
+    },
+    {
+      "code": "0141",
+      "name": "Régimen Especial de Empleados de Hogar",
+      "description": "Personas que prestan servicios en el hogar familiar"
+    },
+    {
+      "code": "0151",
+      "name": "Régimen Especial de Trabajadores del Mar",
+      "description": "Trabajadores del sector marítimo-pesquero"
+    },
+    {
+      "code": "0161",
+      "name": "Régimen Especial de la Minería del Carbón",
+      "description": "Trabajadores de la minería del carbón"
+    }
+  ],
+  "bonifications_contratacion": {
+    "source_law": "RDL 1/2023, de 10 de enero (consolida todos los programas de fomento de empleo)",
+    "standard_indefinido": {
+      "general": {"amount_eur_month": 128, "duration_years": 4},
+      "mujer_vg_vs_trata": {"amount_eur_month": 128, "duration_years": 4, "notes": "No requiere inscripción SPE"},
+      "exclusion_social": {"amount_eur_month": 128, "duration_years": 4},
+      "discapacidad": {"amount_eur_month": 128, "duration_years": 4},
+      "capacidad_intelectual_limite": {"amount_eur_month": 128, "duration_years": 4, "subvencion_eur": 2000},
+      "victimas_terrorismo": {"amount_eur_month": 128, "duration_years": 4},
+      "readmitidos_IP": {"amount_eur_month": 128, "duration_years": 4},
+      "joven_garantia_juvenil": {"amount_eur_month": 275, "duration_years": 3}
+    },
+    "conversion_formativo_indefinido": {
+      "general": {"amount_eur_month": 128, "duration_years": 3},
+      "mujer": {"amount_eur_month": 147, "duration_years": 3},
+      "ETT_empresa_usuaria": {"amount_eur_month": 128, "duration_years": 3, "mujer": 147}
+    },
+    "empresa_insercion": {
+      "general": {"amount_eur_month": 70.83, "duration_years": 3, "annual_eur": 850},
+      "joven_discapacidad": {"amount_eur_month": 147, "duration_years": 3, "condition": "<30 años o discapacidad >=33% y <35 años"}
+    },
+    "CEE_discapacidad": {
+      "exencion_ss": "100% cuota empresarial SS incluida AT/EP y recaudación conjunta",
+      "subvencion_inversion_max_eur": 12000,
+      "subvencion_coste_salarial": "50-60% SMI según tipo discapacidad",
+      "subvencion_adaptacion_max_eur": 1800
+    },
+    "formativo_alternancia": {
+      "during_contract": {"amount_eur_month": 91},
+      "worker_ss": {"amount_eur_month": 28},
+      "discapacidad_50pc_ss": "50% cuota empresarial SS"
+    },
+    "common_rules": [
+      "Tiempo parcial: bonificación reducida proporcionalmente",
+      "Máximo 60% coste salarial anual en concurrencia con otras ayudas",
+      "Exclusión 12 meses por despido improcedente/colectivo de contratos bonificados",
+      "Mantenimiento alta mínimo 3 años",
+      "No aplica a relaciones laborales de carácter especial",
+      "Empresa al corriente obligaciones tributarias y SS",
+      "Certificado tributario validez 6 meses (renovable)",
+      "Plan de igualdad obligatorio si empresa >50 trabajadores (LO 3/2007 Art. 45)"
+    ]
+  },
+  "pluriactividad": {
+    "description": "Trabajadores que cotizan en dos o más regímenes simultáneamente",
+    "rules": [
+      "Posible ajuste y reintegro de cuotas al final del ejercicio",
+      "Base máxima conjunta no puede superar la base máxima del Régimen General",
+      "Reintegro automático si cotización total excede el máximo",
+      "Bonificación por pluriactividad RETA + RG: reducción cuota RETA"
+    ]
+  },
+  "prestaciones": {
+    "IT": {
+      "name": "Incapacidad Temporal",
+      "communication": "Obligatoria para autónomos. Sin CCC: buzón de incidencias Acredita",
+      "contingency_types": ["común", "profesional"]
+    },
+    "maternidad_paternidad": {
+      "maternidad": "16 semanas (intransferibles 6 semanas postparto)",
+      "paternidad": "16 semanas",
+      "riesgo_embarazo": "Situación protegida con reserva puesto",
+      "riesgo_lactancia": "Situación protegida con reserva puesto"
+    },
+    "cese_actividad": {
+      "name": "Prestación por cese de actividad (paro autónomos)",
+      "requirements": [
+        "Estar afiliado y en alta en RETA",
+        "Cotización mínima 12 meses (de los últimos 48)",
+        "No tener deuda con SS",
+        "Estar al corriente de pago"
+      ]
+    },
+    "incapacidad_permanente": {
+      "types": ["parcial", "total", "absoluta", "gran invalidez"],
+      "relevance": "Readmisión tras IP total/absoluta da derecho a bonificación indefinida"
+    }
+  },
+  "encuadramiento": {
+    "description": "Normas para clasificar trabajadores en el régimen de SS correcto",
+    "special_cases": [
+      {
+        "case": "Autónomo societario",
+        "regime": "RETA",
+        "conditions": [
+          "Admin. únicos, socios admin., socios colectivos/participes",
+          "Socios trabajadores sociedades laborales y cooperativas",
+          "Participación >= 50% (conjunta familiar hasta 2º grado)"
+        ]
+      },
+      {
+        "case": "Familiar colaborador autónomo",
+        "regime": "RETA",
+        "conditions": [
+          "Cónyuge y parientes hasta 2º grado del autónomo",
+          "Que convivan y trabajen habitualmente en la actividad"
+        ]
+      },
+      {
+        "case": "Artistas",
+        "regime": "Régimen General - Artistas (0112)",
+        "conditions": ["Actividades artísticas según RDL 1/2023"]
+      },
+      {
+        "case": "Deportistas profesionales",
+        "regime": "Régimen General",
+        "conditions": ["Relación laboral especial RD 1006/1985"]
+      },
+      {
+        "case": "Iglesia Católica",
+        "regime": "Régimen General",
+        "notes": "Incluidos en el ámbito del sistema de SS"
+      },
+      {
+        "case": "Trabajadores del mar",
+        "regime": "Régimen Especial Trabajadores del Mar (0151)",
+        "notes": "Sector marítimo-pesquero"
+      }
+    ]
+  }
+}

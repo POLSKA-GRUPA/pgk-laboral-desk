@@ -1,0 +1,1250 @@
+{
+  "_meta": {
+    "source": "Base de conocimiento laboral (fuentes oficiales BOE/SEPE/TGSS)",
+    "extracted": "2026-04-14",
+    "total_types": 72,
+    "sepe_codes_reference": "45 official XSD codes: 100,130,150,200,230,250,300,330,350,401-413,420,421,430,441,450,452,501-513,520,521,530,540,541,550,552,970,980,990",
+    "legal_framework": "RDL 32/2021 (reforma laboral), RDL 1/2023 (incentivos contratación), ET (Estatuto Trabajadores RDL 2/2015)"
+  },
+  "contract_types": [
+    {
+      "name": "Contrato indefinido ordinario",
+      "type": "indefinido",
+      "sepe_codes": [
+        "100",
+        "200"
+      ],
+      "legal_basis": "ET Art. 1, RDL 2/2015",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Contrato por tiempo indefinido general. No da derecho a incentivos específicos por la contratación."
+    },
+    {
+      "name": "Contrato indefinido. Conversión de formativos y de relevo",
+      "type": "indefinido",
+      "sepe_codes": [
+        "100",
+        "200"
+      ],
+      "legal_basis": "RDL 32/2021 Art. 11, RDL 1/2023 Art. 10",
+      "bonifications": [
+        {
+          "amount_eur_month": 128,
+          "duration_years": 3,
+          "notes": "Transformación formativo→indefinido"
+        },
+        {
+          "amount_eur_month": 147,
+          "duration_years": 3,
+          "notes": "Si mujer"
+        }
+      ],
+      "special_requirements": [
+        "trabajador_con_contrato_formativo_previo"
+      ],
+      "description": "Transformación en indefinido de contratos formativos (formación en alternancia o práctica profesional) o de relevo."
+    },
+    {
+      "name": "Contrato indefinido. Conversión formativo temporal discapacidad",
+      "type": "indefinido",
+      "sepe_codes": [
+        "130",
+        "230",
+        "200"
+      ],
+      "legal_basis": "RDL 1/2023, RD 818/2021",
+      "bonifications": [
+        {
+          "amount_eur": 5500,
+          "type": "subvención",
+          "notes": "Tiempo completo (6000€ si mujer, >45 años, colectivo vulnerable)"
+        },
+        {
+          "amount_eur_month": 128,
+          "duration_years": 4,
+          "notes": "Bonificación SS"
+        }
+      ],
+      "special_requirements": [
+        "discapacidad_>=33"
+      ],
+      "description": "Conversión de contratos formativos y temporal para fomento del empleo de personas con discapacidad en indefinido."
+    },
+    {
+      "name": "Contrato indefinido. Alta dirección",
+      "type": "indefinido",
+      "sepe_codes": [
+        "150"
+      ],
+      "legal_basis": "RDL 2/2015 (relación especial Art. 2.1.a)",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Contrato indefinido de alta dirección. Relación laboral de carácter especial."
+    },
+    {
+      "name": "Contrato indefinido. Trabajo en grupo",
+      "type": "indefinido",
+      "sepe_codes": [
+        "250"
+      ],
+      "legal_basis": "RDL 2/2015",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Contrato indefinido de trabajo en grupo. Duración podrá ser indefinida."
+    },
+    {
+      "name": "Contrato indefinido. Jóvenes garantía juvenil (baja cualificación)",
+      "type": "indefinido",
+      "sepe_codes": [
+        "200"
+      ],
+      "legal_basis": "RDL 1/2023 DA1",
+      "bonifications": [
+        {
+          "amount_eur_month": 275,
+          "duration_years": 3,
+          "notes": "Jóvenes <30 años baja cualificación, beneficiarios Sistema Nacional Garantía Juvenil"
+        }
+      ],
+      "special_requirements": [
+        "edad_<30",
+        "baja_cualificación",
+        "beneficiario_garantia_juvenil"
+      ],
+      "description": "Contrato indefinido para jóvenes menores de 30 años con baja cualificación beneficiarios del Sistema Nacional de Garantía Juvenil. Puede ser completo, parcial o fijo discontinuo."
+    },
+    {
+      "name": "Contrato indefinido. Mujeres víctimas de violencia de género",
+      "type": "indefinido",
+      "sepe_codes": [
+        "200"
+      ],
+      "legal_basis": "RDL 1/2023, LO 1/2004, LO 10/2022, RDL 6/2022",
+      "bonifications": [
+        {
+          "amount_eur_month": 128,
+          "duration_years": 4,
+          "notes": "Mujeres víctimas VG/VS/trata"
+        },
+        {
+          "proportional_part_time": true
+        }
+      ],
+      "special_requirements": [
+        "mujer",
+        "víctima_violencia_género_o_sexual_o_trata"
+      ],
+      "description": "Contrato indefinido para mujeres víctimas de violencia de género, violencias sexuales o trata de seres humanos. Incluye fijo discontinuo y parcial. No requiere inscripción en SPE."
+    },
+    {
+      "name": "Contrato indefinido. Personas con capacidad intelectual límite",
+      "type": "indefinido",
+      "sepe_codes": [
+        "150",
+        "250",
+        "200"
+      ],
+      "legal_basis": "RDL 1/2023, RD 368/2021",
+      "bonifications": [
+        {
+          "amount_eur": 2000,
+          "type": "subvención",
+          "notes": "Tiempo completo (proporcional si parcial)"
+        },
+        {
+          "amount_eur_month": 128,
+          "duration_years": 4,
+          "notes": "Bonificación SS"
+        },
+        {
+          "amount_eur": 1800,
+          "type": "subvención_adaptación",
+          "notes": "Adaptación puesto trabajo"
+        }
+      ],
+      "special_requirements": [
+        "discapacidad_intelectual_20-33%",
+        "inscrito_spe"
+      ],
+      "description": "Contrato indefinido para personas con capacidad intelectual límite (discapacidad >=20% y <33%). Incluye fijo discontinuo y parcial."
+    },
+    {
+      "name": "Contrato indefinido. Personas con discapacidad en CEE",
+      "type": "indefinido",
+      "sepe_codes": [
+        "130",
+        "230",
+        "200"
+      ],
+      "legal_basis": "RD 1368/1985, RDL 1/2013, RDL 1/2023, RD 818/2021",
+      "bonifications": [
+        {
+          "type": "exención_100%",
+          "notes": "100% cuota empresarial SS incluida AT/EP y recaudación conjunta"
+        },
+        {
+          "amount_eur": 12000,
+          "type": "subvención_inversión",
+          "notes": "Por nueva contratación indefinida o transformación"
+        },
+        {
+          "type": "subvención_coste_salarial",
+          "notes": "50-60% SMI según tipo discapacidad y estabilidad"
+        },
+        {
+          "amount_eur": 1800,
+          "type": "subvención_adaptación",
+          "notes": "Adaptación puesto trabajo"
+        }
+      ],
+      "special_requirements": [
+        "discapacidad_>=33",
+        "centro_especial_empleo",
+        "70%_plantilla_discapacidad"
+      ],
+      "description": "Contrato indefinido en Centros Especiales de Empleo. Exención total cuotas SS. Subvención coste salarial según tipo y grado de discapacidad."
+    },
+    {
+      "name": "Contrato indefinido. Personas con discapacidad procedentes de enclaves",
+      "type": "indefinido",
+      "sepe_codes": [
+        "130",
+        "230",
+        "200"
+      ],
+      "legal_basis": "RD 290/2004, RDL 1/2023",
+      "bonifications": [
+        {
+          "type": "subvención",
+          "notes": "Según RD 818/2021 para colectivos a) y b)"
+        },
+        {
+          "amount_eur_month": 128,
+          "duration_years": 4,
+          "notes": "Bonificación SS"
+        },
+        {
+          "amount_eur": 1800,
+          "type": "subvención_adaptación"
+        }
+      ],
+      "special_requirements": [
+        "discapacidad_>=33",
+        "procedente_enclave_laboral",
+        "excedencia_en_CEE"
+      ],
+      "description": "Contrato indefinido para trabajadores con discapacidad procedentes de enclaves laborales en tránsito al mercado ordinario."
+    },
+    {
+      "name": "Contrato indefinido. Personas con discapacidad",
+      "type": "indefinido",
+      "sepe_codes": [
+        "130",
+        "230",
+        "200"
+      ],
+      "legal_basis": "Ley 43/2006, RDL 1/2023",
+      "bonifications": [
+        {
+          "amount_eur_month": 128,
+          "duration_years": 4,
+          "notes": "Bonificación general discapacidad"
+        }
+      ],
+      "special_requirements": [
+        "discapacidad_>=33"
+      ],
+      "description": "Contrato indefinido para personas con discapacidad con grado igual o superior al 33%."
+    },
+    {
+      "name": "Contrato indefinido. Personas desempleadas de larga duración",
+      "type": "indefinido",
+      "sepe_codes": [
+        "200"
+      ],
+      "legal_basis": "RDL 8/2019, RDL 1/2023",
+      "bonifications": [
+        {
+          "amount_eur_month": 128,
+          "duration_years": 4,
+          "notes": "Desempleo larga duración"
+        }
+      ],
+      "special_requirements": [
+        "desempleo_larga_duración",
+        "inscrito_spe_12_meses"
+      ],
+      "description": "Contrato indefinido para personas desempleadas inscritas como demandantes de empleo al menos 12 meses."
+    },
+    {
+      "name": "Contrato indefinido. Personas formación práctica en empresas",
+      "type": "indefinido",
+      "sepe_codes": [
+        "200"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [
+        {
+          "amount_eur_month": 128,
+          "duration_years": 4,
+          "notes": "Formación práctica en empresas"
+        }
+      ],
+      "special_requirements": [
+        "formación_práctica_empresas"
+      ],
+      "description": "Contrato indefinido para personas que realizan formación práctica en empresas."
+    },
+    {
+      "name": "Contrato indefinido. Personas exclusión social en empresas inserción",
+      "type": "indefinido",
+      "sepe_codes": [
+        "200"
+      ],
+      "legal_basis": "Ley 44/2007, RDL 1/2023 DA6",
+      "bonifications": [
+        {
+          "amount_eur_month": 70.83,
+          "duration_years": 3,
+          "notes": "850€/año durante 3 años"
+        },
+        {
+          "amount_eur_month": 147,
+          "duration_years": 3,
+          "notes": "Si <30 años o discapacidad >=33% y <35 años"
+        }
+      ],
+      "special_requirements": [
+        "exclusión_social",
+        "empresa_inserción"
+      ],
+      "description": "Contrato indefinido en empresas de inserción para personas en situación de exclusión social."
+    },
+    {
+      "name": "Contrato indefinido. Personas exclusión social",
+      "type": "indefinido",
+      "sepe_codes": [
+        "150",
+        "250"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [
+        {
+          "amount_eur_month": 128,
+          "duration_years": 4,
+          "notes": "Exclusión social"
+        },
+        {
+          "amount_eur_month": 147,
+          "duration_months": 12,
+          "notes": "Primeros 12 meses si viene de empresa inserción"
+        }
+      ],
+      "special_requirements": [
+        "exclusión_social_acreditada",
+        "inscrito_spe"
+      ],
+      "description": "Contrato indefinido para personas trabajadoras en situación de exclusión social. Incluye fijo discontinuo y parcial."
+    },
+    {
+      "name": "Contrato indefinido. Mayores 52 años beneficiarios subsidio desempleo",
+      "type": "indefinido",
+      "sepe_codes": [
+        "200"
+      ],
+      "legal_basis": "DT5 Ley 45/2002, Ley 43/2006, RDL 1/2023",
+      "bonifications": [
+        {
+          "type": "abono_50%_subsidio",
+          "notes": "Abono mensual 50% cuantía subsidio durante contrato"
+        },
+        {
+          "type": "ayuda_movilidad",
+          "notes": "3 meses subsidio si cambio residencia"
+        },
+        {
+          "type": "bonificación_indefinida",
+          "notes": "Si cumple requisitos Ley 43/2006 o RDL 8/2019"
+        }
+      ],
+      "special_requirements": [
+        "edad_>52",
+        "beneficiario_subsidio_desempleo"
+      ],
+      "description": "Contrato indefinido para personas trabajadoras mayores de 52 años beneficiarias de subsidios por desempleo. Compatibiliza subsidio con trabajo."
+    },
+    {
+      "name": "Contrato indefinido. ETT→empresa (formativo→indefinido)",
+      "type": "indefinido",
+      "sepe_codes": [
+        "200"
+      ],
+      "legal_basis": "RDL 1/2023 Art. 24",
+      "bonifications": [
+        {
+          "amount_eur_month": 128,
+          "duration_years": 3,
+          "notes": "Sin solución continuidad"
+        },
+        {
+          "amount_eur_month": 147,
+          "duration_years": 3,
+          "notes": "Si mujer"
+        }
+      ],
+      "special_requirements": [
+        "contrato_formativo_previo_ETT",
+        "sin_solución_continuidad"
+      ],
+      "description": "Contrato indefinido con trabajador procedente de contrato formativo de ETT, sin solución de continuidad."
+    },
+    {
+      "name": "Contrato indefinido. Personas víctimas del terrorismo",
+      "type": "indefinido",
+      "sepe_codes": [
+        "200"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [
+        {
+          "amount_eur_month": 128,
+          "duration_years": 4,
+          "notes": "Víctimas terrorismo"
+        }
+      ],
+      "special_requirements": [
+        "víctima_terrorismo"
+      ],
+      "description": "Contrato indefinido para personas víctimas del terrorismo."
+    },
+    {
+      "name": "Contrato indefinido. Readmitidos tras incapacidad permanente",
+      "type": "indefinido",
+      "sepe_codes": [
+        "200"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [
+        {
+          "amount_eur_month": 128,
+          "duration_years": 4,
+          "notes": "Readmitidos IP total/absoluta"
+        }
+      ],
+      "special_requirements": [
+        "readmisión_tras_IP_total_o_absoluta"
+      ],
+      "description": "Contrato indefinido para personas readmitidas tras haber cesado en la empresa por incapacidad permanente total o absoluta."
+    },
+    {
+      "name": "Contrato formativo. Formación en alternancia",
+      "type": "formativo",
+      "sepe_codes": [
+        "421",
+        "409",
+        "509"
+      ],
+      "legal_basis": "ET Art. 11.2, RDL 32/2021, RDL 1/2023",
+      "duration": {
+        "min_months": 3,
+        "max_months": 24,
+        "prórroga": "hasta obtener título, max 2 años"
+      },
+      "bonifications": [
+        {
+          "amount_eur_month": 91,
+          "notes": "Durante vigencia (incl. prórrogas)"
+        },
+        {
+          "amount_eur_month": 28,
+          "notes": "Bonificación cuota trabajadora SS y recaudación conjunta"
+        }
+      ],
+      "special_requirements": [
+        "sin_cualificación_profesional",
+        "relacionado_con_formación"
+      ],
+      "description": "Contrato que compatibiliza actividad laboral retribuida con formación profesional, universitaria o del Catálogo de especialidades formativas. Jornada asimilada a tiempo completo. No horas complementarias ni extraordinarias. Retribución >=60% primer año, >=75% segundo año (del convenio). Sin periodo de prueba. Discapacidad: max 3 años, 50% bonificación SS.",
+      "worker_requirements": {
+        "age_min": 16,
+        "age_max": null,
+        "age_max_note": "Sin límite para universitarios, FP nivel 3, discapacidad o exclusión social. 30 años para certificados nivel 1-2 y programas empleo-formación"
+      }
+    },
+    {
+      "name": "Contrato formativo. Obtención práctica profesional",
+      "type": "formativo",
+      "sepe_codes": [
+        "420"
+      ],
+      "legal_basis": "ET Art. 11.1, RDL 32/2021, RDL 1/2023",
+      "duration": {
+        "min_months": 6,
+        "max_months": 24
+      },
+      "bonifications": [
+        {
+          "amount_eur_month": 91,
+          "notes": "Durante vigencia"
+        },
+        {
+          "amount_eur_month": 28,
+          "notes": "Bonificación cuota trabajadora SS"
+        }
+      ],
+      "special_requirements": [
+        "titulación_habilitante",
+        "no_mismo_puesto_6_meses"
+      ],
+      "description": "Contrato para la obtención de práctica profesional adecuado al nivel de estudios. Requiere titulación. Max 2 años. Retribución >=60% primer año, >=75% segundo (del convenio). Sin periodo de prueba."
+    },
+    {
+      "name": "Contrato temporal. Circunstancias de la producción",
+      "type": "temporal",
+      "sepe_codes": [
+        "402",
+        "502"
+      ],
+      "legal_basis": "ET Art. 15.1.b, RDL 32/2021",
+      "duration": {
+        "max_months": 6,
+        "extension_max_months": 12,
+        "notes": "Ampliable a 12 meses por convenio o negociación colectiva"
+      },
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Contrato temporal por circunstancias de la producción, cuando se produzcan incrementos imprevisibles o previsibles de la carga de trabajo. Indemnización 12 días/año."
+    },
+    {
+      "name": "Contrato temporal. Sustitución persona trabajadora",
+      "type": "temporal",
+      "sepe_codes": [
+        "510",
+        "520",
+        "521"
+      ],
+      "legal_basis": "ET Art. 15.1.c, RDL 32/2021",
+      "duration": {
+        "notes": "Mientras dure la ausencia del trabajador sustituido"
+      },
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Contrato temporal para sustituir a trabajador con derecho a reserva del puesto de trabajo."
+    },
+    {
+      "name": "Contrato temporal. Sustitución maternidad/paternidad",
+      "type": "temporal",
+      "sepe_codes": [
+        "410"
+      ],
+      "legal_basis": "ET Art. 15.1.c",
+      "duration": {
+        "notes": "Duración de la suspensión por maternidad/paternidad/adopción/acogimiento/riesgo embarazo/lactancia"
+      },
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Contrato temporal para sustituir a trabajador en situación de maternidad, paternidad, adopción, acogimiento, riesgo durante embarazo y lactancia, cuidado del menor."
+    },
+    {
+      "name": "Contrato temporal. Sustitución para formación por desempleados",
+      "type": "temporal",
+      "sepe_codes": [
+        "520"
+      ],
+      "legal_basis": "ET Art. 15.1.c",
+      "duration": {
+        "notes": "Duración de la formación del trabajador sustituido"
+      },
+      "bonifications": [],
+      "special_requirements": [
+        "trabajador_sustituido_en_formación",
+        "sustituto_beneficiario_prestación_desempleo"
+      ],
+      "description": "Contrato temporal para sustituir a trabajadores en formación por trabajadores beneficiarios de prestaciones por desempleo."
+    },
+    {
+      "name": "Contrato temporal. De relevo",
+      "type": "temporal",
+      "sepe_codes": [
+        "441"
+      ],
+      "legal_basis": "ET Art. 12.2, RDL 1/2023",
+      "bonifications": [],
+      "special_requirements": [
+        "jubilación_parcial"
+      ],
+      "description": "Contrato temporal de relevo vinculado a jubilación parcial. Jornada completa o parcial según caso."
+    },
+    {
+      "name": "Contrato temporal. Fomento empleo exclusión social",
+      "type": "temporal",
+      "sepe_codes": [
+        "450",
+        "550"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [],
+      "special_requirements": [
+        "exclusión_social"
+      ],
+      "description": "Contrato temporal de fomento de empleo para personas trabajadoras en situación de exclusión social."
+    },
+    {
+      "name": "Contrato temporal. Discapacidad",
+      "type": "temporal",
+      "sepe_codes": [
+        "430"
+      ],
+      "legal_basis": "RDL 1/2023, RD 818/2021",
+      "bonifications": [],
+      "special_requirements": [
+        "discapacidad_>=33"
+      ],
+      "description": "Contrato temporal para personas con discapacidad."
+    },
+    {
+      "name": "Contrato temporal. Discapacidad en CEE",
+      "type": "temporal",
+      "sepe_codes": [
+        "430"
+      ],
+      "legal_basis": "RD 1368/1985",
+      "bonifications": [],
+      "special_requirements": [
+        "discapacidad_>=33",
+        "centro_especial_empleo"
+      ],
+      "description": "Contrato temporal en Centros Especiales de Empleo para personas con discapacidad."
+    },
+    {
+      "name": "Contrato temporal. Hogar familiar",
+      "type": "temporal",
+      "sepe_codes": [
+        "990"
+      ],
+      "legal_basis": "ET Art. 2.1.b",
+      "bonifications": [],
+      "special_requirements": [
+        "servicio_hogar_familiar"
+      ],
+      "description": "Contrato temporal de servicio del hogar familiar."
+    },
+    {
+      "name": "Contrato temporal. Acceso personal investigador doctor",
+      "type": "temporal",
+      "sepe_codes": [
+        "412"
+      ],
+      "legal_basis": "RDL 2/2015",
+      "bonifications": [],
+      "special_requirements": [
+        "doctor"
+      ],
+      "description": "Contrato temporal de acceso de personal investigador doctor."
+    },
+    {
+      "name": "Contrato temporal. Alta dirección",
+      "type": "temporal",
+      "sepe_codes": [
+        "150"
+      ],
+      "legal_basis": "RDL 2/2015 (relación especial)",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Contrato temporal de alta dirección."
+    },
+    {
+      "name": "Contrato temporal. Menores y jóvenes en centros de menores",
+      "type": "temporal",
+      "sepe_codes": [
+        "990"
+      ],
+      "legal_basis": "RDL 2/2015",
+      "bonifications": [],
+      "special_requirements": [
+        "centro_menores_internamiento"
+      ],
+      "description": "Contrato temporal con menores y jóvenes en centros de menores sometidos a medidas de internamiento."
+    },
+    {
+      "name": "Contrato temporal. Situación jubilación parcial",
+      "type": "temporal",
+      "sepe_codes": [
+        "980"
+      ],
+      "legal_basis": "ET Art. 12.2",
+      "bonifications": [],
+      "special_requirements": [
+        "jubilación_parcial"
+      ],
+      "description": "Contrato temporal de situación de jubilación parcial."
+    },
+    {
+      "name": "Contrato temporal. Sustitución víctimas violencia de género",
+      "type": "temporal",
+      "sepe_codes": [
+        "410"
+      ],
+      "legal_basis": "LO 1/2004, RDL 6/2022",
+      "bonifications": [],
+      "special_requirements": [
+        "víctima_violencia_género"
+      ],
+      "description": "Contrato temporal para sustituir a trabajadoras víctimas de violencia de género o violencias sexuales."
+    },
+    {
+      "name": "Contrato temporal. Sustitución baja IT discapacidad",
+      "type": "temporal",
+      "sepe_codes": [
+        "410"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [],
+      "special_requirements": [
+        "sustitución_IT_discapacidad"
+      ],
+      "description": "Contrato temporal para sustituir bajas por incapacidad temporal de personas con discapacidad."
+    },
+    {
+      "name": "Contrato temporal. Trabajo en grupo",
+      "type": "temporal",
+      "sepe_codes": [
+        "990"
+      ],
+      "legal_basis": "RDL 2/2015",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Contrato temporal de trabajo en grupo."
+    },
+    {
+      "name": "Contrato temporal. Penados en instituciones penitenciarias",
+      "type": "temporal",
+      "sepe_codes": [
+        "990"
+      ],
+      "legal_basis": "RD 782/2001",
+      "bonifications": [],
+      "special_requirements": [
+        "penado_institución_penitenciaria"
+      ],
+      "description": "Contrato temporal para penados en instituciones penitenciarias."
+    },
+    {
+      "name": "Contrato temporal. Exclusión social empresas inserción",
+      "type": "temporal",
+      "sepe_codes": [
+        "452",
+        "552"
+      ],
+      "legal_basis": "Ley 44/2007",
+      "bonifications": [],
+      "special_requirements": [
+        "exclusión_social",
+        "empresa_inserción"
+      ],
+      "description": "Contrato temporal para personas trabajadoras en situación de exclusión social por empresas de inserción."
+    },
+    {
+      "name": "Contrato temporal. Mayores 52 años beneficiarios subsidio",
+      "type": "temporal",
+      "sepe_codes": [
+        "990"
+      ],
+      "legal_basis": "DT5 Ley 45/2002",
+      "bonifications": [],
+      "special_requirements": [
+        "edad_>52",
+        "beneficiario_subsidio"
+      ],
+      "description": "Contrato temporal para personas trabajadoras mayores de 52 años beneficiarias de los subsidios por desempleo."
+    },
+    {
+      "name": "Contrato temporal. Predoctoral en formación",
+      "type": "temporal",
+      "sepe_codes": [
+        "404"
+      ],
+      "legal_basis": "RDL 2/2015",
+      "bonifications": [],
+      "special_requirements": [
+        "predoctoral"
+      ],
+      "description": "Contrato temporal predoctoral en formación."
+    },
+    {
+      "name": "Contrato temporal. Sustitución anticipación jubilación",
+      "type": "temporal",
+      "sepe_codes": [
+        "510"
+      ],
+      "legal_basis": "RDL 2/2015",
+      "bonifications": [],
+      "special_requirements": [
+        "anticipación_edad_jubilación"
+      ],
+      "description": "Contrato temporal de sustitución por anticipación de la edad de jubilación."
+    },
+    {
+      "name": "Contrato temporal. Vinculado a programas activación empleo",
+      "type": "temporal",
+      "sepe_codes": [
+        "405",
+        "505"
+      ],
+      "legal_basis": "RDL 2/2015",
+      "bonifications": [],
+      "special_requirements": [
+        "programa_activación_empleo"
+      ],
+      "description": "Contrato temporal vinculado a programas de activación para el empleo."
+    },
+    {
+      "name": "Contrato fijo discontinuo",
+      "type": "indefinido",
+      "sepe_codes": [
+        "100"
+      ],
+      "legal_basis": "ET Art. 15.8, RDL 32/2021",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Contrato indefinido que se ejecuta de forma intermitente o cíclica. Se llama al trabajador cuando hay actividad. Conversion from temporal agrario to fijo discontinuo has specific bonifications."
+    },
+    {
+      "name": "Contrato temporal para empleada de hogar",
+      "type": "temporal",
+      "sepe_codes": [
+        "990"
+      ],
+      "legal_basis": "ET Art. 2.1.b",
+      "bonifications": [],
+      "special_requirements": [
+        "servicio_hogar"
+      ],
+      "description": "Contrato temporal para empleada de hogar."
+    },
+    {
+      "name": "Contrato indefinido. Servicio del hogar familiar",
+      "type": "indefinido",
+      "sepe_codes": [
+        "100"
+      ],
+      "legal_basis": "ET Art. 2.1.b",
+      "bonifications": [],
+      "special_requirements": [
+        "servicio_hogar_familiar"
+      ],
+      "description": "Contrato indefinido de servicio del hogar familiar."
+    },
+    {
+      "name": "Contrato indefinido. Minusvalía",
+      "type": "indefinido",
+      "sepe_codes": [
+        "130",
+        "230"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [
+        {
+          "amount_eur_month": 128,
+          "duration_years": 4
+        }
+      ],
+      "special_requirements": [
+        "discapacidad_>=33"
+      ],
+      "description": "Contrato indefinido para personas con minusvalía a tiempo completo (130) o parcial (230)."
+    },
+    {
+      "name": "Contrato fijo discontinuo con bonificación",
+      "type": "indefinido",
+      "sepe_codes": [
+        "350"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [
+        {
+          "amount_eur_month": 128,
+          "duration_years": 4
+        }
+      ],
+      "special_requirements": [],
+      "description": "Contrato fijo discontinuo con bonificación en cuotas SS."
+    },
+    {
+      "name": "Contrato temporal. Sustitución TC",
+      "type": "temporal",
+      "sepe_codes": [
+        "410"
+      ],
+      "legal_basis": "ET Art. 15",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Contrato de sustitución a tiempo completo."
+    },
+    {
+      "name": "Contrato temporal. Investigador doctor TC",
+      "type": "temporal",
+      "sepe_codes": [
+        "412"
+      ],
+      "legal_basis": "RDL 2/2015",
+      "bonifications": [],
+      "special_requirements": [
+        "doctor"
+      ],
+      "description": "Contrato temporal de acceso de personal investigador doctor a tiempo completo."
+    },
+    {
+      "name": "Contrato temporal. Deportistas profesionales TC",
+      "type": "temporal",
+      "sepe_codes": [
+        "413"
+      ],
+      "legal_basis": "RD 1006/1985",
+      "bonifications": [],
+      "special_requirements": [
+        "deportista_profesional"
+      ],
+      "description": "Contrato temporal de deportistas profesionales a tiempo completo."
+    },
+    {
+      "name": "Contrato temporal. Deportistas profesionales TP",
+      "type": "temporal",
+      "sepe_codes": [
+        "513"
+      ],
+      "legal_basis": "RD 1006/1985",
+      "bonifications": [],
+      "special_requirements": [
+        "deportista_profesional"
+      ],
+      "description": "Contrato temporal de deportistas profesionales a tiempo parcial."
+    },
+    {
+      "name": "Contrato temporal. Relevo TC",
+      "type": "temporal",
+      "sepe_codes": [
+        "441"
+      ],
+      "legal_basis": "ET Art. 12.2",
+      "bonifications": [],
+      "special_requirements": [
+        "jubilación_parcial"
+      ],
+      "description": "Contrato de relevo a tiempo completo."
+    },
+    {
+      "name": "Contrato temporal. Exclusión social TC",
+      "type": "temporal",
+      "sepe_codes": [
+        "450"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [],
+      "special_requirements": [
+        "exclusión_social"
+      ],
+      "description": "Contrato temporal para exclusión social a tiempo completo."
+    },
+    {
+      "name": "Contrato temporal. Empresa inserción TC",
+      "type": "temporal",
+      "sepe_codes": [
+        "452"
+      ],
+      "legal_basis": "Ley 44/2007",
+      "bonifications": [],
+      "special_requirements": [
+        "empresa_inserción"
+      ],
+      "description": "Contrato temporal bonificado para empresas de inserción TC."
+    },
+    {
+      "name": "Contrato temporal. Programas activación empleo TP",
+      "type": "temporal",
+      "sepe_codes": [
+        "505"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Vinculado a programas de políticas activas de empleo TP."
+    },
+    {
+      "name": "Contrato temporal. Fondos europeos TP",
+      "type": "temporal",
+      "sepe_codes": [
+        "506"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Duración determinada financiado con fondos europeos TP."
+    },
+    {
+      "name": "Contrato temporal. Artístico TP",
+      "type": "temporal",
+      "sepe_codes": [
+        "507"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [],
+      "special_requirements": [
+        "artista"
+      ],
+      "description": "Contrato artístico de duración determinada TP."
+    },
+    {
+      "name": "Contrato temporal. Universidades TP",
+      "type": "temporal",
+      "sepe_codes": [
+        "509"
+      ],
+      "legal_basis": "LOU 6/2001",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Ley Orgánica de Universidades 6/2001 TP."
+    },
+    {
+      "name": "Contrato temporal. Exclusión social TP",
+      "type": "temporal",
+      "sepe_codes": [
+        "550"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [],
+      "special_requirements": [
+        "exclusión_social"
+      ],
+      "description": "Contrato temporal para exclusión social a tiempo parcial."
+    },
+    {
+      "name": "Contrato temporal. Empresa inserción TP",
+      "type": "temporal",
+      "sepe_codes": [
+        "552"
+      ],
+      "legal_basis": "Ley 44/2007",
+      "bonifications": [],
+      "special_requirements": [
+        "empresa_inserción"
+      ],
+      "description": "Contrato temporal bonificado para empresas de inserción TP."
+    },
+    {
+      "name": "Contrato especial. Colaboración social",
+      "type": "other",
+      "sepe_codes": [
+        "970"
+      ],
+      "legal_basis": "ET",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Adscripción en colaboración social."
+    },
+    {
+      "name": "Contrato especial. Jubilación especial 64 años",
+      "type": "other",
+      "sepe_codes": [
+        "980"
+      ],
+      "legal_basis": "ET",
+      "bonifications": [],
+      "special_requirements": [
+        "edad_64"
+      ],
+      "description": "Jubilación especial a los 64 años."
+    },
+    {
+      "name": "Contrato especial. Otros contratos",
+      "type": "other",
+      "sepe_codes": [
+        "990"
+      ],
+      "legal_basis": "ET",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Otros contratos no clasificados en tipos específicos."
+    },
+    {
+      "name": "Contrato fijo discontinuo ordinario",
+      "type": "indefinido",
+      "sepe_codes": [
+        "300"
+      ],
+      "legal_basis": "ET Art. 15.8",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Contrato fijo discontinuo sin bonificación."
+    },
+    {
+      "name": "Contrato fijo discontinuo minusvalía",
+      "type": "indefinido",
+      "sepe_codes": [
+        "330"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [
+        {
+          "amount_eur_month": 128,
+          "duration_years": 4
+        }
+      ],
+      "special_requirements": [
+        "discapacidad_>=33"
+      ],
+      "description": "Contrato fijo discontinuo para personas con minusvalía."
+    },
+    {
+      "name": "Contrato temporal. Inserción TC",
+      "type": "temporal",
+      "sepe_codes": [
+        "403"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Contrato de inserción a tiempo completo."
+    },
+    {
+      "name": "Contrato temporal. Fondos europeos TC",
+      "type": "temporal",
+      "sepe_codes": [
+        "406"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Duración determinada financiado con fondos europeos TC."
+    },
+    {
+      "name": "Contrato temporal. Artístico TC",
+      "type": "temporal",
+      "sepe_codes": [
+        "407"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [],
+      "special_requirements": [
+        "artista"
+      ],
+      "description": "Contrato artístico de duración determinada TC."
+    },
+    {
+      "name": "Contrato temporal. Inserción TP",
+      "type": "temporal",
+      "sepe_codes": [
+        "503"
+      ],
+      "legal_basis": "RDL 1/2023",
+      "bonifications": [],
+      "special_requirements": [],
+      "description": "Contrato de inserción a tiempo parcial."
+    },
+    {
+      "name": "Contrato temporal. Jubilación parcial",
+      "type": "temporal",
+      "sepe_codes": [
+        "530"
+      ],
+      "legal_basis": "ET Art. 12",
+      "bonifications": [],
+      "special_requirements": [
+        "jubilación_parcial"
+      ],
+      "description": "Contrato temporal de situación de jubilación parcial."
+    },
+    {
+      "name": "Contrato temporal. Relevo TP",
+      "type": "temporal",
+      "sepe_codes": [
+        "540",
+        "541"
+      ],
+      "legal_basis": "ET Art. 12.2",
+      "bonifications": [],
+      "special_requirements": [
+        "jubilación_parcial"
+      ],
+      "description": "Contrato de relevo a tiempo parcial (540) y parcial con jornada reducida (541)."
+    }
+  ],
+  "bonification_summary": {
+    "RDL_1_2023_article_10": {
+      "description": "Incentivos a la contratación laboral consolidados por RDL 1/2023",
+      "standard_bonifications": [
+        {
+          "type": "indefinido_general_discapacidad",
+          "amount_eur_month": 128,
+          "duration": "4 años"
+        },
+        {
+          "type": "indefinido_conversión_formativo",
+          "amount_eur_month": 128,
+          "duration": "3 años"
+        },
+        {
+          "type": "indefinido_conversión_formativo_mujer",
+          "amount_eur_month": 147,
+          "duration": "3 años"
+        },
+        {
+          "type": "indefinido_joven_garantia_juvenil",
+          "amount_eur_month": 275,
+          "duration": "3 años"
+        },
+        {
+          "type": "indefinido_exclusión_social",
+          "amount_eur_month": 128,
+          "duration": "4 años"
+        },
+        {
+          "type": "indefinido_empresa_inserción",
+          "amount_eur_month": 70.83,
+          "duration": "3 años"
+        },
+        {
+          "type": "indefinido_empresa_inserción_joven_discapacidad",
+          "amount_eur_month": 147,
+          "duration": "3 años"
+        },
+        {
+          "type": "CEE_exención_total",
+          "amount": "100% cuota empresarial SS"
+        },
+        {
+          "type": "formativo_alternancia_during",
+          "amount_eur_month": 91
+        },
+        {
+          "type": "formativo_alternancia_worker",
+          "amount_eur_month": 28
+        }
+      ]
+    },
+    "common_rules": [
+      "Bonificaciones reducidas proporcionalmente para contratos a tiempo parcial",
+      "Máximo 60% coste salarial anual en concurrencia con otras ayudas",
+      "Exclusión 12 meses si despido improcedente o colectivo de contratos bonificados",
+      "Mantenimiento alta mínimo 3 años",
+      "No aplica a relaciones laborales de carácter especial",
+      "Empresa al corriente obligaciones tributarias y SS"
+    ]
+  },
+  "deprecated_codes": {
+    "401": {
+      "warning": "Contrato para la formación y el aprendizaje (anterior a RDL 32/2021). Usar 402-409 para formación en alternancia.",
+      "deprecated_since": "2022-03-31",
+      "sepe_codes": [
+        "401"
+      ]
+    },
+    "501": {
+      "warning": "Contrato temporal de fomento de empleo (anterior a RDL 32/2021).",
+      "deprecated_since": "2022-03-31",
+      "sepe_codes": [
+        "501"
+      ]
+    }
+  }
+}

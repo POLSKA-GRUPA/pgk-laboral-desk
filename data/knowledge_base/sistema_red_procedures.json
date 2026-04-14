@@ -1,0 +1,320 @@
+{
+  "_meta": {
+    "source": "Base de conocimiento laboral (fuentes oficiales BOE/SEPE/TGSS)",
+    "extracted": "2026-04-14",
+    "sections": ["procedures", "error_codes", "tools", "boletines"]
+  },
+  "procedures": [
+    {
+      "name": "Alta trabajador contrato indefinido ordinario",
+      "steps": [
+        "Acceder a Inscripción y Afiliación Online (Real o RED Directo según modalidad)",
+        "Seleccionar 'Alta de Trabajador'",
+        "Identificar trabajador: NAF/NIE/DNI/Pasaporte, Régimen, CCC",
+        "Informar datos contrato: tipo contrato (100/200), jornada, CNO (tabla T-90)",
+        "Informar datos SS: grupo cotización, régimen, municipio_ct",
+        "Si tiene bonificación: marcar 'FIC específico' e informar peculiaridades de cotización",
+        "Descargar resolución PDF"
+      ],
+      "common_errors": ["5574", "3718", "4849", "3168", "4796"],
+      "tips": [
+        "Si seguros sociales confirmados, solo se puede variar con rectificación de liquidación (dejar en borrador)",
+        "Si no confirmados, variación en cualquier momento",
+        "Para bonificaciones: SIEMPRE informar peculiaridades de cotización"
+      ]
+    },
+    {
+      "name": "Baja trabajador",
+      "steps": [
+        "Acceder a Inscripción y Afiliación Online",
+        "Seleccionar 'Baja de Trabajador'",
+        "Identificar trabajador y CCC",
+        "Informar fecha baja y causa (clave de baja)",
+        "Si contrato temporal con excedencia (situación 68/73): informar 'Fecha Fin Contrato Temporal'",
+        "Descargar resolución PDF"
+      ],
+      "common_errors": ["6361"],
+      "tips": [
+        "Error 6361: 'Fecha Fin Contrato Temporal' solo para situaciones 68/73 (excedencia cuidado hijos/familiares)",
+        "Para otras situaciones, dejar en blanco ese campo"
+      ]
+    },
+    {
+      "name": "Variación C.N. Ocupación",
+      "steps": [
+        "Acceder a Inscripción y Afiliación Online",
+        "Seleccionar 'Cambio de C.N. Ocupación' en módulo Trámites de trabajadores",
+        "Identificar trabajador: NAF, IPF, Régimen del CCC, CCC",
+        "Consultar tabla T-90 para nuevo código CNO",
+        "Introducir nuevo C.N. Ocupación",
+        "Descargar resolución PDF"
+      ],
+      "common_errors": [],
+      "tips": [
+        "Si seguros sociales confirmados: dará error. Solo posible con rectificación liquidación (borrador) o esperar al día 1 del mes siguiente",
+        "Si no confirmados: posible en cualquier momento"
+      ]
+    },
+    {
+      "name": "Variación de datos contrato",
+      "steps": [
+        "Acceder a Inscripción y Afiliación Online",
+        "Seleccionar 'Variación de Datos'",
+        "Identificar trabajador y CCC",
+        "Modificar campos necesarios (tipo contrato, jornada, etc.)",
+        "Si subrogación: usar fecha inicio contrato original del contrato vigente (no fecha anterior)"
+      ],
+      "common_errors": ["4796", "4801"],
+      "tips": [
+        "Error 4796: El tipo contrato introducido no coincide con el del FIC específico. Verificar tipo contrato correcto",
+        "Error 4801: Condición desempleado no coincide. Revisar último IDC del trabajador en CCC anterior"
+      ]
+    },
+    {
+      "name": "Reinicio de CCC inactivo",
+      "steps": [
+        "Acceder a Inscripción y Afiliación Online",
+        "Seleccionar 'Reinicio de un CCC'",
+        "Informar CCC a reiniciar",
+        "Confirmar datos"
+      ],
+      "common_errors": ["3168"],
+      "tips": [
+        "Error 3168: CCC en situación de baja (inactivo >12 meses). Debe reiniciarse antes de cualquier movimiento de afiliación"
+      ]
+    },
+    {
+      "name": "Comunicación huelga en Sistema RED",
+      "steps": [
+        "Acceder a Sistema RED",
+        "Informar huelga indicando CCC, fechas y trabajadores afectados"
+      ],
+      "common_errors": [],
+      "tips": []
+    },
+    {
+      "name": "Contrat@ - Comunicación contratos",
+      "steps": [
+        "Acceder a Contrat@ (requiere autorización SPEE)",
+        "4 modalidades: comunicación de datos, modelo comunicación, envío ficheros XML, Servicios Web",
+        "Comunicar: datos contrato, copia básica, prórrogas, llamamientos fijos discontinuos, pactos horas complementarias"
+      ],
+      "common_errors": [],
+      "tips": [
+        "Requiere autorización previa de Servicios Públicos de Empleo",
+        "Acceso con certificado digital/DNIe o identificador empresa + clave personal",
+        "Contrat@ permite XML batch para múltiples contratos"
+      ]
+    }
+  ],
+  "error_codes": [
+    {
+      "code": "5574",
+      "message": "Operación no permitida por TRL del CCC",
+      "cause": "Alta de trabajador en CCC con TRL especial y se mecaniza convenio colectivo que no corresponde (ej: becario)",
+      "solution": "No comunicar convenio colectivo para ese tipo de contratación/TRL"
+    },
+    {
+      "code": "3718",
+      "message": "No coincide colectivo trabajador con TRL/exc. cotiz.",
+      "cause": "Alta en Régimen General Asimilado (contrato laboral o mercantil) sin informar 'Colectivo trabajador'",
+      "solution": "Introducir valor correcto en casilla 'Colectivo trabajador'"
+    },
+    {
+      "code": "6900",
+      "message": "CNAE09 no válida para tipos cotización AT",
+      "cause": "Nuevo CCC o reinicio CCC con CNAE incompatible con IAE registrado en Agencia Tributaria",
+      "solution": "Comprobar IAE en Hacienda y confirmar compatibilidad con CNAE. Si correcto, gestión solo en TGSS o CASIA"
+    },
+    {
+      "code": "4796",
+      "message": "El tipo contrato introducido no coincide con el del FIC específico",
+      "cause": "En subrogación, se informa fecha inicio contrato anterior al cambio de tipo (ej: eventual→indefinido)",
+      "solution": "Informar fecha inicio del contrato vigente (no la del contrato original si cambió de tipo)"
+    },
+    {
+      "code": "4801",
+      "message": "Valor condición desempleado no coincide con valor en el FIC",
+      "cause": "Encadenamiento contratos temporales donde primero tenía bonificación y segundo no, o subrogación sin informar condición desempleado",
+      "solution": "Marcar 'FIC específico' en segunda alta y poner fecha real del alta. Revisar último IDC del trabajador"
+    },
+    {
+      "code": "3168",
+      "message": "Cuenta de cotización en situación de baja",
+      "cause": "CCC inactivo >12 meses. Falta reinicio del CCC",
+      "solution": "Reiniciar CCC en 'Inscripción y Afiliación Real' > 'Reinicio de un CCC'"
+    },
+    {
+      "code": "4849",
+      "message": "Contrato sin peculiaridades de cotización",
+      "cause": "Alta/variación de contrato con bonificación sin informar valores de peculiaridades de cotización",
+      "solution": "Informar correctamente todos los campos de peculiaridades/bonificación de cuotas SS"
+    },
+    {
+      "code": "6361",
+      "message": "No admitida fecha fin contrato temporal",
+      "cause": "Baja con situación distinta a 68/73 con 'Fecha Fin Contrato Temporal' informada",
+      "solution": "Solo informar Fecha Fin Contrato Temporal para situaciones 68 (excedencia cuidado hijos) o 73 (excedencia cuidado familiares). En resto, dejar en blanco"
+    },
+    {
+      "code": "4615",
+      "message": "Fecha anterior que fecha de cambio de contrato",
+      "cause": "Se intenta mecanizar una variación con fecha anterior al último cambio de contrato registrado",
+      "solution": "Usar fecha posterior o igual a la del último cambio de contrato"
+    },
+    {
+      "code": "3016",
+      "message": "No coincide el identificador de personas físicas",
+      "cause": "IPF (NIE/DNI/Pasaporte) informado no coincide con el registrado en la base de datos de la TGSS",
+      "solution": "Verificar IPF del trabajador. Si cambió (ej: NIE→DNI), hacer variación de IPF primero"
+    }
+  ],
+  "tools": {
+    "SILTRA": {
+      "name": "SILTRA (Sistema de Liquidación y Trabajadores Automatizado)",
+      "purpose": "Aplicación para transmisión de ficheros de afiliación (AFI), facturación (FRA) y control de liquidaciones",
+      "key_features": [
+        "Validación de ficheros AFI antes de envío",
+        "Control de fechas de comunicación de variaciones",
+        "Campos: DECLARACIÓN RESPONSABLE FORMACIÓN, APLICACIÓN EXENCIONES TRABAJADOR",
+        "Nuevas validaciones de fechas según BNR 07/2021"
+      ],
+      "file_types": {
+        "AFI": "Fichero de afiliación (altas, bajas, variaciones)",
+        "FRA": "Fichero de facturación (bases de cotización)",
+        "CFA": "Fichero de control de facturación",
+        "CEL": "Consulta del Estado de las Liquidaciones"
+      }
+    },
+    "Contrat@": {
+      "name": "Contrat@",
+      "purpose": "Comunicación telemática de contratos laborales a los Servicios Públicos de Empleo",
+      "key_features": [
+        "4 modalidades: comunicación datos, modelo, ficheros XML, Servicios Web",
+        "Contratos, Copias Básicas, Prórrogas, Llamamientos fijos discontinuos, Pactos horas complementarias",
+        "Requiere autorización SPEE previa",
+        "Acceso: certificado digital/DNIe o ID empresa + clave"
+      ]
+    },
+    "Certific@2": {
+      "name": "Certific@2",
+      "purpose": "Certificados de empresa para prestaciones de desempleo",
+      "requires": "Autorización Contrat@ o firma electrónica"
+    },
+    "CASIA": {
+      "name": "CASIA (Consulta y Actualización del Sistema de Información de Autorizados)",
+      "purpose": "Gestión de autorizados RED, CCCs, solicitud de aplazamientos",
+      "notes": "Solicitud de aplazamiento NO se realiza desde CASIA (según BNR 7/2020)"
+    },
+    "RED_Directo": {
+      "name": "RED Directo",
+      "purpose": "Modalidad de transmisión directa a TGSS sin ficheros intermedios",
+      "modules": [
+        "Inscripción y Afiliación Real",
+        "Liquidación Directa (Sistema de Liquidación Directa)"
+      ]
+    },
+    "Acredita": {
+      "name": "Acredita/Acredita Express",
+      "purpose": "Alta de empresas y obtención de CCCs",
+      "notes": "Buzón Acredita para incidencias del periodo de liquidación de cuotas del mes en curso"
+    }
+  },
+  "key_codes": {
+    "condicion_desempleado": {
+      "description": "Claves de condición de desempleado de trabajadores en Sistema RED",
+      "relevance": "Necesario informar correctamente en altas, especialmente con bonificaciones"
+    },
+    "grupos_cotizacion": {
+      "description": "Claves de grupos de cotización en Sistema RED",
+      "relevance": "Determina la base mínima de cotización según categoría profesional"
+    },
+    "tipos_inactividad": {
+      "description": "Tipos de inactividad en el Sistema RED (claves de baja)",
+      "codes": {
+        "68": "Excedencia por cuidado de hijos",
+        "73": "Excedencia por cuidado de familiares"
+      }
+    },
+    "clave_baja_93": {
+      "description": "Fin de contrato temporal o de duración determinada",
+      "includes": [
+        "Fin de contrato eventual",
+        "Fin de contrato de interinidad",
+        "Fin de contrato formativo",
+        "Fin de contrato de relevo"
+      ]
+    },
+    "proveedor_nominas": {
+      "description": "Códigos de proveedor de nóminas para Sistema RED",
+      "relevance": "Identifica el software de nóminas usado por la empresa"
+    },
+    "T-90": {
+      "description": "Tabla T-90 de C.N. Ocupación (CNO) para altas de trabajadores",
+      "relevance": "Obligatoria para todas las altas de trabajadores desde 2023"
+    }
+  },
+  "deadlines": {
+    "comunicacion_contrato": {
+      "description": "Plazo para comunicar contratos al SPEE",
+      "deadline": "10 días siguientes a su concertación o finalización"
+    },
+    "variaciones_afiliacion": {
+      "description": "Plazo para comunicar variaciones de datos de afiliación (BNR 07/2021)",
+      "deadline": "Hasta último día del mes siguiente al de la variación"
+    },
+    "confirmacion_liquidacion": {
+      "description": "Confirmación de liquidación de cuotas (Sistema Liquidación Directa)",
+      "deadline": "Dentro del plazo reglamentario de presentación de la liquidación de cuotas"
+    },
+    "pago_cuotas": {
+      "description": "Plazo general de ingreso de cuotas",
+      "deadline": "Último día del mes siguiente al periodo de liquidación"
+    },
+    "alta_trabajador": {
+      "description": "Plazo para comunicar alta de trabajador",
+      "deadline": "Antes del inicio de la prestación laboral (alta previa obligatoria desde 2006)"
+    }
+  },
+  "boletines_summary": {
+    "BNR_07_2021": {
+      "date": "2021-12-10",
+      "key_changes": [
+        "Cotización retroactiva a 01/09/2021 (Orden PCM/1353/2021)",
+        "Nuevos campos DECLARACIÓN RESPONSABLE FORMACIÓN y APLICACIÓN EXENCIONES TRABAJADOR en ficheros AFI/FRA/CFA",
+        "Nuevos plazos de comunicación de variaciones de datos",
+        "Nuevo procedimiento de requerimiento de datos para comprobación de liquidaciones",
+        "Control de fechas adaptado en SILTRA"
+      ]
+    },
+    "BNR_01_2022": {
+      "date": "2022-01-14",
+      "key_changes": [
+        "Entrada en vigor Ley 22/2021 (Presupuestos) y RDL 32/2021 (Reforma Laboral)",
+        "Nuevas reglas de comunicación de ERTE a partir de 01/03/2022"
+      ]
+    },
+    "BNR_02_2022": {
+      "date": "2022-01-20",
+      "key_changes": [
+        "Nueva versión SILTRA",
+        "Modificaciones en fichero CEL (Consulta Estado Liquidaciones)",
+        "Nuevos campos en ficheros AFI/FRA/CFA (del BNR 07/2021)",
+        "Modificación regla validación control de fechas en AFI",
+        "Nuevo procedimiento de requerimiento datos liquidaciones"
+      ]
+    },
+    "BNR_03_2022": {
+      "date": "2022-03-04",
+      "key_changes": [
+        "Novedades en cotización y afiliación"
+      ]
+    },
+    "BNR_09_2022": {
+      "date": "2022-10-25",
+      "key_changes": [
+        "Análisis BNR con cambios relevantes para gestión laboral"
+      ]
+    }
+  }
+}

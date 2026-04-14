@@ -7,7 +7,12 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    needs: []
+    if: github.ref == 'refs/heads/main'
     steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t pgk-laboral-desk:latest .
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -20,5 +25,5 @@ jobs:
             cd /opt/laboral-pgk
             git pull origin main 2>/dev/null || (git init && git remote add origin https://github.com/POLSKA-GRUPA/pgk-laboral-desk.git && git fetch origin main && git checkout -f origin/main)
             docker build -t laboral-pgk:latest .
-            docker service update --image laboral-pgk:latest --force laboral-pgk
-            echo "✅ Deploy complete"
+            docker service update --image laboral-pgk:latest --force laboral-pgk 2>/dev/null || docker run -d --name laboral-pgk --restart unless-stopped -p 8765:8000 -v laboral-data:/data laboral-pgk:latest
+            echo "Deploy complete"

@@ -6,3 +6,11 @@ __pycache__/
 .venv/
 db/
 .env
+
+# Large data files (raw extraction, not needed in git)
+data/knowledge_base/extraccion_completa.md
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal

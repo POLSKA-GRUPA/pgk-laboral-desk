@@ -1,8 +1,15 @@
-FROM python:3.12-slim
+FROM node:20-slim AS frontend-builder
+
+WORKDIR /build
+COPY laboral-frontend/package.json laboral-frontend/package-lock.json* ./
+RUN npm ci --prefer-offline 2>/dev/null || npm install
+COPY laboral-frontend/ .
+RUN npm run build
+
+FROM python:3.12-slim AS backend
 
 WORKDIR /app
 
-# System deps (incl. WeasyPrint: pango, cairo, gdk-pixbuf, fonts)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     libpango-1.0-0 \
@@ -13,22 +20,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
-# Python deps
-COPY requirements.txt .
+COPY laboral-frontend/.env.example .env.example
+
+COPY laboral-backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# App code
-COPY . .
+COPY laboral-backend/ .
+COPY --from=frontend-builder /build/dist /app/static
 
-# Create dirs for persistent data
+COPY data/ /app/data/
+
 RUN mkdir -p /data /app/db
 
-# Symlink db to persistent volume
-RUN ln -sf /data/pgk_laboral.db /app/db/pgk_laboral.db
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser \
+    && chown -R appuser:appgroup /data /app/db /app
 
-EXPOSE 8765
+USER appuser
+
+ENV PYTHONUNBUFFERED=1
+ENV DATABASE_URL=sqlite:////data/laboral.db
+EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8765/api/health || exit 1
+    CMD curl -f http://localhost:8000/api/health || exit 1
 
-CMD ["python", "app.py", "--host", "0.0.0.0", "--port", "8765"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
