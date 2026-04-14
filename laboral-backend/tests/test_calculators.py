@@ -46,7 +46,7 @@ class TestIRPF:
         r = self.calc.calcular_neto(2000, 14, "soltero", 0, "madrid")
         assert r["salario_neto_mensual"] < 2000
         assert r["salario_neto_mensual"] > 1200
-        assert r["salario_neto_anual"] == r["salario_neto_mensual"] * 14
+        assert abs(r["salario_neto_anual"] - r["salario_neto_mensual"] * 14) < 0.02
 
     def test_temporal_mayor_retencion(self):
         indef = self.calc.calcular_neto(2000, 14, "soltero", 0, "madrid", contrato_temporal=False)

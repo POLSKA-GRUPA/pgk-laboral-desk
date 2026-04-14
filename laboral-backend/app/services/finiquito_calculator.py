@@ -121,7 +121,7 @@ class FiniquitoCalculator:
         # Las vacaciones no disfrutadas SIEMPRE cotizan a SS
         # La indemnización NO cotiza (hasta límite legal)
         base_ss = _r2(salario_dias + vacaciones_valor + parte_proporcional_pagas)
-        ss_trabajador = _r2(base_ss * Decimal("0.0635"))
+        ss_trabajador = _r2(base_ss * Decimal("0.0650"))
 
         # === TOTAL NETO ===
         total_deducciones = _r2(irpf_haberes + ss_trabajador)

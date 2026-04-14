@@ -118,7 +118,7 @@ class RETACalculator:
     ) -> dict:
         aut = self.calcular_cuota(ingresos_brutos_mensuales, gastos_dedicibles_mensuales)
         bruto = Decimal(str(ingresos_brutos_mensuales))
-        ss_asalariado = _r2(bruto * Decimal("0.0635"))
+        ss_asalariado = _r2(bruto * Decimal("0.0650"))
         ss_empresa_asal = _r2(bruto * Decimal("0.33"))
 
         return {

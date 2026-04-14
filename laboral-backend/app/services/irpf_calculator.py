@@ -115,7 +115,7 @@ class IRPFCalculator:
             return self._resultado_exento(bruto_anual, bruto, pagas)
 
         # 1. Cuotas SS trabajador (aproximación: 6.35% indefinido, 6.40% temporal)
-        tasa_ss = Decimal("0.0640") if contrato_temporal else Decimal("0.0635")
+        tasa_ss = Decimal("0.0655") if contrato_temporal else Decimal("0.0650")
         ss_anual = _round2(bruto * tasa_ss) * pagas
 
         # 2. Rendimiento neto del trabajo
@@ -182,7 +182,7 @@ class IRPFCalculator:
             contrato_temporal=contrato_temporal,
         )
         bruto = Decimal(str(salario_bruto_mensual))
-        tasa_ss = Decimal("0.0640") if contrato_temporal else Decimal("0.0635")
+        tasa_ss = Decimal("0.0655") if contrato_temporal else Decimal("0.0650")
         ss_mensual = _round2(bruto * tasa_ss)
         irpf_mensual = Decimal(str(irpf["retencion_mensual"]))
         total_deducciones = _round2(ss_mensual + irpf_mensual)

@@ -134,7 +134,7 @@ class NominaCalculator:
         exento_transporte = min(transporte, Decimal("1500") / 12)
         exento_comida = min(comida, Decimal("12.20") * 22)
         base = _r2(base - exento_transporte - exento_comida)
-        base = max(Decimal("1323.00"), min(base, Decimal("4720.50")))
+        base = max(Decimal("1424.50"), min(base, Decimal("5101.20")))
         return base
 
     def _ss_trabajador(self, base: Decimal, tipo_contrato: str, he: Decimal) -> dict:
@@ -142,18 +142,21 @@ class NominaCalculator:
         tasa_cc = Decimal("0.0470")
         tasa_des = Decimal("0.0160") if temporal else Decimal("0.0155")
         tasa_fp = Decimal("0.0010")
+        tasa_mei = Decimal("0.0015")
         tasa_he = Decimal("0.0200")
 
         cc = _r2(base * tasa_cc)
         des = _r2(base * tasa_des)
         fp = _r2(base * tasa_fp)
+        mei = _r2(base * tasa_mei)
         he_importe = _r2(he * tasa_he) if he > 0 else Decimal("0")
-        total = _r2(cc + des + fp + he_importe)
+        total = _r2(cc + des + fp + mei + he_importe)
 
         return {
             "contingencias_comunes": float(cc),
             "desempleo": float(des),
             "formacion_profesional": float(fp),
+            "mei": float(mei),
             "horas_extras": float(he_importe),
             "total_ss_trabajador": float(total),
         }
@@ -168,7 +171,7 @@ class NominaCalculator:
         tasa_fogasa = Decimal("0.0020")
         tasa_fp = Decimal("0.0060")
         tasa_atep = Decimal("0.0150")
-        tasa_mei = Decimal("0.0058")
+        tasa_mei = Decimal("0.0075")
 
         cc = _r2(base * tasa_cc)
         des = _r2(base * tasa_des)
