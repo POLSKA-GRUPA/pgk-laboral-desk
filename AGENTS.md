@@ -2,6 +2,34 @@
 
 > Guia para agentes de IA y desarrolladores que trabajan en este repositorio.
 
+---
+
+## PROTOCOLO ENGRAM — OBLIGATORIO ANTES DE CUALQUIER ACCION
+
+**AL INICIAR** → llama `mem_context` para cargar contexto previo de la sesion.
+
+**DESPUES de CADA accion significativa** → llama `mem_save` INMEDIATAMENTE:
+- Codigo modificado → `mem_save` ahora
+- Bug corregido → `mem_save` ahora
+- Decision tomada → `mem_save` ahora
+- Patron establecido → `mem_save` ahora
+- Descubrimiento no obvio → `mem_save` ahora
+
+**NO esperes al final de la sesion.** Si el contexto explota antes, TODO se pierde.
+
+**AL CERRAR** → llamar `mem_session_summary` con: Goal, Discoveries, Accomplished, Next Steps, Relevant Files.
+
+> Esto aplica a Claude Code, OpenCode, Gemini, Cursor, Cline, Windsurf y cualquier agente con acceso a Engram MCP.
+
+### Memoria (Engram + MEMORY.md)
+Usar **Engram** para memoria persistente estructurada entre sesiones de desarrollo:
+- `mem_save` → guardar decisiones, errores, patrones
+- `mem_search` → buscar contexto de sesiones anteriores
+- `mem_context` → recuperar contexto reciente
+- `mem_session_summary` → cerrar sesion con resumen
+- `MEMORY.md` → resumen ejecutivo para arranque rapido
+
+---
 ## Estructura del proyecto
 
 ```
