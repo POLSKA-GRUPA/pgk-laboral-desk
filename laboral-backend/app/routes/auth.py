@@ -69,6 +69,7 @@ def update_me(
     current_user: User = Depends(get_current_user),
 ):
     update_data = data.model_dump(exclude_unset=True)
+    update_data = {k: v for k, v in update_data.items() if v is not None}
     for key, value in update_data.items():
         setattr(current_user, key, value)
     db.commit()
