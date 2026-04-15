@@ -9,8 +9,6 @@ Reference: https://www.sepe.es/DocumComunicacto/xml/14/EsquemaContratos50.xsd
 from __future__ import annotations
 
 import logging
-from datetime import datetime
-from typing import Optional
 
 from lxml import etree
 
@@ -30,7 +28,7 @@ def _date_to_sepe(date_str: str) -> str:
 def _hours_to_sepe(total_hours: float) -> str:
     """Convert hours decimal to SEPE HHHHMM format."""
     hours = int(total_hours)
-    minutes = int(round((total_hours - hours) * 60))
+    minutes = round((total_hours - hours) * 60)
     return f"{hours:04d}{minutes:02d}"
 
 
@@ -93,7 +91,7 @@ def _build_datos_trabajador(
 def _build_datos_generales_contrato(
     mapping: SEPEContractMapping,
     fecha_inicio: str,
-    fecha_fin: Optional[str] = None,
+    fecha_fin: str | None = None,
     nivel_formativo: str = "40",
     codigo_ocupacion: str = "0000",
     nacionalidad_ct: str = "724",
@@ -179,7 +177,7 @@ class ContratoXMLGenerator:
         contrato_tipo_pgk: str = "indefinido",
         contrato_jornada: float = 40.0,
         contrato_fecha_inicio: str = "",
-        contrato_fecha_fin: Optional[str] = None,
+        contrato_fecha_fin: str | None = None,
         contrato_nivel_formativo: str = "40",
         contrato_ocupacion: str = "0000",
         contrato_nacionalidad_ct: str = "724",

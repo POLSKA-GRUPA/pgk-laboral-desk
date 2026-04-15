@@ -1,5 +1,4 @@
 import json
-import sys
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -44,17 +43,20 @@ def generate_nomina(
         category=emp.categoria,
         contract_type=emp.contrato_tipo,
         weekly_hours=emp.jornada_horas,
-        region=emp.region,
-        num_children=emp.num_hijos,
+        region=emp.region or "generica",
+        num_children=emp.num_hijos or 0,
         convenio_id=convenio_id,
     )
+
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
 
     return NominaResponse(
         employee_id=emp.id,
         periodo=data.periodo,
         devengos=result.get("devengos", {}),
         deducciones=result.get("deducciones", {}),
-        neto=result.get("neto_trabajador_mes_eur", 0),
+        neto=result.get("neto_mensual_eur", 0),
         coste_empresa=result.get("coste_total_empresa_mes_eur", 0),
     )
 
@@ -96,7 +98,7 @@ def bulk_payroll(
             periodo=data.periodo,
             devengos=r.get("devengos", {}),
             deducciones=r.get("deducciones", {}),
-            neto=r.get("neto_trabajador_mes_eur", 0),
+            neto=r.get("neto_mensual_eur", 0),
             coste_empresa=r.get("coste_total_empresa_mes_eur", 0),
         )
         for r in results
@@ -150,16 +152,17 @@ def get_employee_nomina(
     if "error" in sim:
         raise HTTPException(status_code=400, detail=sim["error"])
 
-    sys.path.insert(0, str(_REPO_ROOT))
     try:
-        from nomina_pdf import (
+        from app.services.nomina_pdf import (
             DatosEmpresa,
             build_nomina_from_simulation,
             generate_nomina_html_string,
             generate_nomina_pdf,
         )
     except ImportError:
-        raise HTTPException(status_code=500, detail="Modulo de generacion PDF no disponible")
+        raise HTTPException(
+            status_code=500, detail="Modulo de generacion PDF no disponible"
+        ) from None
 
     nomina = build_nomina_from_simulation(
         sim,

@@ -4,7 +4,7 @@ Usa IRPFCalculator + SSCalculator para cálculo completo de nómina española.
 Layout compatible con modelo oficial Orden ESS/2098/2014."""
 
 from datetime import date
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
 from app.services.irpf_calculator import IRPFCalculator
 from app.services.ss_calculator import SSCalculator
@@ -40,6 +40,8 @@ class NominaCalculator:
         categoria_profesional: str = "",
     ) -> dict:
         bruto = Decimal(str(salario_bruto_mensual))
+        if bruto <= 0:
+            raise ValueError("El salario bruto mensual debe ser mayor que 0.")
         transporte = Decimal(str(plus_transporte_mensual))
         comida = Decimal(str(plus_comida_mensual))
         he = Decimal(str(horas_extras_mensual))
@@ -51,7 +53,11 @@ class NominaCalculator:
         total_devengado = _r2(devengos_salariales + devengos_no_salariales_exentos)
 
         # === BASE COTIZACIÓN SS ===
-        base_cotizacion = self._calcular_base(devengos_salariales, transporte, comida)
+        # Si tenemos SSCalculator, delegar topes por grupo; si no, usar topes genéricos
+        grupo_ss = ""
+        if self.ss:
+            grupo_ss = self.ss._resolve_grupo(categoria_profesional)
+        base_cotizacion = self._calcular_base(devengos_salariales, transporte, comida, grupo_ss)
 
         # === SS TRABAJADOR ===
         ss_trab = self._ss_trabajador(base_cotizacion, tipo_contrato, he)
@@ -76,7 +82,7 @@ class NominaCalculator:
         neto_mensual = _r2(total_devengado - total_deducciones)
 
         # === SS EMPRESA + COSTE ===
-        ss_emp = self._ss_empresa(base_cotizacion, tipo_contrato, cnae, he)
+        ss_emp = self._ss_empresa(base_cotizacion, tipo_contrato, cnae, he, categoria_profesional)
         total_ss_emp = Decimal(str(ss_emp.get("total_eur", ss_emp.get("total_ss_empresa", 0))))
         coste_total_mensual = _r2(devengos_salariales + total_ss_emp)
 
@@ -129,12 +135,19 @@ class NominaCalculator:
             },
         }
 
-    def _calcular_base(self, devengos: Decimal, transporte: Decimal, comida: Decimal) -> Decimal:
+    def _calcular_base(
+        self, devengos: Decimal, transporte: Decimal, comida: Decimal, grupo_ss: str = ""
+    ) -> Decimal:
         base = devengos
         exento_transporte = min(transporte, Decimal("1500") / 12)
         exento_comida = min(comida, Decimal("12.20") * 22)
         base = _r2(base - exento_transporte - exento_comida)
-        base = max(Decimal("1424.50"), min(base, Decimal("5101.20")))
+        # Aplicar topes por grupo de cotización si SSCalculator disponible
+        if self.ss:
+            base = Decimal(str(self.ss._apply_topes(float(base), grupo_ss)))
+        else:
+            # Topes genéricos 2026 — Orden ISM/31/2026
+            base = max(Decimal("1424.50"), min(base, Decimal("5101.20")))
         return base
 
     def _ss_trabajador(self, base: Decimal, tipo_contrato: str, he: Decimal) -> dict:
@@ -161,9 +174,13 @@ class NominaCalculator:
             "total_ss_trabajador": float(total),
         }
 
-    def _ss_empresa(self, base: Decimal, tipo_contrato: str, cnae: str, he: Decimal) -> dict:
+    def _ss_empresa(
+        self, base: Decimal, tipo_contrato: str, cnae: str, he: Decimal, category: str = ""
+    ) -> dict:
         if self.ss:
-            result = self.ss.calculate(float(base), tipo_contrato, category="", contract_days=None)
+            result = self.ss.calculate(
+                float(base), tipo_contrato, category=category, contract_days=None
+            )
             return result.to_dict()
         temporal = tipo_contrato in ("temporal", "formacion", "practicas")
         tasa_cc = Decimal("0.2360")

@@ -18,7 +18,9 @@ import unicodedata
 from pathlib import Path
 from typing import Any
 
-_DETAIL_PATH = Path(__file__).resolve().parent.parent.parent.parent / "data" / "categorias_detalle.json"
+_DETAIL_PATH = (
+    Path(__file__).resolve().parent.parent.parent.parent / "data" / "categorias_detalle.json"
+)
 
 # Stop words españolas comunes (para ignorar en matching de keywords)
 _STOP_WORDS = {
@@ -208,7 +210,8 @@ class ChatParser:
         # When enabled, enriches keyword matching with semantic search
         # over convenio colectivo using Z.ai infrastructure.
         try:
-            from vgrag_search import get_convenio_vgrag_backend, is_enabled as vgrag_enabled
+            from vgrag_search import get_convenio_vgrag_backend
+            from vgrag_search import is_enabled as vgrag_enabled
 
             if vgrag_enabled():
                 vgrag = get_convenio_vgrag_backend()
@@ -216,8 +219,7 @@ class ChatParser:
                     semantic_results = vgrag.search_categoria(message, limit=3)
                     if semantic_results:
                         ctx["_vgrag_hints"] = [
-                            {"content": r.content, "score": r.score}
-                            for r in semantic_results
+                            {"content": r.content, "score": r.score} for r in semantic_results
                         ]
         except Exception:
             pass  # VGRAG not available — continue with keyword matching

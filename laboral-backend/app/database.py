@@ -45,9 +45,9 @@ def init_db():
     from app.models import (  # noqa: F401
         alert,
         company,
-        convenio,
         consultation,
         contract,
+        convenio,
         dismissal,
         employee,
         payroll,

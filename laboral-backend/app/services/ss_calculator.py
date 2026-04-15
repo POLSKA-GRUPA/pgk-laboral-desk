@@ -16,7 +16,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-_DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent.parent.parent / "data" / "ss_config.json"
+_DEFAULT_CONFIG_PATH = (
+    Path(__file__).resolve().parent.parent.parent.parent / "data" / "ss_config.json"
+)
 
 # Topes de cotización 2026 (Régimen General) — Orden ISM/31/2026 (BOE-A-2026-1921)
 BASE_MIN_MENSUAL = 1424.50  # Base mínima 2026 (= SMI 1.221€ × 14/12)
@@ -207,7 +209,7 @@ class SSCalculator:
 
     def _short_contract_surcharge(self, contract_days: int | None) -> float:
         """Recargo adicional para contratos de duración ≤30 días (DA 7ª ET)."""
-        if contract_days is None:
+        if contract_days is None or contract_days <= 0:
             return 0.0
         cfg = self.config.get("recargo_contratos_cortos", {})
         limit = cfg.get("dias_limite", _SHORT_CONTRACT_DAYS_LIMIT)

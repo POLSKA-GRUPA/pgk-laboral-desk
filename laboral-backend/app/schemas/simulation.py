@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -13,8 +13,8 @@ class SimulateRequest(BaseModel):
     num_children: int = Field(default=0, ge=0, le=20)
     children_under_3: int = Field(default=0, ge=0, le=20)
     region: str = Field(default="generica")
-    contract_days: Optional[int] = Field(default=None, ge=1)
-    convenio_id: Optional[str] = None
+    contract_days: int | None = Field(default=None, ge=1)
+    convenio_id: str | None = None
 
 
 class SimulateResponse(BaseModel):

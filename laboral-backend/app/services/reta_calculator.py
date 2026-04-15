@@ -4,7 +4,7 @@ Sistema de cotización por ingresos reales (vigente desde 01/01/2023).
 15 tramos + tarifa plana + MEI.
 Referencias: LGSS DA 15ª | Orden ISM/31/2026 | Ley 12/2023"""
 
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
 TWO_PLACES = Decimal("0.01")
 
@@ -65,15 +65,47 @@ class RETACalculator:
             str(gastos_deducibles_mensuales)
         )
 
+        # Ingresos netos <= 0 → no hay actividad económica real
+        if ingresos_netos <= Decimal("0") and not es_nuevo_autonomo:
+            return {
+                "ingresos_brutos_mensuales": float(_r2(Decimal(str(ingresos_brutos_mensuales)))),
+                "gastos_deducibles_mensuales": float(
+                    _r2(Decimal(str(gastos_deducibles_mensuales)))
+                ),
+                "ingresos_netos_mensuales": float(_r2(ingresos_netos)),
+                "tramo": "sin_actividad",
+                "base_cotizacion_mensual": 0.0,
+                "base_minima_tramo": 0.0,
+                "base_maxima_tramo": 0.0,
+                "tipo_cotizacion_pct": 0.0,
+                "cuota_mensual": 0.0,
+                "cuota_anual": 0.0,
+                "pct_cuota_sobre_ingresos": 0.0,
+                "desglose": {
+                    "contingencias_comunes_pct": 0.0,
+                    "cc_mensual": 0.0,
+                    "mei_pct": 0.0,
+                    "mei_mensual": 0.0,
+                },
+                "es_tarifa_plana": False,
+                "year": year,
+                "nota": "Con ingresos netos ≤ 0 no existe obligación de cotización RETA.",
+            }
+
         # Tarifa plana
         if es_nuevo_autonomo and meses_alta <= TARIFA_PLANA_MESES:
-            return self._resultado_tarifa_plana(ingresos_netos, year)
+            return self._resultado_tarifa_plana(
+                ingresos_netos,
+                year,
+                ingresos_brutos=Decimal(str(ingresos_brutos_mensuales)),
+                gastos_deducibles=Decimal(str(gastos_deducibles_mensuales)),
+            )
 
         if ingresos_netos <= Decimal("0"):
             ingresos_netos = Decimal("1")
 
         tramo = self._encontrar_tramo(ingresos_netos)
-        nombre, desde, hasta, base_min, base_max = tramo
+        nombre, _desde, _hasta, base_min, base_max = tramo
 
         # Base de cotización
         if base_elegida is not None:
@@ -114,12 +146,23 @@ class RETACalculator:
     def comparar_con_asalariado(
         self,
         ingresos_brutos_mensuales: float,
-        gastos_dedicibles_mensuales: float = 0,
+        gastos_deducibles_mensuales: float = 0,
     ) -> dict:
-        aut = self.calcular_cuota(ingresos_brutos_mensuales, gastos_dedicibles_mensuales)
+        """Compara cuotas autónomo vs asalariado equivalente.
+
+        Porcentajes 2026 (Orden ISM/31/2026):
+        - Trabajador: 4.70% CC + 1.55% desempleo + 0.10% FP + 0.15% MEI = 6.50%
+        - Empresa: 23.60% CC + 5.50% desempleo + 0.60% FP + 0.20% FOGASA + 0.75% MEI + 1.50% AT = 32.15%
+        """
+        aut = self.calcular_cuota(ingresos_brutos_mensuales, gastos_deducibles_mensuales)
         bruto = Decimal(str(ingresos_brutos_mensuales))
-        ss_asalariado = _r2(bruto * Decimal("0.0650"))
-        ss_empresa_asal = _r2(bruto * Decimal("0.33"))
+
+        # Porcentajes SS asalariado 2026
+        pct_trabajador = Decimal("0.0650")  # 6.50% total trabajador
+        pct_empresa = Decimal("0.3215")  # 32.15% total empresa
+
+        ss_asalariado = _r2(bruto * pct_trabajador)
+        ss_empresa_asal = _r2(bruto * pct_empresa)
 
         return {
             "autonomo": {
@@ -131,23 +174,21 @@ class RETACalculator:
                 "ss_trabajador_mensual": float(ss_asalariado),
                 "ss_empresa_mensual": float(ss_empresa_asal),
                 "total_ss_mensual": float(_r2(ss_asalariado + ss_empresa_asal)),
-                "pct_trabajador_sobre_bruto": float(_r2(Decimal("0.0635") * 100)),
-                "pct_total_sobre_bruto": float(
-                    _r2(Decimal("0.33") * 100 + Decimal("0.0635") * 100)
-                ),
+                "pct_trabajador_sobre_bruto": float(_r2(pct_trabajador * 100)),
+                "pct_total_sobre_bruto": float(_r2(pct_empresa * 100 + pct_trabajador * 100)),
             },
             "diferencia": {
                 "autonomo_paga_mas_mensual": float(
                     _r2(Decimal(str(aut["cuota_mensual"])) - ss_asalariado)
                 ),
-                "nota": "Autónomo paga íntegro; asalariado solo 6.35% (empresa paga ~33%)",
+                "nota": "Autónomo paga íntegro; asalariado solo 6.50% (empresa paga 32.15%)",
             },
         }
 
     @staticmethod
     def _encontrar_tramo(ingresos: Decimal) -> tuple:
         for tramo in TRAMOS_RETA_2025:
-            nombre, desde, hasta, bmin, bmax = tramo
+            nombre, desde, hasta, _bmin, _bmax = tramo
             if nombre == "T1_tarifa_plana":
                 continue
             if hasta is None:
@@ -158,18 +199,38 @@ class RETACalculator:
         return TRAMOS_RETA_2025[1]
 
     @staticmethod
-    def _resultado_tarifa_plana(ingresos: Decimal, year: int) -> dict:
+    def _resultado_tarifa_plana(
+        ingresos: Decimal,
+        year: int,
+        *,
+        ingresos_brutos: Decimal = Decimal("0"),
+        gastos_deducibles: Decimal = Decimal("0"),
+    ) -> dict:
         tipo = TIPO_TOTAL_2025 if year == 2025 else TIPO_TOTAL_2026
+        base = _r2(TARIFA_PLANA_NUEVO / tipo)
         return {
+            "ingresos_brutos_mensuales": float(_r2(ingresos_brutos)),
+            "gastos_deducibles_mensuales": float(_r2(gastos_deducibles)),
             "ingresos_netos_mensuales": float(_r2(ingresos)),
             "tramo": "T1_tarifa_plana",
-            "base_cotizacion_mensual": float(_r2(TARIFA_PLANA_NUEVO / tipo)),
+            "base_cotizacion_mensual": float(base),
+            "base_minima_tramo": float(base),
+            "base_maxima_tramo": float(base),
+            "tipo_cotizacion_pct": float(_r2(tipo * 100)),
             "cuota_mensual": float(TARIFA_PLANA_NUEVO),
             "cuota_anual": float(TARIFA_PLANA_NUEVO * 12),
-            "es_tarifa_plana": True,
-            "meses_tarifa_plana_restantes": TARIFA_PLANA_MESES,
             "pct_cuota_sobre_ingresos": float(
                 _r2(TARIFA_PLANA_NUEVO / max(ingresos, Decimal("1")) * 100)
             ),
+            "desglose": {
+                "contingencias_comunes_pct": float(_r2(TIPO_CC * 100)),
+                "cc_mensual": float(_r2(base * TIPO_CC)),
+                "mei_pct": float(_r2((TIPO_MEI_2025 if year == 2025 else TIPO_MEI_2026) * 100)),
+                "mei_mensual": float(
+                    _r2(base * (TIPO_MEI_2025 if year == 2025 else TIPO_MEI_2026))
+                ),
+            },
+            "es_tarifa_plana": True,
+            "meses_tarifa_plana_restantes": TARIFA_PLANA_MESES,
             "year": year,
         }

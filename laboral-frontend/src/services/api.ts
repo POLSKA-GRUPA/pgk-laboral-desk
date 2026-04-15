@@ -40,6 +40,8 @@ export const authAPI = {
   login: (data: { username: string; password: string }) =>
     api.post('/api/auth/login', data),
   me: () => api.get('/api/auth/me'),
+  updateMe: (data: Record<string, unknown>) =>
+    api.put('/api/auth/me', data),
   register: (data: Record<string, unknown>) =>
     api.post('/api/auth/register', data),
 };
@@ -57,6 +59,13 @@ export const employeesAPI = {
 
 export const simulationAPI = {
   run: (data: Record<string, unknown>) => api.post('/api/simulate', data),
+};
+
+export const referenceAPI = {
+  categories: () => api.get('/api/reference/categories'),
+  contractTypes: () => api.get('/api/reference/contract-types'),
+  regions: () => api.get('/api/reference/regions'),
+  tiposDespido: () => api.get('/api/reference/tipos-despido'),
 };
 
 export const chatAPI = {

@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -20,7 +19,7 @@ router = APIRouter(tags=["employees"])
 
 class EmployeeDismissalRequest(BaseModel):
     tipo_despido: str = "improcedente"
-    fecha_despido: Optional[str] = None
+    fecha_despido: str | None = None
     dias_vacaciones_pendientes: int = 0
     dias_preaviso_empresa: int = 0
 

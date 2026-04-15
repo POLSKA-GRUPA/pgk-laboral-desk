@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -29,4 +28,4 @@ class AlertResponse(BaseModel):
     category: str
     severity: str
     status: str
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None

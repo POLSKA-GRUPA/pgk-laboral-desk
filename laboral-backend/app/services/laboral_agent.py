@@ -31,12 +31,43 @@ logger = logging.getLogger("laboral.agent")
 # ---------------------------------------------------------------------------
 
 _SAFE_BUILTINS = {
-    "abs", "all", "any", "bool", "dict", "divmod", "enumerate",
-    "filter", "float", "format", "frozenset", "int", "isinstance",
-    "issubclass", "iter", "len", "list", "map", "max", "min",
-    "next", "print", "range", "repr", "reversed", "round", "set",
-    "slice", "sorted", "str", "sum", "tuple", "type", "zip",
-    "True", "False", "None",
+    "abs",
+    "all",
+    "any",
+    "bool",
+    "dict",
+    "divmod",
+    "enumerate",
+    "filter",
+    "float",
+    "format",
+    "frozenset",
+    "int",
+    "isinstance",
+    "issubclass",
+    "iter",
+    "len",
+    "list",
+    "map",
+    "max",
+    "min",
+    "next",
+    "print",
+    "range",
+    "repr",
+    "reversed",
+    "round",
+    "set",
+    "slice",
+    "sorted",
+    "str",
+    "sum",
+    "tuple",
+    "type",
+    "zip",
+    "True",
+    "False",
+    "None",
 }
 
 
@@ -86,11 +117,27 @@ def _get_model():
 
 
 _BLOCKED_DUNDERS = {
-    "__class__", "__bases__", "__subclasses__", "__globals__",
-    "__init__", "__mro__", "__dict__", "__import__", "__builtins__",
-    "__loader__", "__spec__", "__code__", "__func__", "__self__",
-    "__module__", "__qualname__", "__reduce__", "__reduce_ex__",
-    "__getattr__", "__setattr__", "__delattr__",
+    "__class__",
+    "__bases__",
+    "__subclasses__",
+    "__globals__",
+    "__init__",
+    "__mro__",
+    "__dict__",
+    "__import__",
+    "__builtins__",
+    "__loader__",
+    "__spec__",
+    "__code__",
+    "__func__",
+    "__self__",
+    "__module__",
+    "__qualname__",
+    "__reduce__",
+    "__reduce_ex__",
+    "__getattr__",
+    "__setattr__",
+    "__delattr__",
 }
 
 
@@ -105,7 +152,12 @@ def _validate_code_safety(code: str) -> str | None:
         return f"SyntaxError: {e}"
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.Attribute) and node.attr.startswith("__") and node.attr.endswith("__") and node.attr in _BLOCKED_DUNDERS:
+        if (
+            isinstance(node, ast.Attribute)
+            and node.attr.startswith("__")
+            and node.attr.endswith("__")
+            and node.attr in _BLOCKED_DUNDERS
+        ):
             return f"Acceso bloqueado a atributo restringido: {node.attr}"
         if isinstance(node, ast.Name) and node.id == "__import__":
             return "Uso de __import__ no permitido"

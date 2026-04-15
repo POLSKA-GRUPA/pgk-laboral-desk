@@ -1,20 +1,20 @@
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=5000)
-    convenio_id: Optional[str] = None
-    session_id: Optional[str] = None
+    convenio_id: str | None = None
+    session_id: str | None = None
 
 
 class ChatResponse(BaseModel):
     response: str
-    parsed: Optional[dict[str, Any]] = None
-    simulation: Optional[dict[str, Any]] = None
+    parsed: dict[str, Any] | None = None
+    simulation: dict[str, Any] | None = None
     traces: list[str] = []
-    session_id: Optional[str] = None
-    options: Optional[list[dict[str, Any]]] = None
+    session_id: str | None = None
+    options: list[dict[str, Any]] | None = None

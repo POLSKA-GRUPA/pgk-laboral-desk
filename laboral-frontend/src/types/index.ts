@@ -75,11 +75,17 @@ export interface NominaResult {
 
 export interface DismissalResult {
   tipo: string;
+  tipo_despido_label: string;
   indemnizacion_eur: number;
-  dias_indemnizacion: number;
-  salario_diario: number;
+  antiguedad_anos: number;
+  antiguedad_dias: number;
+  salario_diario_eur: number;
+  salario_bruto_mensual_eur: number;
+  total_eur: number;
+  finiquito: Record<string, unknown> | null;
+  escenarios: Record<string, unknown> | null;
   detalle: Record<string, unknown>;
-  consejo?: string;
+  consejo: string[] | null;
 }
 
 export interface HealthCheck {
