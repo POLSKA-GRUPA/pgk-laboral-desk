@@ -24,7 +24,7 @@ class UserUpdate(BaseModel):
     empresa_domicilio: str | None = Field(default=None, max_length=300)
     empresa_ccc: str | None = Field(default=None, max_length=50)
     full_name: str | None = Field(default=None, max_length=200)
-    convenio_id: str | None = Field(default=None, max_length=100)
+    convenio_id: str | None = Field(default=None, max_length=100, pattern=r"^[a-zA-Z0-9_\-]*$")
 
 
 class UserResponse(BaseModel):
