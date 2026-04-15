@@ -1,29 +1,35 @@
-"""Calculadora de IRPF 2025 — Retenciones sobre rendimientos del trabajo.
+"""Calculadora de IRPF 2026 — Retenciones sobre rendimientos del trabajo.
 
 Referencias legales:
   - Ley 35/2006 (LIRPF): Arts. 19, 20, 57, 58, 59, 86
   - RD 439/2007 (RIRPF): Art. 80-93 (cálculo retenciones)
-  - Orden HAC/2024 (tablas retención 2025)
+  - Orden HAC/2025 (tablas retención 2026)
+  - RDL 4/2024 (reducción rendimientos trabajo Art. 20 LIRPF)
+  - RDL 5/2026 (DA 61ª LIRPF — deducción SMI)
 
 Usa Decimal en TODOS los cálculos monetarios.
+
+NOTA: Tramos actualizados a 2026 para alinearse con IRPFEstimator.
 """
 
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
 # ---------------------------------------------------------------------------
-# Constantes IRPF 2025
+# Constantes IRPF 2026
 # ---------------------------------------------------------------------------
 
 TWO_PLACES = Decimal("0.01")
 
-# Tramos IRPF 2025 (estatal + autonómico combinados) — Art.66 LIRPF
-IRPF_TRAMOS_2025 = (
+# Tramos IRPF 2026 (estatal + autonómico genérica combinados)
+# Alineados con IRPFEstimator: estatal 9.5%+12%+15%+18.5%+22.5%+24.5%
+# + autonómica genérica (= estatal) = tipos sumados.
+IRPF_TRAMOS_2026 = (
     (Decimal("0"), Decimal("12450"), Decimal("0.19")),
     (Decimal("12450"), Decimal("20200"), Decimal("0.24")),
     (Decimal("20200"), Decimal("35200"), Decimal("0.30")),
     (Decimal("35200"), Decimal("60000"), Decimal("0.37")),
     (Decimal("60000"), Decimal("300000"), Decimal("0.45")),
-    (Decimal("300000"), None, Decimal("0.47")),
+    (Decimal("300000"), None, Decimal("0.49")),
 )
 
 # Mínimo personal — Art.57 LIRPF
@@ -41,14 +47,22 @@ MINIMO_DESCENDIENTES = (
 MINIMO_ASCENDIENTE = Decimal("1150")
 MINIMO_ASCENDIENTE_DISCAPACIDAD = Decimal("2550")
 
-# Reducción por rendimientos del trabajo personal — Art.20 LIRPF
-REDUCCION_TRABAJO_LIMITE = Decimal("19747.50")
-REDUCCION_TRABAJO_MAX = Decimal("5565")
-REDUCCION_TRABAJO_TOPE = Decimal("21000")
-REDUCCION_TRABAJO_DECREMENTO = Decimal("1557.66")  # = 5565 / (21000 - 19747.50) * 100
+# Reducción por rendimientos del trabajo — Art.20 LIRPF (RDL 4/2024)
+# Tramos actualizados a 2026:
+#   a) Rend. neto <= 14.852: 7.302 €
+#   b) 14.852 < rend <= 17.673,52: 7.302 - 1,75 * (rend - 14.852)
+#   c) 17.673,52 < rend <= 19.747,50: 2.364,34 - 1,14 * (rend - 17.673,52)
+#   d) > 19.747,50: 0
+REDUCCION_TRABAJO_TRAMO_1 = Decimal("14852")
+REDUCCION_TRABAJO_TRAMO_2 = Decimal("17673.52")
+REDUCCION_TRABAJO_TRAMO_3 = Decimal("19747.50")
+REDUCCION_TRABAJO_MAX = Decimal("7302")
+REDUCCION_TRABAJO_COEF_1 = Decimal("1.75")
+REDUCCION_TRABAJO_COEF_2 = Decimal("1.14")
+REDUCCION_TRABAJO_BASE_2 = Decimal("2364.34")
 
-# Exención rendimientos del trabajo — Art.93 LIRPF (desde 2023)
-EXENCION_LIMITE = Decimal("14000")
+# Umbral de exención IRPF (Art. 81 RIRPF, actualizado 2026)
+EXENCION_LIMITE = Decimal("15947")
 
 # Retención mínima — Art.80.3 RIRPF
 RETENCION_MINIMA = Decimal("0.02")
@@ -84,7 +98,7 @@ def _round4(value: Decimal) -> Decimal:
 
 
 class IRPFCalculator:
-    """Calculadora de retenciones IRPF 2025 sobre nóminas."""
+    """Calculadora de retenciones IRPF 2026 sobre nóminas."""
 
     # ------------------------------------------------------------------ #
     # API principal
@@ -114,7 +128,7 @@ class IRPFCalculator:
         if bruto_anual <= EXENCION_LIMITE:
             return self._resultado_exento(bruto_anual, bruto, pagas)
 
-        # 1. Cuotas SS trabajador (aproximación: 6.35% indefinido, 6.40% temporal)
+        # 1. Cuotas SS trabajador 2026 (6.50% indefinido, 6.55% temporal)
         tasa_ss = Decimal("0.0655") if contrato_temporal else Decimal("0.0650")
         ss_anual = _round2(bruto * tasa_ss) * pagas
 
@@ -205,14 +219,24 @@ class IRPFCalculator:
 
     @staticmethod
     def _reduccion_trabajo(rendimiento_neto: Decimal) -> Decimal:
-        """Reducción por obtención de rendimientos del trabajo — Art.20 LIRPF."""
+        """Reducción por rendimientos del trabajo — Art.20 LIRPF (RDL 4/2024).
+
+        a) Rend. neto <= 14.852: 7.302 €
+        b) 14.852 < rend <= 17.673,52: 7.302 - 1,75 * (rend - 14.852)
+        c) 17.673,52 < rend <= 19.747,50: 2.364,34 - 1,14 * (rend - 17.673,52)
+        d) > 19.747,50: 0
+        """
         if rendimiento_neto <= Decimal("0"):
             return Decimal("0")
-        if rendimiento_neto <= REDUCCION_TRABAJO_LIMITE:
+        if rendimiento_neto <= REDUCCION_TRABAJO_TRAMO_1:
             return min(REDUCCION_TRABAJO_MAX, rendimiento_neto)
-        if rendimiento_neto <= REDUCCION_TRABAJO_TOPE:
-            exceso = rendimiento_neto - REDUCCION_TRABAJO_LIMITE
-            reduccion = REDUCCION_TRABAJO_MAX - _round2(exceso * Decimal("1.50"))
+        if rendimiento_neto <= REDUCCION_TRABAJO_TRAMO_2:
+            exceso = rendimiento_neto - REDUCCION_TRABAJO_TRAMO_1
+            reduccion = REDUCCION_TRABAJO_MAX - _round2(exceso * REDUCCION_TRABAJO_COEF_1)
+            return max(Decimal("0"), reduccion)
+        if rendimiento_neto <= REDUCCION_TRABAJO_TRAMO_3:
+            exceso = rendimiento_neto - REDUCCION_TRABAJO_TRAMO_2
+            reduccion = REDUCCION_TRABAJO_BASE_2 - _round2(exceso * REDUCCION_TRABAJO_COEF_2)
             return max(Decimal("0"), reduccion)
         return Decimal("0")
 
@@ -247,7 +271,7 @@ class IRPFCalculator:
         """Aplica tramos progresivos IRPF. Devuelve (cuota, desglose)."""
         cuota = Decimal("0")
         desglose = []
-        for minimo, maximo, tipo in IRPF_TRAMOS_2025:
+        for minimo, maximo, tipo in IRPF_TRAMOS_2026:
             if base <= minimo:
                 break
             limite = maximo if maximo is not None else base
@@ -268,7 +292,7 @@ class IRPFCalculator:
     def _calcular_tipo_retencion(
         self, cuota: Decimal, bruto_anual: Decimal, situacion: str
     ) -> Decimal:
-        """Tipo de retención = cuota / bruto × 100, con mínimos legales."""
+        """Tipo de retencion = cuota / bruto x 100, con minimos legales."""
         if bruto_anual <= Decimal("0"):
             return Decimal("0")
         tipo = (cuota / bruto_anual) * Decimal("100")

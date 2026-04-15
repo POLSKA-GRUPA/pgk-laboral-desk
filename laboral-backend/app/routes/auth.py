@@ -12,6 +12,8 @@ from app.schemas.user import TokenResponse, UserCreate, UserLogin, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+# TODO: Rate limiter uses in-memory dict — resets on server restart.
+# For production with multiple workers/replicas, migrate to Redis or DB-backed storage.
 _login_attempts: dict[str, list[float]] = defaultdict(list)
 MAX_LOGIN_ATTEMPTS = 5
 LOGIN_WINDOW_SECONDS = 300  # 5 minutes

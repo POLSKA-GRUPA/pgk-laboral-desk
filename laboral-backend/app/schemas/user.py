@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Optional
-
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -26,7 +23,7 @@ class UserResponse(BaseModel):
 
     id: int
     username: str
-    email: Optional[str] = None
+    email: str | None = None
     full_name: str
     empresa_nombre: str
     empresa_cif: str

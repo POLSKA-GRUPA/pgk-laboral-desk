@@ -4,7 +4,7 @@ Sistema de cotización por ingresos reales (vigente desde 01/01/2023).
 15 tramos + tarifa plana + MEI.
 Referencias: LGSS DA 15ª | Orden ISM/31/2026 | Ley 12/2023"""
 
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
 TWO_PLACES = Decimal("0.01")
 
@@ -73,7 +73,7 @@ class RETACalculator:
             ingresos_netos = Decimal("1")
 
         tramo = self._encontrar_tramo(ingresos_netos)
-        nombre, desde, hasta, base_min, base_max = tramo
+        nombre, _desde, _hasta, base_min, base_max = tramo
 
         # Base de cotización
         if base_elegida is not None:
@@ -114,12 +114,23 @@ class RETACalculator:
     def comparar_con_asalariado(
         self,
         ingresos_brutos_mensuales: float,
-        gastos_dedicibles_mensuales: float = 0,
+        gastos_deducibles_mensuales: float = 0,
     ) -> dict:
-        aut = self.calcular_cuota(ingresos_brutos_mensuales, gastos_dedicibles_mensuales)
+        """Compara cuotas autónomo vs asalariado equivalente.
+
+        Porcentajes 2026 (Orden ISM/31/2026):
+        - Trabajador: 4.70% CC + 1.55% desempleo + 0.10% FP + 0.15% MEI = 6.50%
+        - Empresa: 23.60% CC + 5.50% desempleo + 0.60% FP + 0.20% FOGASA + 0.75% MEI + 1.50% AT = 32.15%
+        """
+        aut = self.calcular_cuota(ingresos_brutos_mensuales, gastos_deducibles_mensuales)
         bruto = Decimal(str(ingresos_brutos_mensuales))
-        ss_asalariado = _r2(bruto * Decimal("0.0650"))
-        ss_empresa_asal = _r2(bruto * Decimal("0.33"))
+
+        # Porcentajes SS asalariado 2026
+        pct_trabajador = Decimal("0.0650")  # 6.50% total trabajador
+        pct_empresa = Decimal("0.3215")     # 32.15% total empresa
+
+        ss_asalariado = _r2(bruto * pct_trabajador)
+        ss_empresa_asal = _r2(bruto * pct_empresa)
 
         return {
             "autonomo": {
@@ -131,23 +142,23 @@ class RETACalculator:
                 "ss_trabajador_mensual": float(ss_asalariado),
                 "ss_empresa_mensual": float(ss_empresa_asal),
                 "total_ss_mensual": float(_r2(ss_asalariado + ss_empresa_asal)),
-                "pct_trabajador_sobre_bruto": float(_r2(Decimal("0.0635") * 100)),
+                "pct_trabajador_sobre_bruto": float(_r2(pct_trabajador * 100)),
                 "pct_total_sobre_bruto": float(
-                    _r2(Decimal("0.33") * 100 + Decimal("0.0635") * 100)
+                    _r2(pct_empresa * 100 + pct_trabajador * 100)
                 ),
             },
             "diferencia": {
                 "autonomo_paga_mas_mensual": float(
                     _r2(Decimal(str(aut["cuota_mensual"])) - ss_asalariado)
                 ),
-                "nota": "Autónomo paga íntegro; asalariado solo 6.35% (empresa paga ~33%)",
+                "nota": "Autónomo paga íntegro; asalariado solo 6.50% (empresa paga 32.15%)",
             },
         }
 
     @staticmethod
     def _encontrar_tramo(ingresos: Decimal) -> tuple:
         for tramo in TRAMOS_RETA_2025:
-            nombre, desde, hasta, bmin, bmax = tramo
+            nombre, desde, hasta, _bmin, _bmax = tramo
             if nombre == "T1_tarifa_plana":
                 continue
             if hasta is None:

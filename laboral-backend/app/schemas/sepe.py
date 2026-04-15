@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 
 class ContratoGeneracionRequest(BaseModel):
     employee_id: int = Field(gt=0)
-    company_id: Optional[int] = Field(default=None, gt=0)
-    contract_type_override: Optional[str] = Field(default=None, max_length=50)
-    fecha_inicio: Optional[str] = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
-    fecha_fin: Optional[str] = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    company_id: int | None = Field(default=None, gt=0)
+    contract_type_override: str | None = Field(default=None, max_length=50)
+    fecha_inicio: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    fecha_fin: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
     nivel_formativo: str = Field(default="40", max_length=2)
     codigo_ocupacion: str = Field(default="0000", max_length=8)
     municipio_ct: str = Field(default="", max_length=5)

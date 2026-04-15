@@ -1,10 +1,11 @@
 """Tests for SEPE Contrat@ XML generation and validation."""
 
 import pytest
-from app.services.sepe_mapper import resolve_pgk_to_sepe, list_available_types
-from app.services.sepe_xml_generator import contrato_xml_generator
+
+from app.services.sepe_code_tables import CONTRACT_TYPES, get_table, list_tables
+from app.services.sepe_mapper import list_available_types, resolve_pgk_to_sepe
 from app.services.sepe_validator import validate_xml
-from app.services.sepe_code_tables import get_table, list_tables, CONTRACT_TYPES
+from app.services.sepe_xml_generator import contrato_xml_generator
 
 
 class TestSEPEMapper:

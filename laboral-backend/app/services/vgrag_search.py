@@ -54,7 +54,7 @@ class ConvenioVGRAGBackend:
         self._vgrag_cls: Any = None
 
         try:
-            from vector_graph_rag import VectorGraphRAG  # noqa: F401
+            from vector_graph_rag import VectorGraphRAG
 
             self._vgrag_cls = VectorGraphRAG
             self._available = True

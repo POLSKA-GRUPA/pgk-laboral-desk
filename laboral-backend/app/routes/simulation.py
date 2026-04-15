@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
 from app.database import get_db
-from app.models.employee import Employee
 from app.models.user import User
 from app.schemas.simulation import SimulateRequest, SimulateResponse
 from app.services.engine import LaboralEngine
@@ -22,7 +21,7 @@ def _load_convenio(convenio_id: str) -> dict:
     safe_name = Path(convenio_id).name
     path = _DATA_DIR / f"{safe_name}.json"
     if not path.resolve().is_relative_to(_DATA_DIR.resolve()):
-        raise FileNotFoundError(f"Convenio ID invalido")
+        raise FileNotFoundError("Convenio ID invalido")
     if not path.exists():
         raise FileNotFoundError(f"Convenio no encontrado: {convenio_id}")
     return json.loads(path.read_text(encoding="utf-8"))
@@ -48,7 +47,7 @@ def simulate(
     try:
         convenio_data = _load_convenio(convenio_id)
     except FileNotFoundError:
-        raise HTTPException(status_code=404, detail=f"Convenio no encontrado: {convenio_id}")
+        raise HTTPException(status_code=404, detail=f"Convenio no encontrado: {convenio_id}") from None
 
     engine = LaboralEngine(convenio_data)
     result = engine.simulate(
@@ -78,10 +77,8 @@ def simulate(
         salario_bruto_mensual=result.get("bruto_mensual_eur", 0),
         coste_total_empresa_mes_eur=result.get("coste_total_empresa_mes_eur", 0),
         coste_total_empresa_anual_eur=result.get("coste_total_empresa_anual_eur", 0),
-        neto_trabajador_mes_eur=result.get(
-            "neto_trabajador_mes_eur", result.get("neto_mensual_eur", 0)
-        ),
-        desglose_ss=result.get("desglose_ss", {}),
-        desglose_irpf=result.get("desglose_irpf", {}),
+        neto_trabajador_mes_eur=result.get("neto_mensual_eur", 0),
+        desglose_ss=result.get("ss_detalle", {}),
+        desglose_irpf=result.get("irpf_detalle", {}),
         traces=result.get("traces", []),
     )

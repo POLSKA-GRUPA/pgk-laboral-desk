@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -14,8 +13,8 @@ class EmployeeCreate(BaseModel):
     contrato_tipo: str = Field(default="indefinido")
     jornada_horas: float = Field(default=40.0, ge=1.0, le=40.0)
     fecha_inicio: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
-    fecha_fin: Optional[str] = None
-    salario_bruto_mensual: Optional[float] = Field(default=None, gt=0, le=100000)
+    fecha_fin: str | None = None
+    salario_bruto_mensual: float | None = Field(default=None, gt=0, le=100000)
     num_hijos: int = Field(default=0, ge=0, le=20)
     region: str = Field(default="generica", max_length=50)
     domicilio: str = Field(default="", max_length=300)
@@ -25,21 +24,21 @@ class EmployeeCreate(BaseModel):
 
 
 class EmployeeUpdate(BaseModel):
-    nombre: Optional[str] = Field(default=None, min_length=1, max_length=200)
-    nif: Optional[str] = None
-    naf: Optional[str] = None
-    categoria: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    contrato_tipo: Optional[str] = None
-    jornada_horas: Optional[float] = Field(default=None, ge=1.0, le=40.0)
-    fecha_inicio: Optional[str] = None
-    fecha_fin: Optional[str] = None
-    salario_bruto_mensual: Optional[float] = Field(default=None, gt=0, le=100000)
-    num_hijos: Optional[int] = Field(default=None, ge=0, le=20)
-    region: Optional[str] = None
-    domicilio: Optional[str] = None
-    email: Optional[str] = None
-    telefono: Optional[str] = None
-    notas: Optional[str] = None
+    nombre: str | None = Field(default=None, min_length=1, max_length=200)
+    nif: str | None = None
+    naf: str | None = None
+    categoria: str | None = Field(default=None, min_length=1, max_length=100)
+    contrato_tipo: str | None = None
+    jornada_horas: float | None = Field(default=None, ge=1.0, le=40.0)
+    fecha_inicio: str | None = None
+    fecha_fin: str | None = None
+    salario_bruto_mensual: float | None = Field(default=None, gt=0, le=100000)
+    num_hijos: int | None = Field(default=None, ge=0, le=20)
+    region: str | None = None
+    domicilio: str | None = None
+    email: str | None = None
+    telefono: str | None = None
+    notas: str | None = None
 
 
 class EmployeeResponse(BaseModel):
@@ -47,7 +46,7 @@ class EmployeeResponse(BaseModel):
 
     id: int
     user_id: int
-    company_id: Optional[int] = None
+    company_id: int | None = None
     nombre: str
     nif: str
     naf: str
@@ -55,8 +54,8 @@ class EmployeeResponse(BaseModel):
     contrato_tipo: str
     jornada_horas: float
     fecha_inicio: str
-    fecha_fin: Optional[str] = None
-    salario_bruto_mensual: Optional[float] = None
+    fecha_fin: str | None = None
+    salario_bruto_mensual: float | None = None
     num_hijos: int
     region: str
     domicilio: str
@@ -64,4 +63,4 @@ class EmployeeResponse(BaseModel):
     telefono: str
     notas: str
     status: str
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None

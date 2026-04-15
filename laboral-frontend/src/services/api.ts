@@ -59,6 +59,13 @@ export const simulationAPI = {
   run: (data: Record<string, unknown>) => api.post('/api/simulate', data),
 };
 
+export const referenceAPI = {
+  categories: () => api.get('/api/reference/categories'),
+  contractTypes: () => api.get('/api/reference/contract-types'),
+  regions: () => api.get('/api/reference/regions'),
+  tiposDespido: () => api.get('/api/reference/tipos-despido'),
+};
+
 export const chatAPI = {
   send: (data: { message: string; convenio_id?: string }) =>
     api.post('/api/chat', data),

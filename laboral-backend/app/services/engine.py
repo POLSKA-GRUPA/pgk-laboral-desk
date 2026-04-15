@@ -8,6 +8,11 @@ Toma los datos del convenio cargado, calcula devengos, aplica SS
   - Neto estimado trabajador
 
 Todo trazable a artículos del convenio.
+
+TODO: Migrar cálculos monetarios de float a Decimal para evitar errores
+de precisión en punto flotante. Los servicios SSCalculator, IRPFCalculator,
+IRPFEstimator, NominaCalculator y FiniquitoCalculator ya usan Decimal.
+Este motor (engine.py) es el único que aún opera con float.
 """
 
 from __future__ import annotations

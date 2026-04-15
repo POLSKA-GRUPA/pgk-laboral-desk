@@ -15,7 +15,7 @@ SS 2026 rates (from ss_config.json):
 """
 
 from datetime import date
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
 import pytest
 
@@ -635,7 +635,7 @@ class TestCrossValidationReal:
     def test_elzbieta_coste_total_empresa(self):
         # Salario devengado + SS empresa = 282.15 + 72.84 = 354.99€ (importe acumulado)
         # La nómina marca importe acumulado 354.99
-        assert 282.15 + 72.84 == pytest.approx(354.99, abs=0.01)
+        assert pytest.approx(354.99, abs=0.01) == 282.15 + 72.84
 
     def test_miguel_angel_total_devengado(self):
         # Salario 282.28 + Plus 28.86 + Prorrateo 47.04 + Teletrabajo 55.59 = 413.77€
@@ -658,7 +658,7 @@ class TestCrossValidationReal:
 
     def test_miguel_angel_coste_empresa(self):
         # Importe acumulado nómina = 528.93€ = 413.77 (devengado) + 115.16 (SS empresa)
-        assert 413.77 + 115.16 == pytest.approx(528.93, abs=0.01)
+        assert pytest.approx(528.93, abs=0.01) == 413.77 + 115.16
 
     def test_miguel_angel_abril_2_dias_base(self):
         # Abril: 2 días, salario 60.49 + prorrateo 10.08 + teletrabajo 55.59 = 126.16€
@@ -674,4 +674,4 @@ class TestCrossValidationReal:
         liquido = 28.54 - 1.85 - 0.00
         assert liquido == pytest.approx(26.69, abs=0.01)
         # SS empresa: 9.19€ → importe acumulado = 37.73€
-        assert 28.54 + 9.19 == pytest.approx(37.73, abs=0.01)
+        assert pytest.approx(37.73, abs=0.01) == 28.54 + 9.19

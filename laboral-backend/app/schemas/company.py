@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -25,4 +24,4 @@ class CompanyResponse(BaseModel):
     ccc: str
     convenio_id: str
     sector: str
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None

@@ -208,7 +208,8 @@ class ChatParser:
         # When enabled, enriches keyword matching with semantic search
         # over convenio colectivo using Z.ai infrastructure.
         try:
-            from vgrag_search import get_convenio_vgrag_backend, is_enabled as vgrag_enabled
+            from vgrag_search import get_convenio_vgrag_backend
+            from vgrag_search import is_enabled as vgrag_enabled
 
             if vgrag_enabled():
                 vgrag = get_convenio_vgrag_backend()

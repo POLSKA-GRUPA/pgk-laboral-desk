@@ -4,8 +4,6 @@ from pathlib import Path
 from typing import Any
 
 from app.services.engine import LaboralEngine
-from app.services.ss_calculator import SSCalculator
-from app.services.irpf_estimator import IRPFEstimator
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 _DATA_DIR = _REPO_ROOT / "data"
@@ -57,8 +55,10 @@ class PayrollService:
                 category=emp.get("categoria", ""),
                 contract_type=emp.get("contrato_tipo", "indefinido"),
                 weekly_hours=emp.get("jornada_horas", 40.0),
+                seniority_years=emp.get("antiguedad_anos", 0),
                 num_children=emp.get("num_hijos", 0),
                 region=emp.get("region", "generica"),
+                contract_days=emp.get("contract_days"),
             )
             result["employee_id"] = emp.get("id")
             result["employee_name"] = emp.get("nombre", "")

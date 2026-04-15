@@ -49,8 +49,13 @@ def calculate_dismissal(
     return DespidoResponse(
         tipo=data.tipo_despido,
         indemnizacion_eur=result.get("indemnizacion_eur", 0),
-        dias_indemnizacion=result.get("dias_indemnizacion", 0),
-        salario_diario=result.get("salario_diario", 0),
+        antiguedad_anos=result.get("antiguedad_anos", 0),
+        antiguedad_dias=result.get("antiguedad_dias", 0),
+        salario_diario_eur=result.get("salario_diario_eur", 0),
+        salario_bruto_mensual_eur=result.get("salario_bruto_mensual_eur", 0),
+        total_eur=result.get("total_eur", 0),
+        finiquito=result.get("finiquito"),
+        escenarios=result.get("escenarios"),
         detalle=result,
         consejo=result.get("consejo"),
     )

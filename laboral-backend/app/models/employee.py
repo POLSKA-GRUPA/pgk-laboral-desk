@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -14,7 +13,7 @@ class Employee(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
-    company_id: Mapped[Optional[int]] = mapped_column(
+    company_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("companies.id"), nullable=True
     )
     nombre: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -24,8 +23,8 @@ class Employee(Base):
     contrato_tipo: Mapped[str] = mapped_column(String(50), default="indefinido")
     jornada_horas: Mapped[float] = mapped_column(Float, default=40.0)
     fecha_inicio: Mapped[str] = mapped_column(String(20), nullable=False)
-    fecha_fin: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    salario_bruto_mensual: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    fecha_fin: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    salario_bruto_mensual: Mapped[float | None] = mapped_column(Float, nullable=True)
     num_hijos: Mapped[int] = mapped_column(Integer, default=0)
     region: Mapped[str] = mapped_column(String(50), default="generica")
     domicilio: Mapped[str] = mapped_column(String(300), default="")

@@ -7,11 +7,10 @@ sys.path.insert(0, "/tmp/pgk-laboral-desk/laboral-backend")
 from datetime import date
 from decimal import Decimal
 
-from app.services.irpf_calculator import IRPFCalculator
-from app.services.ss_calculator import SSCalculator
 from app.services.finiquito_calculator import FiniquitoCalculator
+from app.services.irpf_calculator import IRPFCalculator
 from app.services.reta_calculator import RETACalculator
-
+from app.services.ss_calculator import SSCalculator
 
 # === IRPF ===
 
@@ -62,8 +61,10 @@ class TestIRPF:
         assert r == Decimal("5550") + Decimal("2400") + Decimal("2700")
 
     def test_reduccion_trabajo_renta_baja(self):
+        # 2026: rend <= 14.852 → 7.302€; 15.000 está en tramo b)
+        # 7.302 - 1,75 * (15.000 - 14.852) = 7.302 - 259.00 = 7.043,00
         r = self.calc._reduccion_trabajo(Decimal("15000"))
-        assert r == Decimal("5565")
+        assert r == Decimal("7043.00")
 
     def test_reduccion_trabajo_renta_alta(self):
         r = self.calc._reduccion_trabajo(Decimal("30000"))

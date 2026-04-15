@@ -4,7 +4,7 @@ Referencias: ET Arts. 49, 52, 56, 56.bis | LIRPF Art.7.e | RD 2104/1998
 Usa Decimal en todos los cálculos."""
 
 from datetime import date
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
 TWO_PLACES = Decimal("0.01")
 

@@ -7,18 +7,18 @@ os.environ.setdefault("ENVIRONMENT", "test")
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import StaticPool, create_engine as sa_create_engine
+from sqlalchemy import StaticPool
+from sqlalchemy import create_engine as sa_create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.database import Base, get_db
 from app.main import app
-
 from app.models import (  # noqa: F401
     alert,
     company,
-    convenio,
     consultation,
     contract,
+    convenio,
     dismissal,
     employee,
     payroll,

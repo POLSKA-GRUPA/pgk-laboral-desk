@@ -1,5 +1,4 @@
 import json
-import sys
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -150,16 +149,15 @@ def get_employee_nomina(
     if "error" in sim:
         raise HTTPException(status_code=400, detail=sim["error"])
 
-    sys.path.insert(0, str(_REPO_ROOT))
     try:
-        from nomina_pdf import (
+        from app.services.nomina_pdf import (
             DatosEmpresa,
             build_nomina_from_simulation,
             generate_nomina_html_string,
             generate_nomina_pdf,
         )
     except ImportError:
-        raise HTTPException(status_code=500, detail="Modulo de generacion PDF no disponible")
+        raise HTTPException(status_code=500, detail="Modulo de generacion PDF no disponible") from None
 
     nomina = build_nomina_from_simulation(
         sim,

@@ -7,8 +7,8 @@ Falls back to structural validation if XSD file is not available.
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 
 from lxml import etree
 

@@ -17,6 +17,8 @@ from app.database import init_db
 from app.services.exceptions import (
     ConvenioNotFoundError,
     LaboralBaseError,
+)
+from app.services.exceptions import (
     ValidationError as LaboralValidationError,
 )
 

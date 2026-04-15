@@ -1,13 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Form, Select, InputNumber, Button, Descriptions, Spin, Divider } from 'antd';
 import { useApiCall } from '../hooks/useApiCall';
-import { simulationAPI } from '../services/api';
-
-const CATEGORIES = [
-  { value: 'Nivel B.', label: 'Nivel B (Socorrista)' },
-  { value: 'Nivel A', label: 'Nivel A' },
-  { value: 'Jefe de Equipo', label: 'Jefe de Equipo' },
-];
+import { simulationAPI, referenceAPI } from '../services/api';
 
 const REGIONS = [
   { value: 'generica', label: 'Generica' },
@@ -19,8 +13,18 @@ const REGIONS = [
 
 export default function Simulation() {
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
+  const [categories, setCategories] = useState<{ value: string; label: string }[]>([]);
   const sim = useApiCall(simulationAPI.run);
+  const cats = useApiCall(referenceAPI.categories);
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    cats.execute().then((res) => {
+      if (res && Array.isArray(res)) {
+        setCategories(res as { value: string; label: string }[]);
+      }
+    });
+  }, []);
 
   const handleSimulate = async (values: Record<string, unknown>) => {
     const res = await sim.execute(values);
@@ -33,7 +37,16 @@ export default function Simulation() {
       <Card style={{ marginBottom: 24 }}>
         <Form form={form} layout="inline" onFinish={handleSimulate} initialValues={{ contract_type: 'indefinido', weekly_hours: 40, region: 'generica' }}>
           <Form.Item name="category" rules={[{ required: true }]}>
-            <Select options={CATEGORIES} placeholder="Categoria" style={{ width: 200 }} />
+            <Select
+              options={categories}
+              placeholder="Categoria"
+              style={{ width: 200 }}
+              loading={cats.loading}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+            />
           </Form.Item>
           <Form.Item name="contract_type">
             <Select style={{ width: 150 }} options={[

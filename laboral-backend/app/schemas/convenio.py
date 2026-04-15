@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any, Optional
-
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 
 class ConvenioResponse(BaseModel):
@@ -13,11 +10,11 @@ class ConvenioResponse(BaseModel):
     nombre: str
     codigo_convenio: str
     ambito_geografico: str
-    vigencia_inicio: Optional[str] = None
-    vigencia_fin: Optional[str] = None
+    vigencia_inicio: str | None = None
+    vigencia_fin: str | None = None
     sector: str
     activo: bool
 
 
 class ConvenioDetail(ConvenioResponse):
-    data_json: Optional[str] = None
+    data_json: str | None = None

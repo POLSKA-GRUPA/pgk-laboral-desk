@@ -4,6 +4,11 @@ import { TeamOutlined, DollarOutlined, BellOutlined, BookOutlined } from '@ant-d
 import { useApiCall } from '../hooks/useApiCall';
 import { employeesAPI, alertsAPI, conveniosAPI } from '../services/api';
 
+interface EmployeeData {
+  salario_bruto_mensual?: number;
+  [key: string]: unknown;
+}
+
 export default function Dashboard() {
   const employees = useApiCall(employeesAPI.list);
   const alerts = useApiCall(alertsAPI.list);
@@ -14,6 +19,14 @@ export default function Dashboard() {
     alerts.execute();
     convenios.execute();
   }, []);
+
+  const costeMensual = React.useMemo(() => {
+    if (!employees.data || !Array.isArray(employees.data)) return 0;
+    return (employees.data as EmployeeData[]).reduce(
+      (sum, emp) => sum + (emp.salario_bruto_mensual ?? 0),
+      0
+    );
+  }, [employees.data]);
 
   return (
     <div>
@@ -26,7 +39,7 @@ export default function Dashboard() {
         </Col>
         <Col span={6}>
           <Card>
-            <Statistic title="Coste mensual" value={0} prefix={<DollarOutlined />} suffix="EUR" />
+            <Statistic title="Coste mensual" value={costeMensual.toFixed(2)} prefix={<DollarOutlined />} suffix="EUR" />
           </Card>
         </Col>
         <Col span={6}>
