@@ -8,7 +8,7 @@ from app.core.deps import get_current_user, require_admin
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import TokenResponse, UserCreate, UserLogin, UserResponse
+from app.schemas.user import TokenResponse, UserCreate, UserLogin, UserResponse, UserUpdate
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -64,14 +64,13 @@ def me(current_user: User = Depends(get_current_user)):
 
 @router.put("/me", response_model=UserResponse)
 def update_me(
-    data: dict,
+    data: UserUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    allowed = {"empresa_nombre", "empresa_cif", "empresa_domicilio", "empresa_ccc", "full_name", "convenio_id"}
-    for key, value in data.items():
-        if key in allowed and isinstance(value, str):
-            setattr(current_user, key, value)
+    update_data = data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(current_user, key, value)
     db.commit()
     db.refresh(current_user)
     return UserResponse.model_validate(current_user)
