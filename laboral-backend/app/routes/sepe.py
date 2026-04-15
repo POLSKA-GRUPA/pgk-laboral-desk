@@ -66,10 +66,14 @@ def get_contract_type_mappings(
 
 
 def _resolve_employee_company(
-    request: ContratoGeneracionRequest, db: Session
+    request: ContratoGeneracionRequest, db: Session, current_user: User
 ) -> tuple:
     """Validate and resolve employee + company from the request. Returns (employee, company, contrato_tipo, fecha_inicio, fecha_fin)."""
-    employee = db.query(Employee).filter(Employee.id == request.employee_id).first()
+    employee = (
+        db.query(Employee)
+        .filter(Employee.id == request.employee_id, Employee.user_id == current_user.id)
+        .first()
+    )
     if not employee:
         raise HTTPException(status_code=404, detail=f"Employee {request.employee_id} not found")
 
@@ -158,7 +162,7 @@ def generate_contrato_xml(
     db: Session = Depends(get_db),
 ):
     employee, company, contrato_tipo, fecha_inicio, fecha_fin = _resolve_employee_company(
-        request, db
+        request, db, current_user
     )
     xml_bytes, mapping, gen_warnings = _generate_xml(
         request, employee, company, contrato_tipo, fecha_inicio, fecha_fin
@@ -189,7 +193,7 @@ def download_contrato_xml(
     db: Session = Depends(get_db),
 ):
     employee, company, contrato_tipo, fecha_inicio, fecha_fin = _resolve_employee_company(
-        request, db
+        request, db, current_user
     )
     xml_bytes, mapping, _ = _generate_xml(
         request, employee, company, contrato_tipo, fecha_inicio, fecha_fin

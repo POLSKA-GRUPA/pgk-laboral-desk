@@ -69,7 +69,9 @@ class RETACalculator:
         if ingresos_netos <= Decimal("0") and not es_nuevo_autonomo:
             return {
                 "ingresos_brutos_mensuales": float(_r2(Decimal(str(ingresos_brutos_mensuales)))),
-                "gastos_deducibles_mensuales": float(_r2(Decimal(str(gastos_deducibles_mensuales)))),
+                "gastos_deducibles_mensuales": float(
+                    _r2(Decimal(str(gastos_deducibles_mensuales)))
+                ),
                 "ingresos_netos_mensuales": float(_r2(ingresos_netos)),
                 "tramo": "sin_actividad",
                 "base_cotizacion_mensual": 0.0,
@@ -157,7 +159,7 @@ class RETACalculator:
 
         # Porcentajes SS asalariado 2026
         pct_trabajador = Decimal("0.0650")  # 6.50% total trabajador
-        pct_empresa = Decimal("0.3215")     # 32.15% total empresa
+        pct_empresa = Decimal("0.3215")  # 32.15% total empresa
 
         ss_asalariado = _r2(bruto * pct_trabajador)
         ss_empresa_asal = _r2(bruto * pct_empresa)
@@ -173,9 +175,7 @@ class RETACalculator:
                 "ss_empresa_mensual": float(ss_empresa_asal),
                 "total_ss_mensual": float(_r2(ss_asalariado + ss_empresa_asal)),
                 "pct_trabajador_sobre_bruto": float(_r2(pct_trabajador * 100)),
-                "pct_total_sobre_bruto": float(
-                    _r2(pct_empresa * 100 + pct_trabajador * 100)
-                ),
+                "pct_total_sobre_bruto": float(_r2(pct_empresa * 100 + pct_trabajador * 100)),
             },
             "diferencia": {
                 "autonomo_paga_mas_mensual": float(

@@ -81,15 +81,11 @@ class FiniquitoCalculator:
 
         # Validar fechas
         if fecha_fin <= fecha_inicio:
-            raise ValueError(
-                "La fecha de fin debe ser posterior a la fecha de inicio."
-            )
+            raise ValueError("La fecha de fin debe ser posterior a la fecha de inicio.")
 
         # Validar vacaciones
         if dias_vacaciones_pendientes < 0:
-            raise ValueError(
-                "Los días de vacaciones pendientes no pueden ser negativos."
-            )
+            raise ValueError("Los días de vacaciones pendientes no pueden ser negativos.")
 
         # Antigüedad
         antiguedad_dias = (fecha_fin - fecha_inicio).days

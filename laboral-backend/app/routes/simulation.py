@@ -47,7 +47,9 @@ def simulate(
     try:
         convenio_data = _load_convenio(convenio_id)
     except FileNotFoundError:
-        raise HTTPException(status_code=404, detail=f"Convenio no encontrado: {convenio_id}") from None
+        raise HTTPException(
+            status_code=404, detail=f"Convenio no encontrado: {convenio_id}"
+        ) from None
 
     engine = LaboralEngine(convenio_data)
     result = engine.simulate(

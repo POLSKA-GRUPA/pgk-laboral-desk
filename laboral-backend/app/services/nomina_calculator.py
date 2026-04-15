@@ -178,7 +178,9 @@ class NominaCalculator:
         self, base: Decimal, tipo_contrato: str, cnae: str, he: Decimal, category: str = ""
     ) -> dict:
         if self.ss:
-            result = self.ss.calculate(float(base), tipo_contrato, category=category, contract_days=None)
+            result = self.ss.calculate(
+                float(base), tipo_contrato, category=category, contract_days=None
+            )
             return result.to_dict()
         temporal = tipo_contrato in ("temporal", "formacion", "practicas")
         tasa_cc = Decimal("0.2360")

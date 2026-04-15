@@ -157,7 +157,9 @@ def get_employee_nomina(
             generate_nomina_pdf,
         )
     except ImportError:
-        raise HTTPException(status_code=500, detail="Modulo de generacion PDF no disponible") from None
+        raise HTTPException(
+            status_code=500, detail="Modulo de generacion PDF no disponible"
+        ) from None
 
     nomina = build_nomina_from_simulation(
         sim,

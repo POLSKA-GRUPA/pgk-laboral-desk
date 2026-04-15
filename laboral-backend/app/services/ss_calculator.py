@@ -16,7 +16,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-_DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent.parent.parent / "data" / "ss_config.json"
+_DEFAULT_CONFIG_PATH = (
+    Path(__file__).resolve().parent.parent.parent.parent / "data" / "ss_config.json"
+)
 
 # Topes de cotización 2026 (Régimen General) — Orden ISM/31/2026 (BOE-A-2026-1921)
 BASE_MIN_MENSUAL = 1424.50  # Base mínima 2026 (= SMI 1.221€ × 14/12)
