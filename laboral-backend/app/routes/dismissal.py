@@ -46,6 +46,9 @@ def calculate_dismissal(
         salario_bruto_mensual=data.salario_bruto_mensual,
     )
 
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+
     return DespidoResponse(
         tipo=data.tipo_despido,
         indemnizacion_eur=result.get("indemnizacion_eur", 0),
