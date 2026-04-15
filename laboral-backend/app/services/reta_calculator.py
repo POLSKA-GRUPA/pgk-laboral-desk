@@ -92,7 +92,12 @@ class RETACalculator:
 
         # Tarifa plana
         if es_nuevo_autonomo and meses_alta <= TARIFA_PLANA_MESES:
-            return self._resultado_tarifa_plana(ingresos_netos, year)
+            return self._resultado_tarifa_plana(
+                ingresos_netos,
+                year,
+                ingresos_brutos=Decimal(str(ingresos_brutos_mensuales)),
+                gastos_deducibles=Decimal(str(gastos_deducibles_mensuales)),
+            )
 
         if ingresos_netos <= Decimal("0"):
             ingresos_netos = Decimal("1")
@@ -194,12 +199,18 @@ class RETACalculator:
         return TRAMOS_RETA_2025[1]
 
     @staticmethod
-    def _resultado_tarifa_plana(ingresos: Decimal, year: int) -> dict:
+    def _resultado_tarifa_plana(
+        ingresos: Decimal,
+        year: int,
+        *,
+        ingresos_brutos: Decimal = Decimal("0"),
+        gastos_deducibles: Decimal = Decimal("0"),
+    ) -> dict:
         tipo = TIPO_TOTAL_2025 if year == 2025 else TIPO_TOTAL_2026
         base = _r2(TARIFA_PLANA_NUEVO / tipo)
         return {
-            "ingresos_brutos_mensuales": 0.0,
-            "gastos_deducibles_mensuales": 0.0,
+            "ingresos_brutos_mensuales": float(_r2(ingresos_brutos)),
+            "gastos_deducibles_mensuales": float(_r2(gastos_deducibles)),
             "ingresos_netos_mensuales": float(_r2(ingresos)),
             "tramo": "T1_tarifa_plana",
             "base_cotizacion_mensual": float(base),
