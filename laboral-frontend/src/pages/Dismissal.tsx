@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Form, Select, Input, InputNumber, Button, Descriptions, Spin, message, Alert } from 'antd';
 import { useApiCall } from '../hooks/useApiCall';
-import { dismissalAPI } from '../services/api';
-
-const DESPIDO_TYPES = [
-  { value: 'improcedente', label: 'Improcedente' },
-  { value: 'objetivo', label: 'Objetivo' },
-  { value: 'disciplinario', label: 'Disciplinario' },
-  { value: 'mutuo_acuerdo', label: 'Mutuo acuerdo' },
-  { value: 'ere', label: 'ERE' },
-  { value: 'fin_contrato_temporal', label: 'Fin contrato temporal' },
-];
+import { dismissalAPI, referenceAPI } from '../services/api';
 
 export default function Dismissal() {
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
+  const [despidoTypes, setDespidoTypes] = useState<{ value: string; label: string }[]>([]);
   const calc = useApiCall(dismissalAPI.calculate);
+  const tipos = useApiCall(referenceAPI.tiposDespido);
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    tipos.execute().then((res) => {
+      if (res && Array.isArray(res)) {
+        setDespidoTypes(res as { value: string; label: string }[]);
+      }
+    });
+  }, []);
 
   const handleCalculate = async (values: Record<string, unknown>) => {
     setResult(null);
@@ -36,7 +37,16 @@ export default function Dismissal() {
       <Card style={{ marginBottom: 24 }}>
         <Form form={form} layout="inline" onFinish={handleCalculate} initialValues={{ tipo_despido: 'improcedente' }}>
           <Form.Item name="tipo_despido" rules={[{ required: true }]}>
-            <Select options={DESPIDO_TYPES} style={{ width: 200 }} />
+            <Select
+              options={despidoTypes}
+              placeholder="Tipo despido"
+              style={{ width: 220 }}
+              loading={tipos.loading}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+            />
           </Form.Item>
           <Form.Item name="fecha_inicio" rules={[{ required: true }]}>
             <Input placeholder="Fecha inicio (YYYY-MM-DD)" />
