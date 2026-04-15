@@ -14,8 +14,8 @@ class NominaRequest(BaseModel):
 class NominaResponse(BaseModel):
     employee_id: int
     periodo: str
-    devengos: dict[str, Any]
-    deducciones: dict[str, Any]
+    devengos: list[dict[str, Any]] | dict[str, Any]
+    deducciones: list[dict[str, Any]] | dict[str, Any] | None = None
     neto: float
     coste_empresa: float
     pdf_url: str | None = None
