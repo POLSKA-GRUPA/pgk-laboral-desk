@@ -7,6 +7,7 @@ export function useApiCall<T>(apiFn: (...args: unknown[]) => Promise<{ data: T }
   const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
     };

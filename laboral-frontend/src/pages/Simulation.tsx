@@ -81,11 +81,24 @@ export default function Simulation() {
           </Descriptions>
           <Divider />
           {result.desglose_ss && typeof result.desglose_ss === 'object' && (
-            <Descriptions title="Desglose Seguridad Social" column={2} bordered size="small" style={{ marginBottom: 16 }}>
-              {Object.entries(result.desglose_ss as Record<string, unknown>).map(([k, v]) => (
-                <Descriptions.Item key={k} label={k}>{typeof v === 'number' ? `${v.toFixed(2)} EUR` : String(v)}</Descriptions.Item>
-              ))}
-            </Descriptions>
+            <>
+              <Descriptions title="Desglose Seguridad Social" column={2} bordered size="small" style={{ marginBottom: 16 }}>
+                {Object.entries(result.desglose_ss as Record<string, unknown>)
+                  .filter(([, v]) => typeof v !== 'object' || v === null)
+                  .map(([k, v]) => (
+                    <Descriptions.Item key={k} label={k}>{typeof v === 'number' ? `${v.toFixed(2)} EUR` : String(v)}</Descriptions.Item>
+                  ))}
+              </Descriptions>
+              {Object.entries(result.desglose_ss as Record<string, unknown>)
+                .filter(([, v]) => typeof v === 'object' && v !== null)
+                .map(([k, v]) => (
+                  <Descriptions key={k} title={`SS — ${k.charAt(0).toUpperCase() + k.slice(1)}`} column={2} bordered size="small" style={{ marginBottom: 16 }}>
+                    {Object.entries(v as Record<string, unknown>).map(([sk, sv]) => (
+                      <Descriptions.Item key={sk} label={sk}>{typeof sv === 'number' ? `${sv.toFixed(2)} EUR` : String(sv)}</Descriptions.Item>
+                    ))}
+                  </Descriptions>
+                ))}
+            </>
           )}
           {result.desglose_irpf && typeof result.desglose_irpf === 'object' && (
             <Descriptions title="Desglose IRPF" column={2} bordered size="small">
