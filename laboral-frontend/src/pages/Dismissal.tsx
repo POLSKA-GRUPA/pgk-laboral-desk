@@ -46,8 +46,8 @@ export default function Dismissal() {
           <Descriptions column={2} bordered>
             <Descriptions.Item label="Tipo">{calc.data.tipo}</Descriptions.Item>
             <Descriptions.Item label="Indemnizacion">{Number(calc.data.indemnizacion_eur).toFixed(2)} EUR</Descriptions.Item>
-            <Descriptions.Item label="Dias indemnizacion">{calc.data.dias_indemnizacion}</Descriptions.Item>
-            <Descriptions.Item label="Salario diario">{Number(calc.data.salario_diario).toFixed(2)} EUR</Descriptions.Item>
+            <Descriptions.Item label="Antiguedad (anos)">{calc.data.antiguedad_anos}</Descriptions.Item>
+            <Descriptions.Item label="Salario diario">{Number(calc.data.salario_diario_eur).toFixed(2)} EUR</Descriptions.Item>
           </Descriptions>
           {calc.data.consejo && (
             <Card style={{ marginTop: 16 }} type="inner" title="Consejo estrategico">

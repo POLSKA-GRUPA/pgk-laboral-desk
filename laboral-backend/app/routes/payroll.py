@@ -53,7 +53,7 @@ def generate_nomina(
         periodo=data.periodo,
         devengos=result.get("devengos", {}),
         deducciones=result.get("deducciones", {}),
-        neto=result.get("neto_trabajador_mes_eur", 0),
+        neto=result.get("neto_mensual_eur", 0),
         coste_empresa=result.get("coste_total_empresa_mes_eur", 0),
     )
 
@@ -95,7 +95,7 @@ def bulk_payroll(
             periodo=data.periodo,
             devengos=r.get("devengos", {}),
             deducciones=r.get("deducciones", {}),
-            neto=r.get("neto_trabajador_mes_eur", 0),
+            neto=r.get("neto_mensual_eur", 0),
             coste_empresa=r.get("coste_total_empresa_mes_eur", 0),
         )
         for r in results
