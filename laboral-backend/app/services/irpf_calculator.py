@@ -317,7 +317,7 @@ class IRPFCalculator:
         return {
             "salario_bruto_anual": float(_round2(bruto_anual)),
             "ss_trabajador_anual": 0.0,
-            "rendimiento_neto": 0.0,
+            "rendimiento_neto": float(_round2(bruto_anual)),
             "reduccion_art20": 0.0,
             "rendimiento_neto_reducido": 0.0,
             "minimo_personal_familiar": float(MINIMO_PERSONAL),
