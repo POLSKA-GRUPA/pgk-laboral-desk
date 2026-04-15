@@ -74,6 +74,12 @@ export default function Employees() {
           <Form.Item name="fecha_inicio" label="Fecha inicio" rules={[{ required: true }]}>
             <Input placeholder="YYYY-MM-DD" />
           </Form.Item>
+          <Form.Item name="salario_bruto_mensual" label="Salario bruto mensual">
+            <InputNumber min={1} max={100000} style={{ width: '100%' }} addonAfter="EUR/mes" placeholder="Opcional" />
+          </Form.Item>
+          <Form.Item name="num_hijos" label="Num. hijos" initialValue={0}>
+            <InputNumber min={0} max={20} />
+          </Form.Item>
           <Form.Item name="region" label="Comunidad autonoma" initialValue="generica">
             <Input />
           </Form.Item>

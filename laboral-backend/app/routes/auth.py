@@ -62,6 +62,21 @@ def me(current_user: User = Depends(get_current_user)):
     return UserResponse.model_validate(current_user)
 
 
+@router.put("/me", response_model=UserResponse)
+def update_me(
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    allowed = {"empresa_nombre", "empresa_cif", "empresa_domicilio", "empresa_ccc", "full_name", "convenio_id"}
+    for key, value in data.items():
+        if key in allowed and isinstance(value, str):
+            setattr(current_user, key, value)
+    db.commit()
+    db.refresh(current_user)
+    return UserResponse.model_validate(current_user)
+
+
 @router.post("/register", response_model=UserResponse, status_code=201)
 def register(
     data: UserCreate,

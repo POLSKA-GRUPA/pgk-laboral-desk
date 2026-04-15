@@ -17,6 +17,7 @@ class DespidoRequest(BaseModel):
 
 class DespidoResponse(BaseModel):
     tipo: str
+    tipo_despido_label: str = ""
     indemnizacion_eur: float
     antiguedad_anos: float = 0.0
     antiguedad_dias: int = 0

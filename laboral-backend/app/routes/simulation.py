@@ -63,6 +63,9 @@ def simulate(
         contract_days=data.contract_days,
     )
 
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+
     from app.models.consultation import Consultation
 
     consultation = Consultation(

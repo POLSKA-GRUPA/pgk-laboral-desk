@@ -43,10 +43,13 @@ def generate_nomina(
         category=emp.categoria,
         contract_type=emp.contrato_tipo,
         weekly_hours=emp.jornada_horas,
-        region=emp.region,
-        num_children=emp.num_hijos,
+        region=emp.region or "generica",
+        num_children=emp.num_hijos or 0,
         convenio_id=convenio_id,
     )
+
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
 
     return NominaResponse(
         employee_id=emp.id,

@@ -51,6 +51,7 @@ def calculate_dismissal(
 
     return DespidoResponse(
         tipo=data.tipo_despido,
+        tipo_despido_label=result.get("tipo_despido_label", ""),
         indemnizacion_eur=result.get("indemnizacion_eur", 0),
         antiguedad_anos=result.get("antiguedad_anos", 0),
         antiguedad_dias=result.get("antiguedad_dias", 0),
