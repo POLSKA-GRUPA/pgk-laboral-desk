@@ -207,7 +207,7 @@ class SSCalculator:
 
     def _short_contract_surcharge(self, contract_days: int | None) -> float:
         """Recargo adicional para contratos de duración ≤30 días (DA 7ª ET)."""
-        if contract_days is None:
+        if contract_days is None or contract_days <= 0:
             return 0.0
         cfg = self.config.get("recargo_contratos_cortos", {})
         limit = cfg.get("dias_limite", _SHORT_CONTRACT_DAYS_LIMIT)

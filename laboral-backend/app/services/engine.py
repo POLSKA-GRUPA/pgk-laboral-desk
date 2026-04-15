@@ -175,10 +175,13 @@ class LaboralEngine:
         if row is None:
             return {"error": f"Categoría no encontrada: {category}"}
 
-        # 2. Jornada
+        # 2. Jornada (validar rango)
+        if weekly_hours < 0:
+            weekly_hours = 0.0
         jornada_ratio = round(weekly_hours / FULL_TIME_WEEKLY_HOURS, 4)
 
-        # 3. Trienios (Art. 32)
+        # 3. Trienios (Art. 32) — clamp negative seniority to 0
+        seniority_years = max(0, seniority_years)
         trienios = math.floor(seniority_years / 3)
 
         # 4. Devengos mensuales
@@ -469,6 +472,9 @@ class LaboralEngine:
         if fecha_despido_dt <= fecha_inicio_dt:
             return {"error": "La fecha de despido debe ser posterior a la fecha de inicio."}
 
+        if salario_bruto_mensual <= 0:
+            return {"error": "El salario bruto mensual debe ser mayor que 0."}
+
         # Antigüedad
         dias_totales = (fecha_despido_dt - fecha_inicio_dt).days
         antiguedad_anos = dias_totales / 365.25
@@ -708,6 +714,19 @@ class LaboralEngine:
             consejos.append(
                 "Las prestaciones por desempleo en ERE tienen condiciones especiales. Asesórate antes de iniciar el procedimiento."
             )
+
+        elif tipo == "fin_contrato_temporal":
+            consejos.append(
+                f"Fin de contrato temporal: indemnización de 12 días/año × {anos:.1f} años = {indemnizacion:,.2f}€."
+            )
+            consejos.append(
+                "Desde 2015, la indemnización por fin de contrato temporal es de 12 días por año trabajado (Art. 49.1.c ET)."
+            )
+            if anos >= 2:
+                consejos.append(
+                    "Con más de 2 años de contrato temporal, verifica que no se haya superado la duración máxima legal. "
+                    "Si el contrato temporal se ha encadenado más de 18 meses en un periodo de 24, el trabajador adquiere la condición de indefinido (Art. 15.5 ET)."
+                )
 
         return consejos
 

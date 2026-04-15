@@ -2,6 +2,8 @@
 
 import sys
 
+import pytest
+
 sys.path.insert(0, "/tmp/pgk-laboral-desk/laboral-backend")
 
 from datetime import date

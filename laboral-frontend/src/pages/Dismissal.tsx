@@ -51,7 +51,15 @@ export default function Dismissal() {
           </Descriptions>
           {calc.data.consejo && (
             <Card style={{ marginTop: 16 }} type="inner" title="Consejo estrategico">
-              {calc.data.consejo}
+              {Array.isArray(calc.data.consejo) ? (
+                <ul style={{ paddingLeft: 20, margin: 0 }}>
+                  {calc.data.consejo.map((c: string, i: number) => (
+                    <li key={i} style={{ marginBottom: 8 }}>{c}</li>
+                  ))}
+                </ul>
+              ) : (
+                calc.data.consejo
+              )}
             </Card>
           )}
         </Card>

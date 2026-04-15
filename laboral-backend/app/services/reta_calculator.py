@@ -65,6 +65,31 @@ class RETACalculator:
             str(gastos_deducibles_mensuales)
         )
 
+        # Ingresos netos <= 0 → no hay actividad económica real
+        if ingresos_netos <= Decimal("0") and not es_nuevo_autonomo:
+            return {
+                "ingresos_brutos_mensuales": float(_r2(Decimal(str(ingresos_brutos_mensuales)))),
+                "gastos_deducibles_mensuales": float(_r2(Decimal(str(gastos_deducibles_mensuales)))),
+                "ingresos_netos_mensuales": float(_r2(ingresos_netos)),
+                "tramo": "sin_actividad",
+                "base_cotizacion_mensual": 0.0,
+                "base_minima_tramo": 0.0,
+                "base_maxima_tramo": 0.0,
+                "tipo_cotizacion_pct": 0.0,
+                "cuota_mensual": 0.0,
+                "cuota_anual": 0.0,
+                "pct_cuota_sobre_ingresos": 0.0,
+                "desglose": {
+                    "contingencias_comunes_pct": 0.0,
+                    "cc_mensual": 0.0,
+                    "mei_pct": 0.0,
+                    "mei_mensual": 0.0,
+                },
+                "es_tarifa_plana": False,
+                "year": year,
+                "nota": "Con ingresos netos ≤ 0 no existe obligación de cotización RETA.",
+            }
+
         # Tarifa plana
         if es_nuevo_autonomo and meses_alta <= TARIFA_PLANA_MESES:
             return self._resultado_tarifa_plana(ingresos_netos, year)
@@ -171,16 +196,30 @@ class RETACalculator:
     @staticmethod
     def _resultado_tarifa_plana(ingresos: Decimal, year: int) -> dict:
         tipo = TIPO_TOTAL_2025 if year == 2025 else TIPO_TOTAL_2026
+        base = _r2(TARIFA_PLANA_NUEVO / tipo)
         return {
+            "ingresos_brutos_mensuales": 0.0,
+            "gastos_deducibles_mensuales": 0.0,
             "ingresos_netos_mensuales": float(_r2(ingresos)),
             "tramo": "T1_tarifa_plana",
-            "base_cotizacion_mensual": float(_r2(TARIFA_PLANA_NUEVO / tipo)),
+            "base_cotizacion_mensual": float(base),
+            "base_minima_tramo": float(base),
+            "base_maxima_tramo": float(base),
+            "tipo_cotizacion_pct": float(_r2(tipo * 100)),
             "cuota_mensual": float(TARIFA_PLANA_NUEVO),
             "cuota_anual": float(TARIFA_PLANA_NUEVO * 12),
-            "es_tarifa_plana": True,
-            "meses_tarifa_plana_restantes": TARIFA_PLANA_MESES,
             "pct_cuota_sobre_ingresos": float(
                 _r2(TARIFA_PLANA_NUEVO / max(ingresos, Decimal("1")) * 100)
             ),
+            "desglose": {
+                "contingencias_comunes_pct": float(_r2(TIPO_CC * 100)),
+                "cc_mensual": float(_r2(base * TIPO_CC)),
+                "mei_pct": float(_r2((TIPO_MEI_2025 if year == 2025 else TIPO_MEI_2026) * 100)),
+                "mei_mensual": float(
+                    _r2(base * (TIPO_MEI_2025 if year == 2025 else TIPO_MEI_2026))
+                ),
+            },
+            "es_tarifa_plana": True,
+            "meses_tarifa_plana_restantes": TARIFA_PLANA_MESES,
             "year": year,
         }

@@ -126,7 +126,9 @@ class IRPFCalculator:
 
         # Exención rentas < 14.000 €/año
         if bruto_anual <= EXENCION_LIMITE:
-            return self._resultado_exento(bruto_anual, bruto, pagas)
+            return self._resultado_exento(
+                bruto_anual, bruto, pagas, situacion_familiar, comunidad_autonoma
+            )
 
         # 1. Cuotas SS trabajador 2026 (6.50% indefinido, 6.55% temporal)
         tasa_ss = Decimal("0.0655") if contrato_temporal else Decimal("0.0650")
@@ -305,11 +307,17 @@ class IRPFCalculator:
         return tipo
 
     @staticmethod
-    def _resultado_exento(bruto_anual: Decimal, bruto_mensual: Decimal, pagas: Decimal) -> dict:
+    def _resultado_exento(
+        bruto_anual: Decimal,
+        bruto_mensual: Decimal,
+        pagas: Decimal,
+        situacion_familiar: str = "soltero",
+        comunidad_autonoma: str = "madrid",
+    ) -> dict:
         return {
             "salario_bruto_anual": float(_round2(bruto_anual)),
             "ss_trabajador_anual": 0.0,
-            "rendimiento_neto": float(_round2(bruto_anual)),
+            "rendimiento_neto": 0.0,
             "reduccion_art20": 0.0,
             "rendimiento_neto_reducido": 0.0,
             "minimo_personal_familiar": float(MINIMO_PERSONAL),
@@ -319,7 +327,7 @@ class IRPFCalculator:
             "retencion_anual": 0.0,
             "retencion_mensual": 0.0,
             "desglose_tramos": [],
-            "situacion_familiar": "soltero",
-            "comunidad_autonoma": "madrid",
+            "situacion_familiar": situacion_familiar,
+            "comunidad_autonoma": comunidad_autonoma,
             "exento": True,
         }

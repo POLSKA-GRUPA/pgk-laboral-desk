@@ -40,6 +40,8 @@ class NominaCalculator:
         categoria_profesional: str = "",
     ) -> dict:
         bruto = Decimal(str(salario_bruto_mensual))
+        if bruto <= 0:
+            raise ValueError("El salario bruto mensual debe ser mayor que 0.")
         transporte = Decimal(str(plus_transporte_mensual))
         comida = Decimal(str(plus_comida_mensual))
         he = Decimal(str(horas_extras_mensual))

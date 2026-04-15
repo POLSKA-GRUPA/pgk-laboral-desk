@@ -73,8 +73,23 @@ class FiniquitoCalculator:
             dict con desglose completo: haberes, indemnización, IRPF, neto.
         """
         bruto_mensual = Decimal(str(salario_bruto_mensual))
+        if bruto_mensual <= 0:
+            raise ValueError("El salario bruto mensual debe ser mayor que 0.")
+
         bruto_diario = _r2(bruto_mensual / Decimal("30"))
         bruto_anual = bruto_mensual * num_pagas
+
+        # Validar fechas
+        if fecha_fin <= fecha_inicio:
+            raise ValueError(
+                "La fecha de fin debe ser posterior a la fecha de inicio."
+            )
+
+        # Validar vacaciones
+        if dias_vacaciones_pendientes < 0:
+            raise ValueError(
+                "Los días de vacaciones pendientes no pueden ser negativos."
+            )
 
         # Antigüedad
         antiguedad_dias = (fecha_fin - fecha_inicio).days
