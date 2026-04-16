@@ -351,10 +351,14 @@ def parse_nomina(pdf_path: str | Path) -> ParsedNomina | None:
     _parse_aportaciones_empresa(text, nom)
 
     # ── Coste total empresa ──
-    # Sage/A3 variations: "Total coste:", "Total  coste:", newline between label and amount
+    # Sage/A3 variations:
+    #   "Total coste:  1.273,01" (same line)
+    #   "Total coste:\n  1.273,01  Total: 312,25" (next line, mixed with Total:)
+    #   "Total coste:\n\n  1.273,01" (line after blank)
     coste_patterns = [
         r"Total\s+coste.*?:\s*([\d.]+,\d{2})",
         r"Total\s+coste.*?:\s*\n\s*([\d.]+,\d{2})",
+        r"Total\s+coste.*?:\s*\n[^\d]*([\d.]+,\d{2})",
         r"Total\s+coste\s+empresa.*?:\s*([\d.]+,\d{2})",
     ]
     for cp in coste_patterns:
