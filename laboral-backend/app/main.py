@@ -92,6 +92,7 @@ from app.routes import (
     reference,
     sepe,
     simulation,
+    audit,
 )
 
 app.include_router(health.router, prefix="/api")
@@ -107,3 +108,4 @@ app.include_router(consultations.router, prefix="/api")
 app.include_router(reference.router, prefix="/api")
 app.include_router(employee_dismissal.router)
 app.include_router(sepe.router, prefix="/api")
+app.include_router(audit.router, prefix="/api")
