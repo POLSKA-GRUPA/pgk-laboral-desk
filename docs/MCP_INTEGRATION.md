@@ -96,11 +96,14 @@ Ambos soportan el mismo schema de `mcpServers`. Configura en
 Levanta el servidor en SSE:
 
 ```bash
-pgk-laboral-mcp --transport sse --host 127.0.0.1 --port 8765
+pgk-laboral-mcp --transport sse --host 127.0.0.1 --port 8001
 ```
 
-El endpoint SSE queda en `http://127.0.0.1:8765/sse`. En hosts que configuran
+El endpoint SSE queda en `http://127.0.0.1:8001/sse`. En hosts que configuran
 MCP remoto, apunta a esa URL.
+
+> El puerto 8001 es el convenio de `AGENTS.md` y evita chocar con el servidor
+> Flask de desarrollo (`app.py` usa 8765).
 
 > Para exponerlo a otros equipos de la red local, pasa
 > `--host 0.0.0.0`. Para exposicion publica, pon un reverse proxy con auth

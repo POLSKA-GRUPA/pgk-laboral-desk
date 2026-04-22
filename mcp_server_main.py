@@ -10,7 +10,7 @@ Uso rapido:
   python -m mcp_server_main
 
   # SSE (para hosts que consumen MCP sobre HTTP/SSE, ej. ChatGPT Desktop)
-  python -m mcp_server_main --transport sse --host 0.0.0.0 --port 8765
+  python -m mcp_server_main --transport sse --host 0.0.0.0 --port 8001
 
 Tambien instalable como entry-point `pgk-laboral-mcp` (ver pyproject.toml).
 
@@ -134,7 +134,7 @@ async def run_stdio() -> None:
         await server.run(read_stream, write_stream, _initialization_options(server))
 
 
-async def run_sse(host: str = "127.0.0.1", port: int = 8765) -> None:
+async def run_sse(host: str = "127.0.0.1", port: int = 8001) -> None:
     """Ejecuta el servidor MCP sobre SSE (HTTP).
 
     Requiere `starlette` y `uvicorn` (ambos ya son deps transitivas de `mcp`).
@@ -184,7 +184,12 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "'sse' para hosts HTTP.",
     )
     parser.add_argument("--host", default="127.0.0.1", help="Host SSE (default 127.0.0.1).")
-    parser.add_argument("--port", type=int, default=8765, help="Puerto SSE (default 8765).")
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8001,
+        help="Puerto SSE (default 8001). Evita colision con app.py Flask en 8765.",
+    )
     parser.add_argument("--debug", action="store_true", help="Logging nivel DEBUG.")
     return parser.parse_args(argv)
 
