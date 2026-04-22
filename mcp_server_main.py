@@ -14,7 +14,7 @@ Uso rapido:
 
 Tambien instalable como entry-point `pgk-laboral-mcp` (ver pyproject.toml).
 
-Referencia legal: Orden ISM/31/2026 (BOE-A-2026-1921) + RDL 3/2026
+Referencia legal: Orden PJC/297/2026 (BOE-A-2026-7296) + RDL 3/2026
 (BOE-A-2026-2548). Las tasas salen siempre de `data/ss_config.json`, nunca
 del LLM ni del codigo Python.
 """
@@ -62,7 +62,7 @@ _RESOURCES: list[dict[str, str]] = [
     {
         "uri": "laboral://seguridad-social",
         "name": "Seguridad Social 2026",
-        "description": "Bases, tipos y topes SS segun Orden ISM/31/2026.",
+        "description": "Bases, tipos y topes SS segun Orden PJC/297/2026.",
         "mimeType": "application/json",
     },
 ]

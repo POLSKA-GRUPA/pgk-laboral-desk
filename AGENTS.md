@@ -208,7 +208,7 @@ pgk-laboral-desk/
 │  ── Datos ─────────────────────────────────────────────
 ├── data/
 │   ├── convenio_*.json             Convenios colectivos (BOE)
-│   ├── ss_config.json              Tasas SS 2026 (Orden ISM/31/2026)
+│   ├── ss_config.json              Tasas SS 2026 (Orden PJC/297/2026)
 │   ├── categorias_detalle.json
 │   └── knowledge_base/
 │       ├── contract_types.json         72 tipos SEPE codes, RDLs
@@ -260,8 +260,8 @@ database.py (SQLite, /data/laboral.db)
 
 ## Reglas críticas (leer antes de tocar código fiscal)
 
-1. **Tasas SS 2026** están en `data/ss_config.json` con referencia a Orden ISM/31/2026
-   (BOE‑A‑2026‑1921) y RDL 3/2026 (BOE‑A‑2026‑2548). Verificar anualmente con
+1. **Tasas SS 2026** están en `data/ss_config.json` con referencia a Orden PJC/297/2026
+   (BOE‑A‑2026‑7296) y RDL 3/2026 (BOE‑A‑2026‑2548). Verificar anualmente con
    `rates_verifier.py`. **No hardcodear tasas fuera de `ss_config.json`.**
 2. **Convenios** están en `data/convenio_*.json` y provienen del BOE. No inventar
    categorías ni importes; si el convenio real no los tiene, la respuesta debe ser

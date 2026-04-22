@@ -74,7 +74,7 @@ async def test_call_tool_calcular_nomina_returns_deterministic_numbers():
     assert payload["pagas_totales"] == 14
     assert payload["bruto_mensual"] == "2142.86"
     # Fuente legal explicita
-    assert "Orden ISM/31/2026" in payload["ref_legal"]
+    assert "Orden PJC/297/2026" in payload["ref_legal"]
 
 
 @pytest.mark.asyncio

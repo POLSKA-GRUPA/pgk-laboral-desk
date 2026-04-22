@@ -30,12 +30,12 @@ def test_ss_calculator_temporal():
 
 def test_ss_topes():
     ss = SSCalculator()
-    # Base below minimum should be capped up (2026: 1323€)
+    # Base below minimum should be capped up (2026: 1.424,50 €/mes — Orden PJC/297/2026)
     result_low = ss.calculate(base_mensual_bruta=500.0)
-    assert result_low.base_cotizacion >= 1323.0
-    # Base above maximum should be capped down
+    assert result_low.base_cotizacion >= 1424.50
+    # Base above maximum should be capped down (2026: 5.101,20 €/mes — Orden PJC/297/2026)
     result_high = ss.calculate(base_mensual_bruta=6000.0)
-    assert result_high.base_cotizacion <= 4720.50
+    assert result_high.base_cotizacion <= 5101.20
 
 
 def test_irpf_low_salary():

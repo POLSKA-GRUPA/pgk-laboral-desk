@@ -30,8 +30,8 @@ El LLM **nunca** produce números fiscales: sólo interpreta, orquesta y redacta
 - `data/convenio_*.json` — convenios colectivos estructurados (acuáticas,
   oficinas y despachos Alicante, …). Metadatos + tablas salariales + secciones
   articuladas.
-- `data/ss_config.json` — tasas de cotización 2026 (Orden ISM/31/2026 ·
-  BOE‑A‑2026‑1921, RDL 3/2026 · BOE‑A‑2026‑2548), topes max/min, grupos de
+- `data/ss_config.json` — tasas de cotización 2026 (Orden PJC/297/2026 ·
+  BOE‑A‑2026‑7296, RDL 3/2026 · BOE‑A‑2026‑2548), topes max/min, grupos de
   cotización, recargos para contratos ≤30 días, SMI anual, IPC.
 - `data/knowledge_base/` — base normativa para RAG:
   - `contract_types.json` — 72 tipos de contrato con códigos SEPE (45 XSD) y

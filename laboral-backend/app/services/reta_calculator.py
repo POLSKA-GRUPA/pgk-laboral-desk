@@ -2,7 +2,7 @@
 
 Sistema de cotización por ingresos reales (vigente desde 01/01/2023).
 15 tramos + tarifa plana + MEI.
-Referencias: LGSS DA 15ª | Orden ISM/31/2026 | Ley 12/2023"""
+Referencias: LGSS DA 15ª | Orden PJC/297/2026 | Ley 12/2023"""
 
 from decimal import ROUND_HALF_UP, Decimal
 
@@ -150,7 +150,7 @@ class RETACalculator:
     ) -> dict:
         """Compara cuotas autónomo vs asalariado equivalente.
 
-        Porcentajes 2026 (Orden ISM/31/2026):
+        Porcentajes 2026 (Orden PJC/297/2026):
         - Trabajador: 4.70% CC + 1.55% desempleo + 0.10% FP + 0.15% MEI = 6.50%
         - Empresa: 23.60% CC + 5.50% desempleo + 0.60% FP + 0.20% FOGASA + 0.75% MEI + 1.50% AT = 32.15%
         """
