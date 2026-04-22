@@ -648,7 +648,6 @@ CONTRACTS_REQUIRING_END_DATE: set[str] = {
     "441",
     "541",
     "452",
-    "521",
     "552",
     "970",
 }

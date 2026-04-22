@@ -129,8 +129,7 @@ MCP_TOOLS = [
     {
         "name": "laboral_estimar_irpf",
         "description": (
-            "Estimar retencion IRPF de un trabajador segun su situacion "
-            "personal y familiar."
+            "Estimar retencion IRPF de un trabajador segun su situacion personal y familiar."
         ),
         "inputSchema": {
             "type": "object",
@@ -247,8 +246,12 @@ def _calcular_nomina(arguments: dict[str, object]) -> dict[str, object]:
 
     # Aplicar topes de cotizacion — Orden ISM/31/2026 (BOE-A-2026-1921)
     _topes = _SS_CONFIG.get("topes", {})
-    base_min = Decimal(str(_topes.get("base_min_mensual", "1424.50") if isinstance(_topes, dict) else "1424.50"))
-    base_max = Decimal(str(_topes.get("base_max_mensual", "5101.20") if isinstance(_topes, dict) else "5101.20"))
+    base_min = Decimal(
+        str(_topes.get("base_min_mensual", "1424.50") if isinstance(_topes, dict) else "1424.50")
+    )
+    base_max = Decimal(
+        str(_topes.get("base_max_mensual", "5101.20") if isinstance(_topes, dict) else "5101.20")
+    )
     base_cotizacion = max(base_min, min(base_max, bruto_mensual))
 
     # Tasas trabajador desde ss_config.json — Orden ISM/31/2026 (BOE-A-2026-1921)
@@ -257,18 +260,10 @@ def _calcular_nomina(arguments: dict[str, object]) -> dict[str, object]:
     tasa_fp = _ss_rate("trabajador", "formacion_profesional", "0.10")
     tasa_mei = _ss_rate("trabajador", "mei", "0.15")
 
-    ss_trabajador = (base_cotizacion * tasa_cc).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
-    desempleo = (base_cotizacion * tasa_desempleo).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
-    formacion = (base_cotizacion * tasa_fp).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
-    mei = (base_cotizacion * tasa_mei).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
+    ss_trabajador = (base_cotizacion * tasa_cc).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    desempleo = (base_cotizacion * tasa_desempleo).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    formacion = (base_cotizacion * tasa_fp).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    mei = (base_cotizacion * tasa_mei).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     total_deducciones_ss = ss_trabajador + desempleo + formacion + mei
 
@@ -336,8 +331,12 @@ def _calcular_ss(arguments: dict[str, object]) -> dict[str, object]:
 
     # Aplicar topes de cotizacion — Orden ISM/31/2026 (BOE-A-2026-1921)
     _topes = _SS_CONFIG.get("topes", {})
-    base_min = Decimal(str(_topes.get("base_min_mensual", "1424.50") if isinstance(_topes, dict) else "1424.50"))
-    base_max = Decimal(str(_topes.get("base_max_mensual", "5101.20") if isinstance(_topes, dict) else "5101.20"))
+    base_min = Decimal(
+        str(_topes.get("base_min_mensual", "1424.50") if isinstance(_topes, dict) else "1424.50")
+    )
+    base_max = Decimal(
+        str(_topes.get("base_max_mensual", "5101.20") if isinstance(_topes, dict) else "5101.20")
+    )
     base = max(base_min, min(base_max, base_raw))
 
     # Tasas empresa desde ss_config.json — Orden ISM/31/2026 (BOE-A-2026-1921)
@@ -350,21 +349,11 @@ def _calcular_ss(arguments: dict[str, object]) -> dict[str, object]:
     tasa_fogasa = _ss_rate("empresa", "fogasa", "0.20")
     tasa_mei = _ss_rate("empresa", "mei", "0.75")
 
-    cc_empresa = (base * tasa_cc).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
-    desempleo_empresa = (base * tasa_desempleo).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
-    formacion_empresa = (base * tasa_fp).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
-    fogasa = (base * tasa_fogasa).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
-    mei_empresa = (base * tasa_mei).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
+    cc_empresa = (base * tasa_cc).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    desempleo_empresa = (base * tasa_desempleo).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    formacion_empresa = (base * tasa_fp).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    fogasa = (base * tasa_fogasa).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    mei_empresa = (base * tasa_mei).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     total_empresa = cc_empresa + desempleo_empresa + formacion_empresa + fogasa + mei_empresa
 

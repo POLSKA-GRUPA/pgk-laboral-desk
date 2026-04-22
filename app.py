@@ -89,6 +89,8 @@ def _get_agent(convenio_id: str | None = None):
         else:
             return None
     return _agent_cache.get(cid)
+
+
 client_mgr.init_tables()
 convenio_verifier = ConvenioVerifier()
 rates_verifier = RatesVerifier()
@@ -479,11 +481,13 @@ def api_agent_chat():
     session["agent_history"] = history
     session["agent_context"] = result["context"]
 
-    return jsonify({
-        "type": "agent_response",
-        "response": result["response"],
-        "tool_calls": result["tool_calls"],
-    })
+    return jsonify(
+        {
+            "type": "agent_response",
+            "response": result["response"],
+            "tool_calls": result["tool_calls"],
+        }
+    )
 
 
 @app.route("/api/agent/stream", methods=["POST"])
