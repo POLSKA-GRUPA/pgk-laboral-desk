@@ -21,38 +21,68 @@ from pathlib import Path
 logger = logging.getLogger("laboral.mcp")
 
 # ── Cargar tasas SS desde fuente de verdad (data/ss_config.json) ────
-# Ref: Orden ISM/31/2026 (BOE-A-2026-1921) + RDL 3/2026 (BOE-A-2026-2548)
+# Ref: Orden PJC/297/2026 (BOE-A-2026-7296) + RDL 3/2026 (BOE-A-2026-2548)
 
 _SS_CONFIG_PATH = Path(__file__).parent / "data" / "ss_config.json"
 
 
 def _load_ss_config() -> dict[str, object]:
-    """Carga tasas SS desde data/ss_config.json."""
+    """Carga tasas SS desde data/ss_config.json.
+
+    Fail-fast: si el JSON falta o esta corrupto lanzamos en import del
+    modulo. AGENTS.md regla 8 prohibe hardcodear numeros fiscales fuera de
+    `data/`; un servidor MCP con topes incorrectos es peor que uno que se
+    niega a arrancar (el host IA recibiria calculos erroneos como si
+    fueran oficiales). Claude/Cursor mostraran el error de import claro
+    en el log del MCP y el usuario sabra que ha pasado.
+    """
     try:
         with open(_SS_CONFIG_PATH, encoding="utf-8") as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError) as e:
-        logger.warning("No se pudo cargar ss_config.json: %s. Usando fallback.", e)
-        return {}
+        raise RuntimeError(
+            f"No se pudo cargar {_SS_CONFIG_PATH}: {e}. "
+            "El servidor MCP no puede arrancar sin tasas SS verificadas."
+        ) from e
 
 
 _SS_CONFIG = _load_ss_config()
 
 
-def _ss_rate(section: str, key: str, fallback: str) -> Decimal:
-    """Obtiene una tasa SS del config como Decimal.
+def _require_section(section: str) -> dict[str, object]:
+    raw = _SS_CONFIG.get(section)
+    if not isinstance(raw, dict):
+        raise RuntimeError(
+            f"ss_config.json: seccion '{section}' ausente o invalida. "
+            "Revisa data/ss_config.json contra la Orden de cotizacion vigente."
+        )
+    return raw
 
-    Args:
-        section: 'trabajador' o 'empresa'
-        key: nombre de la tasa (ej: 'contingencias_comunes')
-        fallback: valor por defecto como string (ej: '4.70')
+
+def _ss_rate(section: str, key: str) -> Decimal:
+    """Obtiene una tasa SS del config como Decimal (en tanto por uno).
+
+    Fail-fast si la clave no existe: preferimos no calcular a calcular mal.
     """
-    raw = _SS_CONFIG.get(section, {})
-    if isinstance(raw, dict):
-        val = raw.get(key, fallback)
-    else:
-        val = fallback
-    return Decimal(str(val)) / Decimal("100")
+    sec = _require_section(section)
+    if key not in sec:
+        raise RuntimeError(
+            f"ss_config.json: falta '{section}.{key}'. "
+            "Revisa data/ss_config.json contra la Orden de cotizacion vigente."
+        )
+    return Decimal(str(sec[key])) / Decimal("100")
+
+
+def _ss_topes() -> tuple[Decimal, Decimal]:
+    """Devuelve (base_min, base_max) mensuales en Decimal."""
+    topes = _require_section("topes")
+    missing = [k for k in ("base_min_mensual", "base_max_mensual") if k not in topes]
+    if missing:
+        raise RuntimeError(
+            f"ss_config.json: faltan topes {missing}. "
+            "Revisa data/ss_config.json contra la Orden de cotizacion vigente."
+        )
+    return Decimal(str(topes["base_min_mensual"])), Decimal(str(topes["base_max_mensual"]))
 
 
 # ── MCP Tool Schemas ──────────────────────────────────────────────
@@ -234,7 +264,7 @@ async def _call_tool(name: str, arguments: dict[str, object]) -> dict[str, objec
 def _calcular_nomina(arguments: dict[str, object]) -> dict[str, object]:
     """Calcular desglose de nomina.
 
-    Tasas: Orden ISM/31/2026 (BOE-A-2026-1921)
+    Tasas: Orden PJC/297/2026 (BOE-A-2026-7296)
     """
     bruto_anual = Decimal(str(arguments["salario_bruto_anual"]))
     pagas_raw = arguments.get("pagas_extra")
@@ -244,21 +274,15 @@ def _calcular_nomina(arguments: dict[str, object]) -> dict[str, object]:
         Decimal("0.01"), rounding=ROUND_HALF_UP
     )
 
-    # Aplicar topes de cotizacion — Orden ISM/31/2026 (BOE-A-2026-1921)
-    _topes = _SS_CONFIG.get("topes", {})
-    base_min = Decimal(
-        str(_topes.get("base_min_mensual", "1424.50") if isinstance(_topes, dict) else "1424.50")
-    )
-    base_max = Decimal(
-        str(_topes.get("base_max_mensual", "5101.20") if isinstance(_topes, dict) else "5101.20")
-    )
+    # Aplicar topes de cotizacion — Orden PJC/297/2026 (BOE-A-2026-7296)
+    base_min, base_max = _ss_topes()
     base_cotizacion = max(base_min, min(base_max, bruto_mensual))
 
-    # Tasas trabajador desde ss_config.json — Orden ISM/31/2026 (BOE-A-2026-1921)
-    tasa_cc = _ss_rate("trabajador", "contingencias_comunes", "4.70")
-    tasa_desempleo = _ss_rate("trabajador", "desempleo_indefinido", "1.55")
-    tasa_fp = _ss_rate("trabajador", "formacion_profesional", "0.10")
-    tasa_mei = _ss_rate("trabajador", "mei", "0.15")
+    # Tasas trabajador desde ss_config.json — Orden PJC/297/2026 (BOE-A-2026-7296)
+    tasa_cc = _ss_rate("trabajador", "contingencias_comunes")
+    tasa_desempleo = _ss_rate("trabajador", "desempleo_indefinido")
+    tasa_fp = _ss_rate("trabajador", "formacion_profesional")
+    tasa_mei = _ss_rate("trabajador", "mei")
 
     ss_trabajador = (base_cotizacion * tasa_cc).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     desempleo = (base_cotizacion * tasa_desempleo).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
@@ -278,7 +302,7 @@ def _calcular_nomina(arguments: dict[str, object]) -> dict[str, object]:
             "mei": str(mei),
             "total_ss": str(total_deducciones_ss),
         },
-        "ref_legal": "Orden ISM/31/2026 (BOE-A-2026-1921)",
+        "ref_legal": "Orden PJC/297/2026 (BOE-A-2026-7296)",
         "nota": (
             "Conectar con irpf_estimator.py para calculo exacto de retencion IRPF. "
             "Conectar con ss_calculator.py para bases y tipos actualizados."
@@ -324,30 +348,24 @@ def _consultar_convenio(arguments: dict[str, object]) -> dict[str, object]:
 def _calcular_ss(arguments: dict[str, object]) -> dict[str, object]:
     """Calcular cuotas Seguridad Social.
 
-    Tasas empresa: Orden ISM/31/2026 (BOE-A-2026-1921)
+    Tasas empresa: Orden PJC/297/2026 (BOE-A-2026-7296)
     """
     base_raw = Decimal(str(arguments["base_cotizacion"]))
     tipo_contrato = str(arguments.get("tipo_contrato", "indefinido") or "indefinido")
 
-    # Aplicar topes de cotizacion — Orden ISM/31/2026 (BOE-A-2026-1921)
-    _topes = _SS_CONFIG.get("topes", {})
-    base_min = Decimal(
-        str(_topes.get("base_min_mensual", "1424.50") if isinstance(_topes, dict) else "1424.50")
-    )
-    base_max = Decimal(
-        str(_topes.get("base_max_mensual", "5101.20") if isinstance(_topes, dict) else "5101.20")
-    )
+    # Aplicar topes de cotizacion — Orden PJC/297/2026 (BOE-A-2026-7296)
+    base_min, base_max = _ss_topes()
     base = max(base_min, min(base_max, base_raw))
 
-    # Tasas empresa desde ss_config.json — Orden ISM/31/2026 (BOE-A-2026-1921)
-    tasa_cc = _ss_rate("empresa", "contingencias_comunes", "23.60")
+    # Tasas empresa desde ss_config.json — Orden PJC/297/2026 (BOE-A-2026-7296)
+    tasa_cc = _ss_rate("empresa", "contingencias_comunes")
     if tipo_contrato in ("indefinido", "practicas", "formacion"):
-        tasa_desempleo = _ss_rate("empresa", "desempleo_indefinido", "5.50")
+        tasa_desempleo = _ss_rate("empresa", "desempleo_indefinido")
     else:
-        tasa_desempleo = _ss_rate("empresa", "desempleo_temporal", "6.70")
-    tasa_fp = _ss_rate("empresa", "formacion_profesional", "0.60")
-    tasa_fogasa = _ss_rate("empresa", "fogasa", "0.20")
-    tasa_mei = _ss_rate("empresa", "mei", "0.75")
+        tasa_desempleo = _ss_rate("empresa", "desempleo_temporal")
+    tasa_fp = _ss_rate("empresa", "formacion_profesional")
+    tasa_fogasa = _ss_rate("empresa", "fogasa")
+    tasa_mei = _ss_rate("empresa", "mei")
 
     cc_empresa = (base * tasa_cc).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     desempleo_empresa = (base * tasa_desempleo).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
@@ -370,7 +388,7 @@ def _calcular_ss(arguments: dict[str, object]) -> dict[str, object]:
             "mei": str(mei_empresa),
             "total": str(total_empresa),
         },
-        "ref_legal": "Orden ISM/31/2026 (BOE-A-2026-1921)",
+        "ref_legal": "Orden PJC/297/2026 (BOE-A-2026-7296)",
         "nota": "Tasas SS 2026 cargadas desde data/ss_config.json.",
     }
 

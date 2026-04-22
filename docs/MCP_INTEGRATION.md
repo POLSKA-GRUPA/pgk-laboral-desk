@@ -11,7 +11,7 @@ El servidor expone:
 |-------------------------------|-------------------------------------------------------------------|
 | `laboral_calcular_nomina`     | Bruto mensual, deducciones SS, referencia legal                  |
 | `laboral_consultar_convenio`  | Tablas salariales de convenio colectivo cargado                  |
-| `laboral_calcular_ss`         | Cuotas empresa con topes aplicados (Orden ISM/31/2026)            |
+| `laboral_calcular_ss`         | Cuotas empresa con topes aplicados (Orden PJC/297/2026)            |
 | `laboral_estimar_irpf`        | Estimacion de retencion IRPF por situacion familiar                |
 
 Y los siguientes recursos (`resources/list`):
@@ -22,7 +22,7 @@ Y los siguientes recursos (`resources/list`):
 
 > **Principio:** el LLM razona y orquesta; el motor calcula. Ningun numero
 > fiscal sale del LLM. Todas las tasas se leen de `data/ss_config.json`,
-> trazable a BOE‑A‑2026‑1921 y BOE‑A‑2026‑2548.
+> trazable a BOE‑A‑2026‑7296 y BOE‑A‑2026‑2548.
 
 ---
 
@@ -168,7 +168,7 @@ engine.py · ss_calculator.py · irpf_estimator.py
         │
         ▼
 data/ss_config.json · data/convenio_*.json
-(Orden ISM/31/2026 · BOE-A-2026-1921)
+(Orden PJC/297/2026 · BOE-A-2026-7296)
 ```
 
 El fichero `mcp_server.py` se mantiene intacto: solo define `MCP_TOOLS` y

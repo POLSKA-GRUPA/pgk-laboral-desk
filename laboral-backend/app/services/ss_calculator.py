@@ -1,7 +1,7 @@
 """Cálculo de cotizaciones a la Seguridad Social — tasas 2026.
 
 Fuentes:
-- Orden ISM/31/2026 (BOE-A-2026-1921) — bases cotización 2026
+- Orden PJC/297/2026 (BOE-A-2026-7296) — bases cotización 2026
 - RDL 3/2026 (BOE-A-2026-2548) — MEI 2026: 0,90% total (0,75% empresa + 0,15% trabajador)
 - Art. 119 LGSS y DA 4ª Ley 42/2006 (AT/EP)
 - DA 7ª ET — recargo contratos ≤30 días
@@ -20,7 +20,7 @@ _DEFAULT_CONFIG_PATH = (
     Path(__file__).resolve().parent.parent.parent.parent / "data" / "ss_config.json"
 )
 
-# Topes de cotización 2026 (Régimen General) — Orden ISM/31/2026 (BOE-A-2026-1921)
+# Topes de cotización 2026 (Régimen General) — Orden PJC/297/2026 (BOE-A-2026-7296)
 BASE_MIN_MENSUAL = 1424.50  # Base mínima 2026 (= SMI 1.221€ × 14/12)
 BASE_MAX_MENSUAL = 5101.20
 
