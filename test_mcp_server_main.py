@@ -129,15 +129,22 @@ def test_sse_endpoint_bypasses_starlette_request_response_wrapper():
     from mcp.server.sse import SseServerTransport
     from starlette.routing import Route
 
-    from mcp_server_main import _SSEEndpoint, _initialization_options, build_server
+    from mcp_server_main import _initialization_options, _SSEEndpoint, build_server
 
     server = build_server()
     endpoint = _SSEEndpoint(
         SseServerTransport("/messages/"), server, _initialization_options(server)
     )
-    route = Route("/sse", endpoint=endpoint)
+    route = Route("/sse", endpoint=endpoint, methods=["GET"])
     assert route.app is endpoint, (
         "Starlette wrapped the endpoint; it will send a duplicate response"
+    )
+    # Regression guard for BUG D: class endpoints give `methods=None` by default,
+    # which silently routes POST/DELETE/... to the SSE handler. Explicit ["GET"]
+    # makes Starlette return a proper 405 for non-GET.
+    assert route.methods == {"GET", "HEAD"}, (
+        f"Route must whitelist GET/HEAD; got {route.methods!r}. "
+        "Without this, POST /sse reaches _SSEEndpoint and crashes connect_sse."
     )
 
 

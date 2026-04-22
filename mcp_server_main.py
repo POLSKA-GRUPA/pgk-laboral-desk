@@ -179,7 +179,15 @@ async def run_sse(host: str = "127.0.0.1", port: int = 8001) -> None:
     app = Starlette(
         debug=False,
         routes=[
-            Route("/sse", endpoint=_SSEEndpoint(sse, server, init_options)),
+            # methods=["GET"] explicit: Starlette only auto-sets {"GET","HEAD"}
+            # when the endpoint is a function; for an ASGI class instance it
+            # leaves methods=None, which would silently route POST/DELETE/... to
+            # our SSE handler and crash inside connect_sse.
+            Route(
+                "/sse",
+                endpoint=_SSEEndpoint(sse, server, init_options),
+                methods=["GET"],
+            ),
             Mount("/messages/", app=sse.handle_post_message),
         ],
     )
