@@ -27,57 +27,62 @@ _SS_CONFIG_PATH = Path(__file__).parent / "data" / "ss_config.json"
 
 
 def _load_ss_config() -> dict[str, object]:
-    """Carga tasas SS desde data/ss_config.json."""
+    """Carga tasas SS desde data/ss_config.json.
+
+    Fail-fast: si el JSON falta o esta corrupto lanzamos en import del
+    modulo. AGENTS.md regla 8 prohibe hardcodear numeros fiscales fuera de
+    `data/`; un servidor MCP con topes incorrectos es peor que uno que se
+    niega a arrancar (el host IA recibiria calculos erroneos como si
+    fueran oficiales). Claude/Cursor mostraran el error de import claro
+    en el log del MCP y el usuario sabra que ha pasado.
+    """
     try:
         with open(_SS_CONFIG_PATH, encoding="utf-8") as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError) as e:
-        logger.warning("No se pudo cargar ss_config.json: %s. Usando fallback.", e)
-        return {}
+        raise RuntimeError(
+            f"No se pudo cargar {_SS_CONFIG_PATH}: {e}. "
+            "El servidor MCP no puede arrancar sin tasas SS verificadas."
+        ) from e
 
 
 _SS_CONFIG = _load_ss_config()
 
 
-def _ss_rate(section: str, key: str, fallback: str) -> Decimal:
-    """Obtiene una tasa SS del config como Decimal.
+def _require_section(section: str) -> dict[str, object]:
+    raw = _SS_CONFIG.get(section)
+    if not isinstance(raw, dict):
+        raise RuntimeError(
+            f"ss_config.json: seccion '{section}' ausente o invalida. "
+            "Revisa data/ss_config.json contra la Orden de cotizacion vigente."
+        )
+    return raw
 
-    Args:
-        section: 'trabajador' o 'empresa'
-        key: nombre de la tasa (ej: 'contingencias_comunes')
-        fallback: valor por defecto como string (ej: '4.70')
+
+def _ss_rate(section: str, key: str) -> Decimal:
+    """Obtiene una tasa SS del config como Decimal (en tanto por uno).
+
+    Fail-fast si la clave no existe: preferimos no calcular a calcular mal.
     """
-    raw = _SS_CONFIG.get(section, {})
-    if isinstance(raw, dict):
-        val = raw.get(key, fallback)
-    else:
-        val = fallback
-    return Decimal(str(val)) / Decimal("100")
-
-
-# Topes de cotizacion: fallbacks centralizados en un unico sitio.
-#
-# Fuente de verdad: `data/ss_config.json` (Orden PJC/297/2026 · BOE-A-2026-7296).
-# Estos fallbacks solo se usan si el JSON esta corrupto o ausente al arranque —
-# preferimos devolver una respuesta MCP usable (con aviso en logs) a que el
-# servidor crashee y deje sin servicio a Claude/Cursor.
-#
-# REVISAR ANUALMENTE junto con `data/ss_config.json` cuando cambie la Orden de
-# cotizacion (RDL o PJC). Ver rates_verifier.py.
-_FALLBACK_TOPES = {
-    "base_min_mensual": "1424.50",  # SMI 2026 × 14/12
-    "base_max_mensual": "5101.20",  # Orden PJC/297/2026
-}
+    sec = _require_section(section)
+    if key not in sec:
+        raise RuntimeError(
+            f"ss_config.json: falta '{section}.{key}'. "
+            "Revisa data/ss_config.json contra la Orden de cotizacion vigente."
+        )
+    return Decimal(str(sec[key])) / Decimal("100")
 
 
 def _ss_topes() -> tuple[Decimal, Decimal]:
     """Devuelve (base_min, base_max) mensuales en Decimal."""
-    topes = _SS_CONFIG.get("topes", {})
-    if not isinstance(topes, dict):
-        topes = {}
-    base_min = Decimal(str(topes.get("base_min_mensual", _FALLBACK_TOPES["base_min_mensual"])))
-    base_max = Decimal(str(topes.get("base_max_mensual", _FALLBACK_TOPES["base_max_mensual"])))
-    return base_min, base_max
+    topes = _require_section("topes")
+    missing = [k for k in ("base_min_mensual", "base_max_mensual") if k not in topes]
+    if missing:
+        raise RuntimeError(
+            f"ss_config.json: faltan topes {missing}. "
+            "Revisa data/ss_config.json contra la Orden de cotizacion vigente."
+        )
+    return Decimal(str(topes["base_min_mensual"])), Decimal(str(topes["base_max_mensual"]))
 
 
 # ── MCP Tool Schemas ──────────────────────────────────────────────
@@ -274,10 +279,10 @@ def _calcular_nomina(arguments: dict[str, object]) -> dict[str, object]:
     base_cotizacion = max(base_min, min(base_max, bruto_mensual))
 
     # Tasas trabajador desde ss_config.json — Orden PJC/297/2026 (BOE-A-2026-7296)
-    tasa_cc = _ss_rate("trabajador", "contingencias_comunes", "4.70")
-    tasa_desempleo = _ss_rate("trabajador", "desempleo_indefinido", "1.55")
-    tasa_fp = _ss_rate("trabajador", "formacion_profesional", "0.10")
-    tasa_mei = _ss_rate("trabajador", "mei", "0.15")
+    tasa_cc = _ss_rate("trabajador", "contingencias_comunes")
+    tasa_desempleo = _ss_rate("trabajador", "desempleo_indefinido")
+    tasa_fp = _ss_rate("trabajador", "formacion_profesional")
+    tasa_mei = _ss_rate("trabajador", "mei")
 
     ss_trabajador = (base_cotizacion * tasa_cc).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     desempleo = (base_cotizacion * tasa_desempleo).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
@@ -353,14 +358,14 @@ def _calcular_ss(arguments: dict[str, object]) -> dict[str, object]:
     base = max(base_min, min(base_max, base_raw))
 
     # Tasas empresa desde ss_config.json — Orden PJC/297/2026 (BOE-A-2026-7296)
-    tasa_cc = _ss_rate("empresa", "contingencias_comunes", "23.60")
+    tasa_cc = _ss_rate("empresa", "contingencias_comunes")
     if tipo_contrato in ("indefinido", "practicas", "formacion"):
-        tasa_desempleo = _ss_rate("empresa", "desempleo_indefinido", "5.50")
+        tasa_desempleo = _ss_rate("empresa", "desempleo_indefinido")
     else:
-        tasa_desempleo = _ss_rate("empresa", "desempleo_temporal", "6.70")
-    tasa_fp = _ss_rate("empresa", "formacion_profesional", "0.60")
-    tasa_fogasa = _ss_rate("empresa", "fogasa", "0.20")
-    tasa_mei = _ss_rate("empresa", "mei", "0.75")
+        tasa_desempleo = _ss_rate("empresa", "desempleo_temporal")
+    tasa_fp = _ss_rate("empresa", "formacion_profesional")
+    tasa_fogasa = _ss_rate("empresa", "fogasa")
+    tasa_mei = _ss_rate("empresa", "mei")
 
     cc_empresa = (base * tasa_cc).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     desempleo_empresa = (base * tasa_desempleo).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
