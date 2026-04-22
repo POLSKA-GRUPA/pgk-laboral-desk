@@ -1,5 +1,6 @@
 """Tests para PGK Laboral Desk — motor, SS e IRPF."""
 
+import json
 import sys
 from pathlib import Path
 
@@ -9,6 +10,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from engine import LaboralEngine
 from irpf_estimator import IRPFEstimator
 from ss_calculator import SSCalculator
+
+# AGENTS.md regla 8: ningun numero fiscal en codigo fuera de data/.
+# Cargamos los topes desde el mismo ss_config.json que usa el motor para
+# que los asserts sigan cualquier actualizacion anual de la Orden.
+_SS_CONFIG = json.loads(
+    (Path(__file__).resolve().parent / "data" / "ss_config.json").read_text(encoding="utf-8")
+)
+_BASE_MIN_MENSUAL = float(_SS_CONFIG["topes"]["base_min_mensual"])
+_BASE_MAX_MENSUAL = float(_SS_CONFIG["topes"]["base_max_mensual"])
 
 
 def test_ss_calculator_indefinido():
@@ -30,12 +40,13 @@ def test_ss_calculator_temporal():
 
 def test_ss_topes():
     ss = SSCalculator()
-    # Base below minimum should be capped up (2026: 1.424,50 €/mes — Orden PJC/297/2026)
+    # Topes leidos de data/ss_config.json (Orden PJC/297/2026 · BOE-A-2026-7296).
+    # No hardcodear 1424.50 / 5101.20 aqui — violaria AGENTS.md regla 8 y el
+    # test driftaria cada vez que cambie la Orden de cotizacion.
     result_low = ss.calculate(base_mensual_bruta=500.0)
-    assert result_low.base_cotizacion >= 1424.50
-    # Base above maximum should be capped down (2026: 5.101,20 €/mes — Orden PJC/297/2026)
+    assert result_low.base_cotizacion >= _BASE_MIN_MENSUAL
     result_high = ss.calculate(base_mensual_bruta=6000.0)
-    assert result_high.base_cotizacion <= 5101.20
+    assert result_high.base_cotizacion <= _BASE_MAX_MENSUAL
 
 
 def test_irpf_low_salary():
