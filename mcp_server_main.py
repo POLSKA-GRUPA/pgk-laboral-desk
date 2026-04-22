@@ -134,6 +134,35 @@ async def run_stdio() -> None:
         await server.run(read_stream, write_stream, _initialization_options(server))
 
 
+class _SSEEndpoint:
+    """ASGI endpoint para el handshake SSE del servidor MCP.
+
+    Se implementa como *callable-class* (no funcion) a proposito: Starlette
+    envuelve los `Route(endpoint=<funcion>)` con `request_response()`, que al
+    terminar el handler llama `await response(scope, receive, send)` sobre el
+    `Response()` devuelto. Pero `SseServerTransport.connect_sse` **ya** envia
+    un `http.response.start` + body por el `send` ASGI crudo dentro del
+    `async with`. Devolver un `Response()` provoca un segundo
+    `http.response.start` y `RuntimeError` en uvicorn en cada desconexion SSE.
+
+    Al pasar una instancia de clase (no funcion), `starlette.routing.Route`
+    entra en la rama ASGI (`self.app = endpoint`) y no re-envuelve con
+    `request_response`, evitando el envio duplicado.
+    """
+
+    def __init__(self, sse: Any, server: Server, init_options: InitializationOptions) -> None:
+        self._sse = sse
+        self._server = server
+        self._init_options = init_options
+
+    async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        async with self._sse.connect_sse(scope, receive, send) as (
+            read_stream,
+            write_stream,
+        ):
+            await self._server.run(read_stream, write_stream, self._init_options)
+
+
 async def run_sse(host: str = "127.0.0.1", port: int = 8001) -> None:
     """Ejecuta el servidor MCP sobre SSE (HTTP).
 
@@ -141,25 +170,16 @@ async def run_sse(host: str = "127.0.0.1", port: int = 8001) -> None:
     """
     from mcp.server.sse import SseServerTransport
     from starlette.applications import Starlette
-    from starlette.responses import Response
     from starlette.routing import Mount, Route
 
     server = build_server()
     init_options = _initialization_options(server)
     sse = SseServerTransport("/messages/")
 
-    async def handle_sse(request):  # type: ignore[no-untyped-def]
-        async with sse.connect_sse(request.scope, request.receive, request._send) as (
-            read_stream,
-            write_stream,
-        ):
-            await server.run(read_stream, write_stream, init_options)
-        return Response()
-
     app = Starlette(
         debug=False,
         routes=[
-            Route("/sse", endpoint=handle_sse),
+            Route("/sse", endpoint=_SSEEndpoint(sse, server, init_options)),
             Mount("/messages/", app=sse.handle_post_message),
         ],
     )

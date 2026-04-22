@@ -115,6 +115,32 @@ async def test_call_tool_unknown_tool_raises_value_error():
     assert any("laboral_tool_que_no_existe" in c.text for c in result.root.content)
 
 
+def test_sse_endpoint_bypasses_starlette_request_response_wrapper():
+    """Regression test: `Route(endpoint=_SSEEndpoint(...))` must NOT be wrapped
+    by Starlette's `request_response()`.
+
+    If Starlette wraps us, it will `await response(scope, receive, send)` after
+    our handler returns, producing a duplicate `http.response.start` because
+    `SseServerTransport.connect_sse` already sent the SSE response on the raw
+    ASGI `send`. Making the endpoint a callable class (not a function) keeps
+    Starlette in the ASGI branch (`self.app = endpoint`) and avoids the double
+    send.
+    """
+    from mcp.server.sse import SseServerTransport
+    from starlette.routing import Route
+
+    from mcp_server_main import _SSEEndpoint, _initialization_options, build_server
+
+    server = build_server()
+    endpoint = _SSEEndpoint(
+        SseServerTransport("/messages/"), server, _initialization_options(server)
+    )
+    route = Route("/sse", endpoint=endpoint)
+    assert route.app is endpoint, (
+        "Starlette wrapped the endpoint; it will send a duplicate response"
+    )
+
+
 @pytest.mark.asyncio
 async def test_call_tool_missing_required_argument_returns_error():
     """No pasa `salario_bruto_anual` → el tool debe devolver error, no crashear."""
