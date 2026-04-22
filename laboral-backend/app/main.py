@@ -80,6 +80,7 @@ async def laboral_error_handler(request: Request, exc: LaboralBaseError):
 
 from app.routes import (
     alerts,
+    audit,
     auth,
     chat,
     consultations,
@@ -92,7 +93,6 @@ from app.routes import (
     reference,
     sepe,
     simulation,
-    audit,
 )
 
 app.include_router(health.router, prefix="/api")

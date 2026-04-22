@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_current_user
 from app.database import get_db
 from app.models.user import User
-from app.services.audit_schemas import AuditReport
 from app.services.nomina_audit_engine import NominaAuditEngine
 from app.services.nomina_audit_parser import parse_month_folder, parse_nomina
 

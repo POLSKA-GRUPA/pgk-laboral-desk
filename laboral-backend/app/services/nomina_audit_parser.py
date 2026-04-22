@@ -26,7 +26,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
 
@@ -704,7 +703,7 @@ def parse_month_folder(folder: str | Path) -> list[ParsedNomina]:
     seen_names: set[str] = set()
 
     for fname in sorted(folder.iterdir()):
-        if not fname.suffix.upper() == ".PDF":
+        if fname.suffix.upper() != ".PDF":
             continue
 
         parsed = parse_nomina(fname)

@@ -22,9 +22,7 @@ Fuentes legales:
 
 from __future__ import annotations
 
-import math
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 from app.services.audit_schemas import (
@@ -415,9 +413,8 @@ class NominaAuditEngine:
         completa, el coeficiente es base / base_mínima (aproximación conservadora).
         Si la base ≥ base mínima, se asume jornada completa (1.0).
         """
-        if base := nom.base_cotizacion_ss:
-            if base < BASE_MIN_2026 - _TOLERANCE:
-                return min(base / BASE_MIN_2026, 1.0)
+        if (base := nom.base_cotizacion_ss) and base < BASE_MIN_2026 - _TOLERANCE:
+            return min(base / BASE_MIN_2026, 1.0)
         return 1.0
 
     # ── D3: IRPF razonabilidad ──
@@ -426,23 +423,26 @@ class NominaAuditEngine:
         findings: list[AuditFinding] = []
         dim = "D3_irpf"
 
-        if nom.irpf_base > 0 and nom.total_devengado > 0:
-            if abs(nom.irpf_base - nom.total_devengado) > _TOLERANCE:
-                findings.append(
-                    self._make_finding(
-                        code="D3-001",
-                        dimension=dim,
-                        severity="medium",
-                        confidence=70,
-                        title="Base IRPF != Total devengado",
-                        description=f"Base IRPF: {nom.irpf_base:.2f}. Total devengado: {nom.total_devengado:.2f}. Deberían coincidir en nóminas estándar.",
-                        nom=nom,
-                        periodo=periodo,
-                        expected=nom.total_devengado,
-                        actual=nom.irpf_base,
-                        reference="Art.80 RIRPF — base de retención",
-                    )
+        if (
+            nom.irpf_base > 0
+            and nom.total_devengado > 0
+            and abs(nom.irpf_base - nom.total_devengado) > _TOLERANCE
+        ):
+            findings.append(
+                self._make_finding(
+                    code="D3-001",
+                    dimension=dim,
+                    severity="medium",
+                    confidence=70,
+                    title="Base IRPF != Total devengado",
+                    description=f"Base IRPF: {nom.irpf_base:.2f}. Total devengado: {nom.total_devengado:.2f}. Deberían coincidir en nóminas estándar.",
+                    nom=nom,
+                    periodo=periodo,
+                    expected=nom.total_devengado,
+                    actual=nom.irpf_base,
+                    reference="Art.80 RIRPF — base de retención",
                 )
+            )
 
         if nom.irpf_base > 0 and nom.irpf_pct > 0:
             irpf_calc = round(nom.irpf_base * nom.irpf_pct / 100, 2)
@@ -513,7 +513,7 @@ class NominaAuditEngine:
                         dimension=dim,
                         severity="critical",
                         confidence=95,
-                        title=f"Salario base inferior al mínimo convenio",
+                        title="Salario base inferior al mínimo convenio",
                         description=f"Salario base: {salario_base:.2f} EUR. Mínimo convenio para '{nom.grupo_profesional}': {salario_minimo:.2f} EUR. Déficit: {gap:.2f} EUR/mes.",
                         nom=nom,
                         periodo=periodo,

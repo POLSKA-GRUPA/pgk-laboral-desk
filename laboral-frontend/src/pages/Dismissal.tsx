@@ -74,7 +74,7 @@ export default function Dismissal() {
               <Descriptions.Item label="Indemnizacion">{Number(result.indemnizacion_eur).toFixed(2)} EUR</Descriptions.Item>
               <Descriptions.Item label="Total (indemnizacion + finiquito)">{Number(result.total_eur).toFixed(2)} EUR</Descriptions.Item>
             </Descriptions>
-            {result.indemnizacion_calculo && (
+            {Boolean(result.indemnizacion_calculo) && (
               <p style={{ marginTop: 8, color: '#888', fontSize: 12 }}>{result.indemnizacion_calculo as string}</p>
             )}
           </Card>

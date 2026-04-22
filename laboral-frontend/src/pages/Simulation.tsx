@@ -73,14 +73,14 @@ export default function Simulation() {
       {result && (
         <Card title="Resultado">
           <Descriptions column={2} bordered size="small">
-            <Descriptions.Item label="Categoria">{result.categoria}</Descriptions.Item>
+            <Descriptions.Item label="Categoria">{result.categoria as string}</Descriptions.Item>
             <Descriptions.Item label="Salario bruto mensual">{Number(result.salario_bruto_mensual).toFixed(2)} EUR</Descriptions.Item>
             <Descriptions.Item label="Coste empresa/mes">{Number(result.coste_total_empresa_mes_eur).toFixed(2)} EUR</Descriptions.Item>
             <Descriptions.Item label="Coste empresa/ano">{Number(result.coste_total_empresa_anual_eur).toFixed(2)} EUR</Descriptions.Item>
             <Descriptions.Item label="Neto trabajador/mes">{Number(result.neto_trabajador_mes_eur).toFixed(2)} EUR</Descriptions.Item>
           </Descriptions>
           <Divider />
-          {result.desglose_ss && typeof result.desglose_ss === 'object' && (
+          {!!result.desglose_ss && typeof result.desglose_ss === 'object' && (
             <>
               <Descriptions title="Desglose Seguridad Social" column={2} bordered size="small" style={{ marginBottom: 16 }}>
                 {Object.entries(result.desglose_ss as Record<string, unknown>)
@@ -100,7 +100,7 @@ export default function Simulation() {
                 ))}
             </>
           )}
-          {result.desglose_irpf && typeof result.desglose_irpf === 'object' && (
+          {!!result.desglose_irpf && typeof result.desglose_irpf === 'object' && (
             <Descriptions title="Desglose IRPF" column={2} bordered size="small">
               {Object.entries(result.desglose_irpf as Record<string, unknown>).map(([k, v]) => (
                 <Descriptions.Item key={k} label={k}>{typeof v === 'number' ? `${v.toFixed(2)} EUR` : String(v)}</Descriptions.Item>
