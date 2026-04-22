@@ -97,16 +97,18 @@ determinista (`chat_parser.py`). Nunca se cae.
 
 El repositorio está **a medio migrar**. Ambos backends existen en `main`:
 
-### Backend v2 — Flask (activo en producción)
+### Backend v2 — Flask (activo en capa IA, **NO en producción**)
 - Entry point: `app.py` (raíz)
 - Servicios: módulos planos en raíz (`engine.py`, `chat_parser.py`, `ss_calculator.py`,
   `irpf_estimator.py`, `nomina_pdf.py`, `client_manager.py`, `database.py`, etc.)
-- **Expone la capa IA** en `/api/agent/status`, `/api/agent/chat`, `/api/agent/stream`
+- **Único backend que expone la capa IA hoy** en `/api/agent/status`,
+  `/api/agent/chat`, `/api/agent/stream`. Útil en desarrollo para probar agente.
 - Lo arranca `python app.py --debug` (dev) o `gunicorn app:app` (prod, pendiente)
+- **El Dockerfile NO lo empaqueta.** No corre en producción.
 - Tests: `test_engine.py`, `test_chat_parser.py`, `test_client_manager.py`,
   `test_boe_importer.py`
 
-### Backend v3 — FastAPI (en `laboral-backend/`, **incompleto** en capa IA)
+### Backend v3 — FastAPI (en `laboral-backend/`, **el que corre en producción**, incompleto en capa IA)
 - Entry point: `laboral-backend/app/main.py`
 - Estructura modular: `routes/`, `models/`, `schemas/`, `services/`, `core/`
 - **Lo que monta el Dockerfile y lo que corre en producción** (`uvicorn app.main:app`)
