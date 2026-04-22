@@ -54,7 +54,7 @@ class ConvenioVGRAGBackend:
         self._vgrag_cls: Any = None
 
         try:
-            from vector_graph_rag import VectorGraphRAG  # noqa: F401
+            from vector_graph_rag import VectorGraphRAG
 
             self._vgrag_cls = VectorGraphRAG
             self._available = True
@@ -81,9 +81,7 @@ class ConvenioVGRAGBackend:
             from vector_graph_rag.config import Settings as VGRAGSettings
 
             zai_key = os.getenv("ZAI_API_KEY", "")
-            zai_base = os.getenv(
-                "ZAI_BASE_URL_OPENAI", "https://api.z.ai/api/paas/v4/"
-            )
+            zai_base = os.getenv("ZAI_BASE_URL_OPENAI", "https://api.z.ai/api/paas/v4/")
             llm_model = os.getenv("VGRAG_LLM_MODEL", "glm-4.5")
             embedding_model = os.getenv(
                 "VGRAG_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"
