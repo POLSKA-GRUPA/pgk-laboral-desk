@@ -36,7 +36,10 @@ from app.services.laboral_agent import LaboralAgent
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 
-_HISTORY_MAX = 20  # pares user/assistant conservados en `history_json`
+# Paridad con Flask v2 (`app.py:488 -> history[-20:]`): se guardan las ultimas
+# 20 entradas, es decir 10 turnos user/assistant. Si lo subes aqui, cambia la
+# experiencia conversacional del agente respecto a la version legacy.
+_HISTORY_MAX_ENTRIES = 20
 _DEFAULT_CONVENIO = "convenio_acuaticas_2025_2027"
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 _DATA_DIR = _REPO_ROOT / "data"
@@ -100,8 +103,8 @@ def _save_session(
     history: list[dict[str, str]],
     context: dict[str, Any],
 ) -> None:
-    if len(history) > _HISTORY_MAX * 2:
-        history = history[-_HISTORY_MAX * 2 :]
+    if len(history) > _HISTORY_MAX_ENTRIES:
+        history = history[-_HISTORY_MAX_ENTRIES:]
     row.history_json = json.dumps(history, ensure_ascii=False)
     row.context_json = json.dumps(context, ensure_ascii=False, default=str)
 
@@ -149,6 +152,11 @@ def agent_chat(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if not data.message:
+        # Paridad con Flask v2 (`app.py:465`): `400 {"error": "Escribe algo"}`.
+        # Pydantic acepta la cadena ya stripada (vacio si todo era whitespace);
+        # aqui la convertimos a HTTPException(400) en vez de dejar el 422.
+        raise HTTPException(status_code=400, detail="Escribe algo")
     convenio = _resolve_convenio(data.convenio_id, current_user)
     agent = _get_agent(convenio)
     if agent is None:
@@ -220,6 +228,8 @@ def agent_stream(
     mismo motivo que la version Flask: solo sabemos el texto final al
     consumir el ultimo evento (`done`).
     """
+    if not data.message:
+        raise HTTPException(status_code=400, detail="Escribe algo")
     convenio = _resolve_convenio(data.convenio_id, current_user)
     agent = _get_agent(convenio)
     if agent is None:
@@ -242,13 +252,17 @@ def agent_stream(
     error: str | None = None
     try:
         for event in agent.stream_chat(data.message, history=history, context=context):
-            events.append(event)
-            etype = event.get("type", "token")
+            etype = str(event.get("type", "token"))
+            content = str(event.get("content", ""))
+            # Paridad con Flask v2 (`app.py:527-530`): solo exponemos
+            # `type`+`content` al cliente. `context` y otros campos internos
+            # quedan en el servidor para no inflar el payload SSE.
+            events.append({"type": etype, "content": content})
             if etype == "token":
-                full_response += str(event.get("content", ""))
+                full_response += content
             elif etype == "done":
-                if event.get("content"):
-                    full_response = str(event["content"])
+                if content:
+                    full_response = content
                 final_ctx = dict(event.get("context", final_ctx))
     except Exception as exc:
         error = repr(exc)

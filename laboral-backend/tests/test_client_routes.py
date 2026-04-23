@@ -20,7 +20,9 @@ def isolated_client_mgr(monkeypatch, tmp_path: Path):
     db_path = tmp_path / "clients_test.db"
     mgr = ClientManager(db_path=db_path)
     mgr.init_tables()
-    monkeypatch.setattr(client_routes, "_client_mgr", mgr)
+    # _get_client_mgr esta cacheada con lru_cache; reemplazamos la funcion
+    # entera (no el atributo) para que los tests obtengan la instancia aislada.
+    monkeypatch.setattr(client_routes, "_get_client_mgr", lambda: mgr)
     return mgr
 
 
@@ -121,3 +123,30 @@ def test_requires_auth(client):
     assert client.post(
         "/api/clients", json={"empresa": "x", "cif": "B12345678", "convenio_id": "y"}
     ).status_code in (401, 403)
+
+
+def test_alpha6_import_has_no_disk_side_effect():
+    """alpha-6: importar `routes.client` NO debe crear ClientManager al import
+    time. Antes del fix el modulo hacia `_client_mgr = ClientManager()` +
+    `_client_mgr.init_tables()` top-level — esto creaba `db/pgk_laboral.db`
+    como efecto colateral de `import`, contaminando CI y entornos de tests.
+
+    Tras el fix:
+      - no existe atributo `_client_mgr` top-level;
+      - `_get_client_mgr` es lru_cached → no se ejecuta al importar el modulo.
+    """
+    import importlib
+    import sys
+
+    # Recargar el modulo simula una importacion fresca en un proceso limpio.
+    if "app.routes.client" in sys.modules:
+        del sys.modules["app.routes.client"]
+    module = importlib.import_module("app.routes.client")
+
+    assert not hasattr(module, "_client_mgr"), (
+        "alpha-6 regresionado: `_client_mgr` volvio a ser global con init eager"
+    )
+    assert hasattr(module, "_get_client_mgr"), "falta helper lazy _get_client_mgr"
+    assert module._get_client_mgr.cache_info().currsize == 0, (
+        "alpha-6 regresionado: el ClientManager se instancio al importar, no on-demand"
+    )

@@ -159,3 +159,103 @@ def test_stream_persists_run_and_session(client, auth_headers):
         assert len(sessions) == 1
     finally:
         db.close()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Regression tests — bugs alpha-1..alpha-5 encontrados en el 2º repaso sobre PR #16.
+# Cada test falla si alguien revierte el fix correspondiente.
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def test_alpha1_whitespace_only_message_rejected_with_400(client, auth_headers):
+    """alpha-1: `"   "` NO debe pasar validación — paridad con Flask v2."""
+    resp = client.post("/api/agent/chat", headers=auth_headers, json={"message": "   "})
+    assert resp.status_code == 400
+    assert "Escribe algo" in resp.json()["detail"]
+
+
+def test_alpha1_empty_message_rejected_with_400(client, auth_headers):
+    """alpha-1/alpha-5: mensaje vacío explícito también retorna 400 (no 422)."""
+    resp = client.post("/api/agent/chat", headers=auth_headers, json={"message": ""})
+    assert resp.status_code == 400
+
+
+def test_alpha1_stream_whitespace_only_message_rejected_with_400(client, auth_headers):
+    """alpha-1 para /stream: mismo rechazo."""
+    resp = client.post("/api/agent/stream", headers=auth_headers, json={"message": "   "})
+    assert resp.status_code == 400
+
+
+def test_alpha2_message_stripped_before_persistence(client, auth_headers):
+    """alpha-2: el mensaje se guarda sin whitespace extremo en audit trail."""
+    from app.models.agent_run import AgentRun
+    from tests.conftest import TestSessionLocal
+
+    client.post(
+        "/api/agent/chat",
+        headers=auth_headers,
+        json={"message": "  hola mundo  "},
+    )
+    db = TestSessionLocal()
+    try:
+        run = db.query(AgentRun).order_by(AgentRun.id.desc()).first()
+        assert run is not None
+        assert run.message == "hola mundo", (
+            f"esperaba 'hola mundo' sin espacios, vi {run.message!r}"
+        )
+    finally:
+        db.close()
+
+
+def test_alpha3_stream_events_contain_only_type_and_content(client, auth_headers):
+    """alpha-3: eventos SSE NO exponen `context` ni otros campos internos."""
+    resp = client.post("/api/agent/stream", headers=auth_headers, json={"message": "stream ctx"})
+    assert resp.status_code == 200
+    # Cada linea `data: {...}` debe decodificar a un dict con exactamente
+    # 2 claves: type y content. Si un dia alguien re-filtra `event` entero
+    # y vuelve a emitir `context`, este test falla.
+    import json as _json
+
+    for line in resp.text.splitlines():
+        if not line.startswith("data: "):
+            continue
+        payload = _json.loads(line.removeprefix("data: "))
+        # El ultimo evento "session" es un `event: session\ndata: {"session_id":...}`;
+        # lo saltamos — su line se detecta porque el frame previo es `event: session`.
+        if "session_id" in payload and set(payload.keys()) == {"session_id"}:
+            continue
+        assert set(payload.keys()) == {"type", "content"}, f"evento con campos extra: {payload}"
+
+
+def test_alpha4_history_caps_at_20_entries_like_flask(client, auth_headers):
+    """alpha-4: el historial almacenado NO excede 20 entradas (paridad v2)."""
+    import json as _json
+
+    from app.models.chat_session import ChatSession
+    from tests.conftest import TestSessionLocal
+
+    sid = None
+    for i in range(15):
+        body = {"message": f"turno {i}"}
+        if sid:
+            body["session_id"] = sid
+        r = client.post("/api/agent/chat", headers=auth_headers, json=body)
+        sid = r.json()["session_id"]
+
+    db = TestSessionLocal()
+    try:
+        row = db.query(ChatSession).filter(ChatSession.session_id == sid).first()
+        history = _json.loads(row.history_json)
+        # 15 turnos = 30 entradas → debe capar a 20 (no 40 como antes del fix).
+        assert len(history) == 20, (
+            f"historial deberia capar a 20 entradas (paridad Flask), vi {len(history)}"
+        )
+    finally:
+        db.close()
+
+
+def test_alpha5_missing_message_field_still_returns_422(client, auth_headers):
+    """alpha-5 complementario: un body sin `message` sigue siendo 422 de Pydantic
+    (convención FastAPI). Solo convertimos a 400 la cadena vacía/whitespace."""
+    resp = client.post("/api/agent/chat", headers=auth_headers, json={})
+    assert resp.status_code == 422

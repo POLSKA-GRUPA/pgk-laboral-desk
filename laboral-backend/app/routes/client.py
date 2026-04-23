@@ -8,6 +8,8 @@ hacerse despues sin romper API.
 
 from __future__ import annotations
 
+from functools import lru_cache
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import status as http_status
 
@@ -24,8 +26,19 @@ from app.services.engine import LaboralEngine
 
 router = APIRouter(prefix="/clients", tags=["clients"])
 
-_client_mgr = ClientManager()
-_client_mgr.init_tables()
+
+@lru_cache(maxsize=1)
+def _get_client_mgr() -> ClientManager:
+    """ClientManager singleton con init-on-first-use.
+
+    Importar este modulo NO debe tener efectos colaterales en disco
+    (el constructor crea `db/pgk_laboral.db` al llamar `init_tables`).
+    Esto evita que tests, CI runners o herramientas de introspeccion
+    instancien sqlite en ubicaciones arbitrarias al leer rutas.
+    """
+    mgr = ClientManager()
+    mgr.init_tables()
+    return mgr
 
 
 def _client_to_schema(client) -> ClientResponse:
@@ -43,7 +56,7 @@ def _client_to_schema(client) -> ClientResponse:
 
 @router.get("", response_model=list[ClientResponse])
 def list_clients(_admin: User = Depends(require_admin)):
-    return [ClientResponse(**c) for c in _client_mgr.list_clients()]
+    return [ClientResponse(**c) for c in _get_client_mgr().list_clients()]
 
 
 @router.post("", response_model=ClientResponse, status_code=201)
@@ -51,8 +64,9 @@ def register_client(
     data: ClientRegisterRequest,
     _admin: User = Depends(require_admin),
 ):
+    mgr = _get_client_mgr()
     try:
-        client_id = _client_mgr.register_client(
+        client_id = mgr.register_client(
             empresa=data.empresa,
             cif=data.cif,
             convenio_id=data.convenio_id,
@@ -62,7 +76,7 @@ def register_client(
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    client = _client_mgr.get_client(client_id)
+    client = mgr.get_client(client_id)
     if client is None:  # pragma: no cover — defensivo, register_client acaba de crearlo
         raise HTTPException(status_code=500, detail="Cliente no encontrado tras registro")
     return _client_to_schema(client)
@@ -76,7 +90,7 @@ def simulate_for_client(
 ):
     """Simula una nomina usando el convenio del cliente concreto."""
     del current_user  # sólo autentica, la politica de acceso por rol se hara en PR futuro
-    client = _client_mgr.get_client(client_id)
+    client = _get_client_mgr().get_client(client_id)
     if not client:
         raise HTTPException(
             status_code=http_status.HTTP_404_NOT_FOUND, detail="Cliente no encontrado"
