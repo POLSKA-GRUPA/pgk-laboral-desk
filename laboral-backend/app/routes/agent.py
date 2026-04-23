@@ -83,12 +83,35 @@ def _resolve_convenio(requested: str | None, user: User) -> str:
 def _load_session(
     db: Session, session_id: str, user_id: int
 ) -> tuple[ChatSession, list[dict[str, str]], dict[str, Any]]:
+    """Carga o crea la sesion del agente para este usuario.
+
+    Seguridad: filtramos por `user_id` para evitar que un usuario autenticado
+    lea/escriba sesiones de otro adivinando el UUID. La tabla tiene unique
+    `(session_id, kind)` a nivel esquema, asi que si el `session_id`
+    solicitado existe pero pertenece a otro usuario devolvemos 403 en vez
+    de crear una fila en conflicto (IntegrityError) o, peor, sobreescribir
+    la del owner legitimo.
+    """
     row = (
         db.query(ChatSession)
-        .filter(ChatSession.session_id == session_id, ChatSession.kind == "agent")
+        .filter(
+            ChatSession.session_id == session_id,
+            ChatSession.kind == "agent",
+            ChatSession.user_id == user_id,
+        )
         .first()
     )
     if row is None:
+        foreign = (
+            db.query(ChatSession)
+            .filter(ChatSession.session_id == session_id, ChatSession.kind == "agent")
+            .first()
+        )
+        if foreign is not None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="session_id pertenece a otro usuario",
+            )
         row = ChatSession(session_id=session_id, kind="agent", user_id=user_id)
         db.add(row)
         db.flush()

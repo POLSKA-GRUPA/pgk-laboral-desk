@@ -259,3 +259,128 @@ def test_alpha5_missing_message_field_still_returns_422(client, auth_headers):
     (convención FastAPI). Solo convertimos a 400 la cadena vacía/whitespace."""
     resp = client.post("/api/agent/chat", headers=auth_headers, json={})
     assert resp.status_code == 422
+
+
+def test_gamma1_cannot_access_another_users_session(client, auth_headers):
+    """gamma-1 (Devin Review PR #16 2nd wave): session_id de otro usuario
+    debe devolver 403, no dejar leer/escribir el historial ajeno.
+
+    Montaje:
+      - user A (`pgk`, creado en conftest) abre una sesion y envia un mensaje.
+      - creamos user B (`mallory`) y obtenemos su token.
+      - B hace POST /api/agent/chat con el session_id de A.
+
+    Pre-fix: B recibia 200 y escribia en el historial de A (se lo podia leer
+    en la siguiente respuesta del agente). Tras fix: 403 y NO toca la fila
+    de A.
+    """
+    import os
+
+    from app.core.security import get_password_hash
+    from app.models.chat_session import ChatSession
+    from app.models.user import User
+    from tests.conftest import TestSessionLocal
+
+    # Misma credencial que el admin de conftest (via DEFAULT_ADMIN_PASSWORD).
+    # Evitamos literales tipo "fooPASSword" que GitGuardian marca como generic
+    # password y bloquea el CI — aqui solo queremos dos usuarios distintos, no
+    # dos contrasenas distintas.
+    shared_pwd = os.environ["DEFAULT_ADMIN_PASSWORD"]
+
+    # A crea una sesion real
+    r1 = client.post(
+        "/api/agent/chat",
+        headers=auth_headers,
+        json={"message": "mi consulta privada"},
+    )
+    assert r1.status_code == 200
+    victim_sid = r1.json()["session_id"]
+
+    # B se registra directamente en DB + obtiene token
+    db = TestSessionLocal()
+    try:
+        if not db.query(User).filter(User.username == "mallory").first():
+            db.add(
+                User(
+                    username="mallory",
+                    hashed_password=get_password_hash(shared_pwd),
+                    full_name="Mallory",
+                    empresa_nombre="Mallory Inc",
+                    role="user",
+                    is_active=True,
+                )
+            )
+            db.commit()
+    finally:
+        db.close()
+
+    tok = client.post(
+        "/api/auth/login", json={"username": "mallory", "password": shared_pwd}
+    ).json()["access_token"]
+    mallory_headers = {"Authorization": f"Bearer {tok}"}
+
+    # B intenta leer/escribir en la sesion de A
+    r2 = client.post(
+        "/api/agent/chat",
+        headers=mallory_headers,
+        json={"message": "secuestrada", "session_id": victim_sid},
+    )
+    assert r2.status_code == 403, (
+        f"regresión gamma-1: user B accedió a session_id de A (status={r2.status_code})"
+    )
+
+    # Y la sesion de A no se tocó: el historial sigue siendo el original.
+    db = TestSessionLocal()
+    try:
+        row = (
+            db.query(ChatSession)
+            .filter(ChatSession.session_id == victim_sid, ChatSession.kind == "agent")
+            .first()
+        )
+        assert row is not None
+        assert "secuestrada" not in (row.history_json or ""), (
+            "regresión gamma-1: B consiguió escribir en la sesión de A"
+        )
+    finally:
+        db.close()
+
+
+def test_gamma1_stream_endpoint_also_rejects_foreign_session(client, auth_headers):
+    """gamma-1 para /stream: mismo rechazo 403."""
+    import os
+
+    from app.core.security import get_password_hash
+    from app.models.user import User
+    from tests.conftest import TestSessionLocal
+
+    shared_pwd = os.environ["DEFAULT_ADMIN_PASSWORD"]
+
+    r1 = client.post("/api/agent/chat", headers=auth_headers, json={"message": "otro turno"})
+    victim_sid = r1.json()["session_id"]
+
+    db = TestSessionLocal()
+    try:
+        if not db.query(User).filter(User.username == "eve").first():
+            db.add(
+                User(
+                    username="eve",
+                    hashed_password=get_password_hash(shared_pwd),
+                    full_name="Eve",
+                    empresa_nombre="Eve Inc",
+                    role="user",
+                    is_active=True,
+                )
+            )
+            db.commit()
+    finally:
+        db.close()
+
+    tok = client.post("/api/auth/login", json={"username": "eve", "password": shared_pwd}).json()[
+        "access_token"
+    ]
+    r2 = client.post(
+        "/api/agent/stream",
+        headers={"Authorization": f"Bearer {tok}"},
+        json={"message": "scan", "session_id": victim_sid},
+    )
+    assert r2.status_code == 403
