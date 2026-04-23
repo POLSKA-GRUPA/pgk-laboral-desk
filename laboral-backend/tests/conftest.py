@@ -14,7 +14,9 @@ from sqlalchemy.orm import sessionmaker
 from app.database import Base, get_db
 from app.main import app
 from app.models import (  # noqa: F401
+    agent_run,
     alert,
+    chat_session,
     company,
     consultation,
     contract,
@@ -48,6 +50,9 @@ app.dependency_overrides[get_db] = override_get_db
 def setup_db():
     from app.core.security import get_password_hash
     from app.models.user import User
+    from app.routes.auth import _login_attempts
+
+    _login_attempts.clear()
 
     Base.metadata.create_all(bind=test_engine)
     db = TestSessionLocal()

@@ -62,6 +62,17 @@ def me(current_user: User = Depends(get_current_user)):
     return UserResponse.model_validate(current_user)
 
 
+@router.post("/logout")
+def logout(current_user: User = Depends(get_current_user)):
+    """Logout.
+
+    Con JWT stateless el logout real lo hace el cliente descartando el token;
+    este endpoint existe para paridad con la API v2 y para poder evolucionar
+    a blacklist (redis/tabla de tokens revocados) sin romper el frontend.
+    """
+    return {"ok": True}
+
+
 @router.put("/me", response_model=UserResponse)
 def update_me(
     data: UserUpdate,

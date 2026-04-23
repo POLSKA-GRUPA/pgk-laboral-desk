@@ -43,7 +43,9 @@ def get_db():
 def init_db():
     """Create all tables and seed default data."""
     from app.models import (  # noqa: F401
+        agent_run,
         alert,
+        chat_session,
         company,
         consultation,
         contract,
