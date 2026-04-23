@@ -38,7 +38,13 @@ def verify_rates(
         )
     result = _rates_verifier.verify_all(force=force)
     payload = result.to_dict()
-    return VerifyResponse(ok=bool(payload.get("ok", True)), details=payload)
+    # `FullVerificationResult.to_dict()` (rates_verifier.py:135-147) no expone
+    # una clave "ok" — el campo real es `overall_status` con valores
+    # "ok"|"warning"|"error"|"unavailable". El bug previo hacia
+    # `payload.get("ok", True)` y devolvia siempre True incluso con
+    # `overall_status=="unavailable"`. Cliente veia el verify en verde cuando
+    # realmente no habia podido verificar nada.
+    return VerifyResponse(ok=payload.get("overall_status") == "ok", details=payload)
 
 
 @router.post("/verify-convenio", response_model=VerifyResponse)
@@ -60,4 +66,7 @@ def verify_convenio(
         vigencia_hasta=data.vigencia_hasta,
     )
     payload = result.to_dict()
-    return VerifyResponse(ok=bool(payload.get("ok", True)), details=payload)
+    # `VerificationResult.to_dict()` (convenio_verifier.py:39-45) expone
+    # `status` con valores "verified"|"outdated"|"uncertain"|"unavailable".
+    # Solo "verified" significa OK — los otros tres son estados negativos.
+    return VerifyResponse(ok=payload.get("status") == "verified", details=payload)
