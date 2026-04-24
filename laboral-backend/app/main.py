@@ -79,10 +79,12 @@ async def laboral_error_handler(request: Request, exc: LaboralBaseError):
 
 
 from app.routes import (
+    agent,
     alerts,
     audit,
     auth,
     chat,
+    client,
     consultations,
     convenios,
     dismissal,
@@ -93,6 +95,7 @@ from app.routes import (
     reference,
     sepe,
     simulation,
+    verify,
 )
 
 app.include_router(health.router, prefix="/api")
@@ -109,3 +112,6 @@ app.include_router(reference.router, prefix="/api")
 app.include_router(employee_dismissal.router)
 app.include_router(sepe.router, prefix="/api")
 app.include_router(audit.router, prefix="/api")
+app.include_router(agent.router, prefix="/api")
+app.include_router(client.router, prefix="/api")
+app.include_router(verify.router, prefix="/api")
