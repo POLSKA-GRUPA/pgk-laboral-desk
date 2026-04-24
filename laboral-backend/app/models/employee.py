@@ -37,4 +37,14 @@ class Employee(Base):
     pais_residencia: Mapped[str] = mapped_column(String(3), default="724")
     notas: Mapped[str] = mapped_column(String(500), default="")
     status: Mapped[str] = mapped_column(String(20), default="activo")
+
+    # Campos fijo discontinuo (RDL 32/2021). El código SEPE (300/330/350)
+    # convive con `contrato_tipo` por compatibilidad con el resto del v3.
+    codigo_contrato_sepe: Mapped[str] = mapped_column(String(3), default="")
+    fecha_llamamiento: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    fecha_cese_temporada: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    temporada: Mapped[str] = mapped_column(String(50), default="")
+    estado_llamamiento: Mapped[str] = mapped_column(String(20), default="")
+    dias_trabajados_temporada: Mapped[int] = mapped_column(Integer, default=0)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
