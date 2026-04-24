@@ -55,6 +55,32 @@ def test_template_download(client, auth_headers):
         assert col in first_line
 
 
+def test_template_sample_row_passes_validation(client, auth_headers):
+    """La fila de ejemplo de la plantilla debe pasar dry-run sin errores
+    para que el operador pueda usarla como base directa."""
+    tmpl = client.get("/api/employees/bulk-import/template", headers=auth_headers).text
+    resp = client.post(
+        "/api/employees/bulk-import?dry_run=true",
+        headers=auth_headers,
+        files={"file": ("plantilla.csv", tmpl.encode("utf-8"), "text/csv")},
+    )
+    body = resp.json()
+    assert body["invalid_rows"] == 0, body["errors"]
+    assert body["valid_rows"] == 1
+
+
+def test_jornada_cero_es_error(client, auth_headers):
+    """jornada_horas=0 debe ser error, no reemplazo silencioso por 40."""
+    data = _csv_bytes([_valid_row(jornada_horas="0")])
+    resp = client.post(
+        "/api/employees/bulk-import?dry_run=true",
+        headers=auth_headers,
+        files={"file": ("x.csv", data, "text/csv")},
+    )
+    body = resp.json()
+    assert any(e["field"] == "jornada_horas" for e in body["errors"])
+
+
 def test_template_requires_auth(client):
     resp = client.get("/api/employees/bulk-import/template")
     assert resp.status_code == 401

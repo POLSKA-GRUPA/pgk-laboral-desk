@@ -89,8 +89,11 @@ def download_template(
 ) -> Response:
     """Devuelve la plantilla CSV vacía (sólo cabecera)."""
     header = ",".join(TEMPLATE_COLUMNS) + "\n"
+    # NAF 281234567840 = 2812345678 + control 40 (= 2812345678 % 97). DNI 12345678Z
+    # y NAF ambos válidos para el checkdigit, el operador puede probar la subida
+    # directamente con esta fila sin que el validador rechace el ejemplo.
     sample = (
-        "Juan Pérez,12345678Z,281234567890,Peón agrícola,fijo-discontinuo,300,"
+        "Juan Pérez,12345678Z,281234567840,Peón agrícola,fijo-discontinuo,300,"
         "40,2026-05-01,,1200,0,generica,,,,1,1990-03-15,724,28079,724,"
         "Temporada-2026-V-Campaña-fresa,\n"
     )
@@ -198,9 +201,10 @@ def _validate_row(
             err(field, v, "no es entero")
             return default
 
-    jornada = to_float("jornada_horas", 40.0) or 40.0
-    if not (1.0 <= jornada <= 40.0):
+    jornada = to_float("jornada_horas", 40.0)
+    if jornada is None or not (1.0 <= jornada <= 40.0):
         err("jornada_horas", jornada, "debe estar entre 1 y 40")
+        jornada = 40.0
 
     salario = to_float("salario_bruto_mensual", None)
     if salario is not None and not (0 < salario <= 100000):
