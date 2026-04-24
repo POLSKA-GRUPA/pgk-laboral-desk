@@ -90,6 +90,7 @@ from app.routes import (
     dismissal,
     employee_dismissal,
     employees,
+    employees_bulk,
     health,
     payroll,
     reference,
@@ -100,6 +101,7 @@ from app.routes import (
 
 app.include_router(health.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
+app.include_router(employees_bulk.router, prefix="/api")
 app.include_router(employees.router, prefix="/api")
 app.include_router(simulation.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")

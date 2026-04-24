@@ -14,3 +14,4 @@ data/knowledge_base/extraccion_completa.md
 *.db
 *.db-shm
 *.db-wal
+*.egg-info/

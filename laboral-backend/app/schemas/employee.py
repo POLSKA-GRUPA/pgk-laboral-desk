@@ -63,4 +63,58 @@ class EmployeeResponse(BaseModel):
     telefono: str
     notas: str
     status: str
+    codigo_contrato_sepe: str = ""
+    fecha_llamamiento: str | None = None
+    fecha_cese_temporada: str | None = None
+    temporada: str = ""
+    estado_llamamiento: str = ""
+    dias_trabajados_temporada: int = 0
     created_at: datetime | None = None
+
+
+class BulkImportRow(BaseModel):
+    """Una fila de la plantilla CSV de alta masiva.
+
+    Campos mínimos obligatorios: nombre, categoría, fecha_inicio. NIF y NAF
+    opcionales pero si vienen se validan con dígito de control.
+    """
+
+    nombre: str
+    nif: str = ""
+    naf: str = ""
+    categoria: str
+    contrato_tipo: str = "indefinido"
+    codigo_contrato_sepe: str = ""
+    jornada_horas: float = 40.0
+    fecha_inicio: str
+    fecha_fin: str | None = None
+    salario_bruto_mensual: float | None = None
+    num_hijos: int = 0
+    region: str = "generica"
+    domicilio: str = ""
+    email: str = ""
+    telefono: str = ""
+    sexo: str = "1"
+    fecha_nacimiento: str = ""
+    nacionalidad: str = "724"
+    municipio_residencia: str = ""
+    pais_residencia: str = "724"
+    temporada: str = ""
+    notas: str = ""
+
+
+class BulkImportError(BaseModel):
+    row: int
+    field: str
+    value: str
+    message: str
+
+
+class BulkImportResult(BaseModel):
+    total_rows: int
+    valid_rows: int
+    invalid_rows: int
+    dry_run: bool
+    created: int
+    errors: list[BulkImportError]
+    created_ids: list[int] = Field(default_factory=list)
