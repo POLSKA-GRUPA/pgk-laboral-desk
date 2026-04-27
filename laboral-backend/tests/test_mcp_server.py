@@ -56,6 +56,25 @@ def test_beta3_no_hardcoded_topes_in_calcular_nomina():
         )
 
 
+def test_zeta1_no_stale_legal_citation_in_mcp_package():
+    """zeta-1 (3rd review PR #16): ni `server.py` ni `server_main.py` deben
+    referenciar la Orden ISM/31/2026 (pescadores, BOE-A-2026-1921). La cita
+    correcta para el Regimen General 2026 es Orden PJC/297/2026
+    (BOE-A-2026-7296). Un host IA leyendo la `description` del resource
+    `laboral://seguridad-social` veria la ley erronea.
+    """
+    from pathlib import Path
+
+    mcp_dir = Path(server.__file__).parent
+    for name in ("server.py", "server_main.py"):
+        src = (mcp_dir / name).read_text(encoding="utf-8")
+        for forbidden in ("ISM/31/2026", "BOE-A-2026-1921"):
+            assert forbidden not in src, (
+                f"regresión zeta-1: {name} sigue citando '{forbidden}'. "
+                f"Usa Orden PJC/297/2026 (BOE-A-2026-7296)."
+            )
+
+
 def test_beta3_no_hardcoded_rates_in_calcular_ss():
     """Mismo check sobre _calcular_ss (tasas empresa)."""
     src = inspect.getsource(server._calcular_ss)
