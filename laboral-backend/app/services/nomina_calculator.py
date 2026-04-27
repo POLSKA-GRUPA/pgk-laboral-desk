@@ -146,7 +146,7 @@ class NominaCalculator:
         if self.ss:
             base = Decimal(str(self.ss._apply_topes(float(base), grupo_ss)))
         else:
-            # Topes genéricos 2026 — Orden ISM/31/2026
+            # Topes genéricos 2026 — Orden PJC/297/2026
             base = max(Decimal("1424.50"), min(base, Decimal("5101.20")))
         return base
 

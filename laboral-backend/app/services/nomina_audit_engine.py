@@ -14,7 +14,7 @@ Dimensiones de auditoría:
 - D7: Embargos y retenciones (LEC art.607)
 
 Fuentes legales:
-- Orden ISM/31/2026 (BOE-A-2026-1921) — bases y topes cotización 2026
+- Orden PJC/297/2026 (BOE-A-2026-7296) — bases y topes cotización 2026
 - RDL 3/2026 — MEI 2026: 0,90% total
 - Art.607 LEC — límites embargo salarios
 - Convenio colectivo aplicable (por categoría)
@@ -34,7 +34,7 @@ from app.services.nomina_audit_parser import ParsedNomina
 
 _TOLERANCE = 0.02
 
-# Tasas SS trabajador 2026 — Orden ISM/31/2026 + RDL 3/2026
+# Tasas SS trabajador 2026 — Orden PJC/297/2026 + RDL 3/2026
 SS_TRAB_EXPECTED = {
     "cc": 4.70,
     "desempleo": 1.55,
@@ -51,7 +51,7 @@ SS_EMP_EXPECTED = {
     "fogasa": 0.20,
 }
 
-# Topes cotización 2026 — Orden ISM/31/2026
+# Topes cotización 2026 — Orden PJC/297/2026
 BASE_MIN_2026 = 1424.50
 BASE_MAX_2026 = 5101.20
 
@@ -314,7 +314,7 @@ class NominaAuditEngine:
                         periodo=periodo,
                         expected=expected_rate,
                         actual=d.tipo_pct,
-                        reference="Orden ISM/31/2026 (BOE-A-2026-1921)",
+                        reference="Orden PJC/297/2026 (BOE-A-2026-7296)",
                     )
                 )
 
@@ -333,7 +333,7 @@ class NominaAuditEngine:
                         periodo=periodo,
                         expected=expected_rate,
                         actual=a.tipo_pct,
-                        reference="Orden ISM/31/2026 + Art.119 LGSS (AT/EP por CNAE)",
+                        reference="Orden PJC/297/2026 + Art.119 LGSS (AT/EP por CNAE)",
                     )
                 )
 
@@ -363,7 +363,7 @@ class NominaAuditEngine:
                             periodo=periodo,
                             expected=base_min_proporcional,
                             actual=base,
-                            reference="Art.147.2 LGSS + Orden ISM/31/2026 — base mínima proporcional jornada parcial",
+                            reference="Art.147.2 LGSS + Orden PJC/297/2026 — base mínima proporcional jornada parcial",
                             fix="Verificar coeficiente de parcialidad y bases de cotización",
                         )
                     )
@@ -380,7 +380,7 @@ class NominaAuditEngine:
                             periodo=periodo,
                             expected=BASE_MIN_2026,
                             actual=base,
-                            reference="Orden ISM/31/2026 — base mínima mensual",
+                            reference="Orden PJC/297/2026 — base mínima mensual",
                         )
                     )
             if base > BASE_MAX_2026 + _TOLERANCE:
@@ -396,7 +396,7 @@ class NominaAuditEngine:
                         periodo=periodo,
                         expected=BASE_MAX_2026,
                         actual=base,
-                        reference="Orden ISM/31/2026 — base máxima mensual",
+                        reference="Orden PJC/297/2026 — base máxima mensual",
                     )
                 )
 

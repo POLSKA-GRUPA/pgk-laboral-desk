@@ -54,7 +54,7 @@ HOSTS IA  ─────────────►  MCP (stdio/SSE)
   │  nomina_pdf · client_manager · database       │
   │                                               │
   │  data/convenio_*.json      (BOE)              │
-  │  data/ss_config.json       (Orden ISM/31/2026)│
+  │  data/ss_config.json       (Orden PJC/297/2026)│
   │  data/knowledge_base/*.json                   │
   └───────────────────────────────────────────────┘
 
@@ -227,7 +227,7 @@ Content-Type: application/json
 ## Datos y trazabilidad
 
 - **Convenios** — `data/convenio_*.json`, derivados del BOE.
-- **Tasas SS 2026** — `data/ss_config.json` (Orden ISM/31/2026 · BOE‑A‑2026‑1921
+- **Tasas SS 2026** — `data/ss_config.json` (Orden PJC/297/2026 · BOE‑A‑2026‑7296
   y RDL 3/2026 · BOE‑A‑2026‑2548), verificadas con `rates_verifier.py` +
   Perplexity.
 - **Knowledge base** — `data/knowledge_base/contract_types.json` (72 tipos de

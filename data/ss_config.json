@@ -1,5 +1,5 @@
 {
-  "_fuente": "Orden ISM/31/2026 (BOE-A-2026-1921) + RDL 3/2026 (BOE-A-2026-2548) — verificado vía Perplexity 2026-03-22",
+  "_fuente": "Orden PJC/297/2026 (BOE-A-2026-7296) + RDL 3/2026 (BOE-A-2026-2548) — verificado vía Perplexity 2026-03-22",
   "_nota": "Porcentajes sobre base de cotización. AT/EP depende del CNAE.",
   "_ultima_verificacion": "2026-03-22",
   "empresa": {
@@ -22,7 +22,7 @@
   "topes": {
     "base_min_mensual": 1424.50,
     "base_max_mensual": 5101.20,
-    "_nota": "Orden ISM/31/2026 (BOE-A-2026-1921). Base mínima: 1.424,50€ (= SMI 2026 × 14/12). Base máxima: 5.101,20€."
+    "_nota": "Orden PJC/297/2026 (BOE-A-2026-7296). Base mínima: 1.424,50€ (= SMI 2026 × 14/12). Base máxima: 5.101,20€."
   },
   "recargo_contratos_cortos": {
     "dias_limite": 30,
@@ -30,7 +30,7 @@
     "_nota": "Recargo fijo adicional para contratos de duración ≤30 días (DA 7ª ET). Pendiente actualizar con nueva Orden."
   },
   "grupos_cotizacion": {
-    "_nota": "11 grupos oficiales SS. Bases mínimas por grupo actualizadas a Orden ISM/31/2026.",
+    "_nota": "11 grupos oficiales SS. Bases mínimas por grupo actualizadas a Orden PJC/297/2026.",
     "1": {"nombre": "Ingenieros y Licenciados", "base_min": 2064.60, "base_max": 5101.20},
     "2": {"nombre": "Ingenieros Técnicos y Diplomados", "base_min": 1712.10, "base_max": 5101.20},
     "3": {"nombre": "Jefes Administrativos y de Taller", "base_min": 1489.80, "base_max": 5101.20},

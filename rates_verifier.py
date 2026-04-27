@@ -42,8 +42,8 @@ _OUR_SS_2026 = {
     "trab_desempleo_temporal": 1.60,
     "trab_fp": 0.10,
     "trab_mei": 0.15,  # RDL 3/2026 — actualizado 2026-03-22
-    "base_min_mensual": 1424.50,  # Orden ISM/31/2026 — actualizado 2026-03-22
-    "base_max_mensual": 5101.20,  # Orden ISM/31/2026 — actualizado 2026-03-22
+    "base_min_mensual": 1424.50,  # Orden PJC/297/2026 — actualizado 2026-03-22
+    "base_max_mensual": 5101.20,  # Orden PJC/297/2026 — actualizado 2026-03-22
 }
 
 # Tramos estatales IRPF que tenemos (límite superior, tipo)
